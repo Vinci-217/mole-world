@@ -2,6 +2,18 @@
 
 一个以中世纪欧洲庄园为主题的单机 3D 漫游原型。地图采用城堡、中央广场、酒馆与石桥相连的结构，建筑和文字为原创场景设定，并非《摩尔庄园》原版地图或官方产品。
 
+## 直接查看，不需要安装
+
+- [在线预览](https://raw.githack.com/Vinci-217/mole-world/gh-pages/index.html)：第三方静态预览入口；当前云环境的出站规则拦截该预览域名，因此外网访问尚未在此验证。
+- [下载离线版](https://github.com/Vinci-217/mole-world/raw/refs/heads/gh-pages/downloads/Eldermere-Offline.zip)：解压后用电脑 Chrome 或 Edge 打开 `Eldermere-Offline.html`。全部模型、脚本和贴图内嵌，无需 Node.js、服务器、模型 API 或网络连接。
+- [下载网站发布包](https://github.com/Vinci-217/mole-world/raw/refs/heads/gh-pages/downloads/Eldermere-Website.zip)：完整静态网站，可上传至 Netlify Drop、Cloudflare Pages 等平台。
+
+下载链接已经通过公开 HTTP 请求验证。离线版本在禁网的 Chromium 上实际加载五个模型、切换雨天并完成第一人称行走；网站版本也通过了部署在子路径下的浏览器检查。
+
+源码位于 `main`，静态发布文件位于 `gh-pages`。需要正式 GitHub Pages 网址时，在该仓库的 **Settings → Pages** 中将发布来源设置为 **Deploy from a branch → gh-pages → /(root)**。当前只发布了静态文件，没有声称 GitHub Pages 已启用。
+
+生成新的离线 HTML 和静态 ZIP：`npm run release`，输出至 `artifacts/release/`。下载包不包含任何密钥或生成任务回执。
+
 ## 运行
 
 需要 Node.js 22.12+，当前云环境使用 Node.js 24.19.0。
