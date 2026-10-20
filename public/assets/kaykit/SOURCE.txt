@@ -1,0 +1,5 @@
+KayKit Medieval Hexagon Pack 1.0 by Kay Lousberg
+https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0
+Commit: 84fa4e91af6a88989be7c99e0891cede11f2ca38
+License: CC0 1.0 Universal
+Converted to GLB using Blender 4.3.2. Original gradient atlas replaced by original tiling stone, slate and timber maps; planar UVs and roughness/normal mapping applied.

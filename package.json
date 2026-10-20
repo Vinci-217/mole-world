@@ -1,0 +1,25 @@
+{
+  "name": "eldermere-mole-world",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "release": "npm run build && python3 scripts/package_release.py",
+    "assets:plan": "python3 scripts/tripo_assets.py plan",
+    "assets:generate": "python3 scripts/tripo_assets.py generate",
+    "test": "python3 -m unittest discover -s tests -p 'test_*.py' && playwright test"
+  },
+  "dependencies": {
+    "lucide": "0.468.0",
+    "three": "0.180.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "@types/three": "0.180.0",
+    "typescript": "5.9.3",
+    "vite": "7.1.12"
+  }
+}
