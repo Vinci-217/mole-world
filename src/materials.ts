@@ -49,12 +49,14 @@ export function createMaterials() {
   };
   const stone = make('stone', '#c0ae88', 2);
   const lightStone = make('stone', '#e0d1aa', 3);
-  const roof = make('roof', '#a44d3a', 4);
+  // A neutral albedo can be tinted red, blue or green without multiplying two
+  // unrelated pigment colors into a nearly black roof.
+  const roof = make('roof', '#c8c0b2', 4); roof.color.set('#a44d3a');
   const wood = make('wood', '#7a593c', 5);
   const darkWood = make('wood', '#4b3929', 6);
   const plaster = make('plaster', '#e5d8b8', 7);
-  const ground = make('ground', '#82965b', 8, 40);
-  const path = make('path', '#c0b698', 9, 7);
+  const ground = make('ground', '#a3ac77', 8, 55);
+  const path = make('path', '#aa9d83', 9, 7);
   const bark = make('wood', '#6a593e', 10);
   const foliage = [0x405e38, 0x577644, 0x71894d, 0x839b59, 0x887a46, 0x9b8757].map(color => new THREE.MeshStandardMaterial({ color, roughness: 1 }));
   const iron = new THREE.MeshStandardMaterial({ color: 0x343d36, metalness: .65, roughness: .5 });

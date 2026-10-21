@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { createMaterials, seeded, radialTexture } from './materials';
 import { CourtyardLife } from './mole-life';
+import { Vegetation } from './vegetation';
 
 export type Weather = 'clear' | 'mist' | 'rain' | 'snow';
 export type Collision = { x: number; z: number; w: number; d: number };
@@ -16,7 +17,9 @@ export const destinations: {name: string; description: string; position: [number
 export function groundHeight(x: number, z: number) {
   // The walkable courtyard stays level; the surrounding terrain rises into hills.
   const outside = Math.max(0, Math.max(Math.abs(x) - 34, Math.abs(z) - 42));
-  return -.08 + Math.sin(x * .11) * Math.cos(z * .13) * Math.min(.12, outside * .03) + Math.min(5, outside * .14);
+  const distant = Math.max(0, Math.max(Math.abs(x) - 45, Math.abs(z) - 55));
+  return -.08 + Math.sin(x * .11) * Math.cos(z * .13) * Math.min(.12, outside * .03) + Math.min(5, outside * .14)
+    + Math.sin(x * .065 + 1) * Math.cos(z * .07) * Math.min(9, distant * .23);
 }
 
 export class EstateWorld {
@@ -37,6 +40,8 @@ export class EstateWorld {
   readonly birds: T.Group[] = [];
   readonly externalAssets: string[] = [];
   readonly life = new CourtyardLife();
+  readonly vegetation = new Vegetation(217);
+  courtyardVisible = true;
   private rand = seeded(217);
   private fireflySeeds: number[] = [];
   private leafParticles: T.Points;
@@ -48,7 +53,7 @@ export class EstateWorld {
   private replacements = new Map<string, T.Group>();
 
   constructor() {
-    this.group.add(this.staticRoot, this.assetRoot);
+    this.group.add(this.staticRoot, this.assetRoot, this.vegetation.group);
     this.foliageMaterial = this.materials.foliage[0];
     this.terrain(); this.courtyard(); this.gardens(); this.nature(); this.details(); this.flushBatch();
     this.group.add(this.life.group);
@@ -58,6 +63,7 @@ export class EstateWorld {
     this.rain = this.createRain(); this.group.add(this.rain);
     this.snow = this.particles(1800, new T.PointsMaterial({ map: radialTexture(), color: 0xe7eeee, size: .12, transparent: true, opacity: .7, depthWrite: false }), 110, 55, -3);
     this.smoke = this.particles(90, new T.PointsMaterial({ map: radialTexture(), color: 0x969b8b, size: 2.7, transparent: true, opacity: .09, depthWrite: false }), 3, 10, 0);
+    this.smoke.visible=false;
     const smokePos = this.smoke.geometry.attributes.position;
     for (let i = 0; i < smokePos.count; i++) { smokePos.setXYZ(i, 18 + this.rand() * 2, 8 + this.rand() * 10, -4 + this.rand() * 2); }
     this.fountainDrops = this.particles(240, new T.PointsMaterial({ color: 0xc8ded7, size: .065, transparent: true, opacity: .75, depthWrite: false }), 1, 1, 0);
@@ -79,24 +85,38 @@ export class EstateWorld {
       // All primitives have position, normal and UV attributes.
       const compatible = geometries.map(g => g.index ? g.toNonIndexed() : g);
       const merged = mergeGeometries(compatible, false);
-      if (merged) {const mesh = new T.Mesh(merged, mat); mesh.castShadow = mat !== this.materials.ground; mesh.receiveShadow = true; this.staticRoot.add(mesh);}
+      if (merged) {this.projectSurfaceUVs(merged,mat); const mesh = new T.Mesh(merged, mat); mesh.castShadow = mat !== this.materials.ground; mesh.receiveShadow = true; this.staticRoot.add(mesh);}
       for (const g of geometries) g.dispose();
       for (const g of compatible) g.dispose();
     }
     this.batch.clear();
+  }
+  private projectSurfaceUVs(geometry: T.BufferGeometry, material: T.Material) {
+    if(material!==this.materials.path && material!==this.materials.ground)return;
+    const position=geometry.attributes.position;
+    const uv=geometry.attributes.uv;
+    const scale=material===this.materials.path ? 1/7 : 1/340;
+    for(let i=0;i<position.count;i++)uv.setXY(i,position.getX(i)*scale,position.getZ(i)*scale);
+    uv.needsUpdate=true;
   }
   private collide(x: number, z: number, w: number, d: number) { this.collisions.push({ x, z, w, d }); }
 
   private terrain() {
     const geo = new T.PlaneGeometry(340, 340, 110, 110); geo.rotateX(-Math.PI / 2);
     const p = geo.attributes.position;
-    for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i); const out = Math.max(0, Math.max(Math.abs(x) - 45, Math.abs(z) - 55)); p.setY(i, groundHeight(x, z) + Math.sin(x * .065 + 1) * Math.cos(z * .07) * Math.min(9, out * .23)); }
-    geo.computeVertexNormals(); const ground = new T.Mesh(geo, this.materials.ground); ground.receiveShadow = true; this.staticRoot.add(ground);
-    const mountainMat = new T.MeshStandardMaterial({color: 0x3d5146, roughness: 1, flatShading: true});
-    for (let i = 0; i < 35; i++) {
-      const theta = i / 35 * Math.PI * 2; const radius = 145 + this.rand() * 35;
-      const h = 15 + this.rand() * 37; const g = new T.IcosahedronGeometry(1, 2); g.scale(25 + this.rand() * 25,h,25 + this.rand() * 25);
-      this.mesh(g, mountainMat, [Math.cos(theta) * radius, -4, Math.sin(theta) * radius]);
+    const colors:number[]=[];const color=new T.Color();
+    for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i); p.setY(i, groundHeight(x, z));
+      const patch=(Math.sin(x*.075+Math.sin(z*.1))*Math.cos(z*.06)+1)*.5;
+      color.setHex(0x718852).lerp(new T.Color(0xb1ae73),patch*.42);colors.push(color.r,color.g,color.b);
+    }
+    geo.setAttribute('color',new T.Float32BufferAttribute(colors,3));const terrainMaterial=this.materials.ground.clone();terrainMaterial.vertexColors=true;
+    geo.computeVertexNormals(); const ground = new T.Mesh(geo, terrainMaterial); ground.receiveShadow = true; this.staticRoot.add(ground);
+    const mountainMat = new T.MeshStandardMaterial({color: 0x425b51, roughness: 1});
+    // Smooth overlapping ridgelines replace the conspicuous polygon boulders.
+    for (let i = 0; i < 18; i++) {
+      const theta = i / 18 * Math.PI * 2; const radius = 174 + this.rand() * 16;
+      const h = 12 + this.rand() * 22; const g = new T.SphereGeometry(1,24,16); g.scale(37 + this.rand() * 23,h,35 + this.rand() * 25);
+      this.mesh(g, mountainMat, [Math.cos(theta) * radius, -5, Math.sin(theta) * radius]);
     }
   }
 
@@ -108,7 +128,8 @@ export class EstateWorld {
     const rim = new T.TorusGeometry(9.8, .12, 5, 90); this.mesh(rim, lightStone, [0, .13, 0], [Math.PI / 2, 0, 0]);
     const fountain = new T.Group();
     this.cylinder(3.4, 3.6, .18, lightStone, [0, .17, 0], 40, fountain);
-    this.cylinder(3, 3.25, .42, stone, [0, .4, 0], 40, fountain);
+    this.mesh(new T.CylinderGeometry(3,3.25,.42,40,1,true),stone,[0,.4,0],undefined,fountain);
+    this.cylinder(3.2,3.2,.1,stone,[0,.24,0],40,fountain);
     this.mesh(new T.TorusGeometry(3.1, .15, 6, 60), lightStone, [0, .65, 0], [Math.PI / 2, 0, 0], fountain);
     this.cylinder(.43, .68, 2.2, stone, [0, 1.5, 0], 14, fountain);
     this.cylinder(1.45, .25, .45, lightStone, [0, 2.6, 0], 30, fountain);
@@ -116,7 +137,15 @@ export class EstateWorld {
     this.cylinder(.16, .27, .75, stone, [0, 3, 0], 12, fountain);
     this.mesh(new T.SphereGeometry(.23, 12, 8), gold, [0, 3.5, 0], undefined, fountain);
     fountain.name = 'fountain'; this.staticRoot.add(fountain); this.replacements.set('fountain', fountain); this.collide(0, 0, 6.7, 6.7);
-    const basin = new T.Mesh(new T.CircleGeometry(2.95, 40), new T.MeshPhysicalMaterial({color: 0x5b8176, roughness: .18, metalness: .3, transparent: true, opacity: .8})); basin.rotation.x = -Math.PI / 2; basin.position.y = .57; fountain.add(basin);
+    const fountainWater=new T.MeshPhysicalMaterial({color:0x397f79,roughness:.13,metalness:.18,transparent:true,opacity:.88,clearcoat:1,clearcoatRoughness:.1});
+    const basin = new T.Mesh(new T.CircleGeometry(2.95, 48),fountainWater); basin.rotation.x = -Math.PI / 2; basin.position.y = .59; fountain.add(basin);
+    const upperWater=new T.Mesh(new T.CircleGeometry(1.25,32),fountainWater);upperWater.rotation.x=-Math.PI/2;upperWater.position.y=2.84;fountain.add(upperWater);
+    const streamMaterial=new T.MeshPhysicalMaterial({color:0x8bc9cb,roughness:.08,transparent:true,opacity:.4,metalness:.08});
+    for(let i=0;i<12;i++){
+      const angle=i/12*Math.PI*2,points:T.Vector3[]=[];
+      for(let j=0;j<=12;j++){const u=j/12,r=.2+u*2.05;points.push(new T.Vector3(Math.cos(angle)*r,2.97+u*1.2-u*u*3.58,Math.sin(angle)*r));}
+      this.mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points),16,.022,4,false),streamMaterial,[0,0,0],undefined,fountain);
+    }
     for (let i = 0; i < 40; i++) {const t = i / 40 * Math.PI * 2; this.box(.28, .12, .35, lightStone, [Math.sin(t) * 10.5, .12, Math.cos(t) * 10.5], undefined, [0, t, 0]);}
     for (const x of [-1, 1]) for (const z of [-1, 1]) {this.flowerBed(x * 8.5, z * 8.5);}
   }
@@ -302,23 +331,22 @@ export class EstateWorld {
   }
 
   private nature() {
-    for (let i = 0; i < 150; i++) {
-      const theta = this.rand() * Math.PI * 2; const r = 42 + this.rand() * 100; const x = Math.sin(theta) * r, z = Math.cos(theta) * r;
-      if (z > 20 && z < 30 && Math.abs(x) < 65) continue;
-      if (this.rand() > .8) this.pine(x, z, 1 + this.rand() * 1.4); else this.tree(x, z, .8 + this.rand() * .9, false);
+    for (let i = 0; i < 95; i++) {
+      const theta = this.rand() * Math.PI * 2; const r = 46 + this.rand() * 88;
+      const x = Math.sin(theta) * r, z = Math.cos(theta) * r;
+      if (z > 19 && z < 31 && Math.abs(x) < 75) continue;
+      this.vegetation.addTree(x, groundHeight(x,z), z, .7 + this.rand()*.55, this.rand()>.8?'pine':'oak');
     }
-    for (const [x, z, s] of [[-32, 2, 1.7], [32, 6, 1.6], [-18, 18, 1.2], [18, 18, 1.1], [-29, -26, 1.5], [29, -27, 1.6], [-32, 31, 1.5], [25, 32, 1.4]]) this.tree(x, z, s, false);
-    // Instanced grasses: thousands of blades in two draw calls.
-    const blade = new T.PlaneGeometry(.12, .24); blade.translate(0, .12, 0);
-    const mat = new T.MeshStandardMaterial({color: 0xffffff, side: T.DoubleSide, roughness: 1});
-    const grass = new T.InstancedMesh(blade, mat, 7000); const dummy = new T.Object3D();
-    for (let i = 0; i < 7000; i++) {
-      const x = (this.rand() - .5) * 140, z = (this.rand() - .5) * 140;
-      const forbidden = Math.hypot(x, z) < 12 || (Math.abs(x) < 17 && z < 10 && z > -42) || Math.abs(x) < 3.8 || (Math.abs(z) < 3 && Math.abs(x) < 30) || (z > 20 && z < 30);
-      dummy.position.set(x, forbidden ? -5 : groundHeight(x, z), z); dummy.rotation.set((this.rand() - .5) * .3, this.rand() * Math.PI * 2, .1); dummy.scale.setScalar(.5 + this.rand()); dummy.updateMatrix(); grass.setMatrixAt(i, dummy.matrix);
-      grass.setColorAt(i, new T.Color().setHSL(.17 + this.rand() * .08, .22, .2 + this.rand() * .17));
+    for (const [x,z,s] of [[-32,2,1.1],[35,6,1],[-21,18,.75],[23,18,.7],[-29,-29,1.1],[30,-29,1.2],[-34,35,1],[34,37,.8]]) {
+      this.vegetation.addTree(x,groundHeight(x,z),z,s,'oak');this.collide(x,z,.7,.7);
     }
-    grass.receiveShadow = true; this.staticRoot.add(grass);
+    for(let i=0;i<65;i++){
+      const x=(this.rand()-.5)*110,z=(this.rand()-.5)*100;
+      const forbidden=Math.hypot(x,z)<12 || Math.abs(x)<18&&z<12&&z>-43 || Math.abs(x)<4 || Math.abs(z)<4 || z>18&&z<32;
+      if(!forbidden)this.vegetation.addMeadow(x,groundHeight(x,z),z,3+this.rand()*3,65);
+    }
+    for(const x of [-20,20,-30,30])for(const z of [-11,10,34])this.vegetation.addFlowerPatch(x,groundHeight(x,z),z,2,25);
+    this.vegetation.finalize();
     const rockMaterial = new T.MeshStandardMaterial({color:0x73796c,roughness:1,bumpMap:this.materials.bark.bumpMap,bumpScale:.12});
     for (let i = 0; i < 90; i++) { const x = (this.rand() - .5) * 140, z = 24 + (this.rand() - .5) * 10; if (Math.abs(x) < 5) continue; const geo = new T.IcosahedronGeometry(.4 + this.rand() * 1.1, 0); geo.scale(1.5, .7, 1); this.mesh(geo, rockMaterial, [x, -.1, z]); }
     for (let i = 0; i < 7; i++) {
@@ -417,6 +445,8 @@ export class EstateWorld {
       } catch (err) {console.warn(`Asset unavailable: ${entry.id}`, err);}
     }
     if(!this.externalAssets.includes('mole-castle'))throw new Error('The referenced Mole Manor castle model could not be loaded.');
+    onProgress('正在栽种树林与草地');
+    await this.vegetation.loadAssets();
     this.optimizeStaticGeometry();
   }
 
@@ -433,11 +463,17 @@ export class EstateWorld {
       if(!collected.has(o.material))collected.set(o.material,[]);collected.get(o.material)!.push(compatible);remove.push(o);
     });
     for(const mesh of remove){mesh.removeFromParent();mesh.geometry.dispose();}
-    for(const [material,geometries] of collected){const merged=mergeGeometries(geometries,false);if(merged){const mesh=new T.Mesh(merged,material);mesh.castShadow=material!==this.materials.ground;mesh.receiveShadow=true;this.staticRoot.add(mesh);}for(const geo of geometries)geo.dispose();}
+    for(const [material,geometries] of collected){const merged=mergeGeometries(geometries,false);if(merged){this.projectSurfaceUVs(merged,material);const mesh=new T.Mesh(merged,material);mesh.castShadow=material!==this.materials.ground;mesh.receiveShadow=true;this.staticRoot.add(mesh);}for(const geo of geometries)geo.dispose();}
+  }
+
+  setCourtyardVisible(visible: boolean) {
+    this.courtyardVisible=visible;
+    for(const root of [this.staticRoot,this.assetRoot,this.vegetation.group,this.life.group,this.water,this.fountainDrops,...this.birds,...this.lamps,...this.lanternSprites])root.visible=visible;
   }
 
   update(t: number, dt: number, weather: Weather, daylight: number) {
     this.life.update(t);
+    this.vegetation.update(t,weather==='rain'?1.3:.7);
     this.water.material.uniforms.uTime.value = t; this.water.material.uniforms.uLight.value = daylight; this.water.material.uniforms.uRain.value = weather === 'rain' ? 1 : 0;
     this.materials.window.emissiveIntensity = .2 + (1 - daylight) * 1.8;
     for (const light of this.lamps) light.intensity = (.6 + (1 - daylight) * 7) * (1 + Math.sin(t * 3 + light.position.x) * .035);

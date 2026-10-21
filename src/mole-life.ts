@@ -13,12 +13,14 @@ export class CourtyardLife {
   private readonly eyes = clay(0x292a2a, .2);
   private readonly light = clay(0xffffff, .3);
 
-  constructor() {
-    this.mole(-7, 11, 0xe4aa45, 0x5987b1, false, .45);
-    this.mole(7, 13, 0xe89a8c, 0x829e64, false, -.7);
-    this.mole(3, 17, 0xcb8357, 0xa86757, true, .25);
-    this.mole(-6, -16, 0xeab466, 0xb7453d, false, 0, true);
-    this.mole(6, -16, 0xeab466, 0xb7453d, false, 0, true);
+  constructor(ramsOnly=false) {
+    if(!ramsOnly){
+      this.mole(-7, 11, 0xe4aa45, 0x5987b1, false, .45);
+      this.mole(7, 13, 0xe89a8c, 0x829e64, false, -.7);
+      this.mole(3, 17, 0xcb8357, 0xa86757,  true, .25);
+      this.mole(-6, -16, 0xeab466, 0xb7453d, false, 0, true);
+      this.mole(6, -16, 0xeab466, 0xb7453d, false, 0, true);
+    }
     this.ram(-9, 12, 0xa4c765, 0);
     this.ram(9, 13.5, 0xe7b771, 2);
     this.ram(-16, -1, 0xb1a4d3, 4);

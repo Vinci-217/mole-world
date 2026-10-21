@@ -1,0 +1,104 @@
+"""Publish the tested production build without switching the source checkout.
+
+Run npm run release first, then python3 scripts/publish_site.py --push.
+Only dist, packaged downloads and captured screenshots are distributed.
+"""
+from __future__ import annotations
+import argparse
+import html
+from pathlib import Path
+import shutil
+import subprocess
+
+ROOT = Path(__file__).resolve().parents[1]
+STAGE = ROOT / 'artifacts/publish'
+RELEASE = ROOT / 'artifacts/release'
+REGIONS = [
+    ('castle', '摩尔城堡'), ('taotao-street', '淘淘乐街'), ('love-church', '爱心教堂'),
+    ('happy-farm', '开心农场'), ('sunshine-ranch', '阳光牧场'), ('berry-jungle', '浆果丛林'),
+    ('moraya-mountain', '摩尔拉雅雪山'), ('mystery-lake', '神秘湖'), ('ram-academy', '拉姆学院'),
+    ('outpost', '前哨站'), ('black-forest', '黑森林'), ('amusement-park', '游乐场'),
+]
+
+def git(*args: str, data: bytes | None = None) -> bytes:
+    return subprocess.check_output(['git', *args], cwd=ROOT, input=data)
+
+def tree(directory: Path) -> str:
+    records = []
+    for path in sorted(directory.iterdir(), key=lambda p: p.name.encode()):
+        if path.is_symlink():
+            raise ValueError('Published files cannot be symbolic links.')
+        if path.is_dir():
+            mode, kind, oid = '040000', 'tree', tree(path)
+        else:
+            mode, kind = '100644', 'blob'
+            oid = git('hash-object', '-w', '--stdin', data=path.read_bytes()).decode().strip()
+        records.append(f'{mode} {kind} {oid}\t{path.name}'.encode() + b'\0')
+    return git('mktree', '-z', data=b''.join(records)).decode().strip()
+
+def stage() -> None:
+    required = [ROOT / 'dist/index.html', RELEASE / 'MoleManor-Offline.html',
+                RELEASE / 'MoleManor-Offline.zip', RELEASE / 'MoleManor-Website.zip']
+    if not all(path.is_file() for path in required):
+        raise SystemExit('Run npm run release before publishing.')
+    if STAGE.exists():
+        shutil.rmtree(STAGE)
+    shutil.copytree(ROOT / 'dist', STAGE)
+    (STAGE / '.nojekyll').touch()
+    shutil.copy2(RELEASE / 'MoleManor-Offline.html', STAGE / 'offline.html')
+    downloads = STAGE / 'downloads'
+    downloads.mkdir()
+    for name in ['MoleManor-Offline.zip', 'MoleManor-Website.zip', '打开说明.txt']:
+        shutil.copy2(RELEASE / name, downloads / name)
+    for filename, target in [('manor-desktop.png', 'preview.png'), ('manor-night.png', 'preview-night.png'),
+                             ('manor-mobile.png', 'preview-mobile.png')]:
+        screenshot = ROOT / 'artifacts' / filename
+        if screenshot.is_file():
+            shutil.copy2(screenshot, STAGE / target)
+    source = ROOT / 'artifacts/world-previews'
+    cards = []
+    previews = STAGE / 'previews'
+    previews.mkdir()
+    for region_id, label in REGIONS:
+        screenshot = source / f'{region_id}.png'
+        if not screenshot.is_file():
+            continue
+        shutil.copy2(screenshot, previews / screenshot.name)
+        cards.append(f'<figure><a href="previews/{region_id}.png"><img src="previews/{region_id}.png" '
+                     f'loading="lazy" alt="{html.escape(label)}实时场景截图"></a><figcaption>{html.escape(label)}'
+                     ' <small>户外场景初版</small></figcaption></figure>')
+    atlas = source / 'atlas.png'
+    if atlas.is_file():
+        shutil.copy2(atlas, previews / 'atlas.png')
+    gallery = '''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>摩尔庄园 · 实机图集</title><style>body{margin:0;padding:40px;background:#152c27;color:#e8dfc4;font:15px/1.8 system-ui}
+main{max-width:1440px;margin:auto}h1{font-weight:400;letter-spacing:3px}p{color:#afbcac}a{color:#f0cd8e}.grid{display:grid;
+grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}figure{margin:0;background:#203a30;border:1px solid #61755e;
+border-radius:8px;overflow:hidden}img{width:100%;display:block}figcaption{padding:14px}small{float:right;color:#a7b49d;font-size:11px}
+@media(max-width:600px){body{padding:20px}.grid{grid-template-columns:1fr}}</style><main><h1>摩尔庄园 · 实机图集</h1>
+<p>以下均为当前程序的实时 3D 截图。12 个导览地区仍在制作，布局尚未按某个年代一比一还原；室内和独立子地图未完成，画质未达到 3A 标准。</p>
+<p><a href="index.html">进入世界 →</a>　<a href="downloads/MoleManor-Offline.zip">下载离线版</a></p><div class="grid">'''
+    (STAGE / 'gallery.html').write_text(gallery + ''.join(cards) + '</div></main></html>')
+    for path in STAGE.rglob('*'):
+        if path.is_file() and any(part.startswith('.env') or part == '.asset-tasks' for part in path.parts):
+            raise ValueError('Private file found in published directory.')
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--push', action='store_true')
+    args = parser.parse_args()
+    stage()
+    source = git('rev-parse', 'HEAD').decode().strip()
+    previous = git('ls-remote', 'origin', 'refs/heads/gh-pages').decode().split()
+    command = ['commit-tree', tree(STAGE)]
+    if previous:
+        command.extend(['-p', previous[0]])
+    commit = git(*command, '-m', f'Publish browser world from {source[:12]}').decode().strip()
+    (RELEASE / 'publish-commit.txt').write_text(commit + '\n')
+    if args.push:
+        subprocess.check_call(['git', 'push', 'origin', 'HEAD:refs/heads/main', f'{commit}:refs/heads/gh-pages'], cwd=ROOT)
+    print(f'Static commit: {commit}')
+    print(f'Preview: https://raw.githack.com/Vinci-217/mole-world/{commit}/index.html')
+
+if __name__ == '__main__':
+    main()

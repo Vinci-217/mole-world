@@ -27,6 +27,14 @@ for asset in manifest['assets']:
         raise ValueError('Asset must be inside the production directory.')
     asset['path'] = 'data:model/gltf-binary;base64,' + encoded(local)
 
+nature_paths = {'oak': 'oak.glb', 'oakDetailed': 'oak-detailed.glb', 'pine': 'pine.glb',
+                'grass': 'meadow-grass.png', 'fern': 'woodland-fern.png'}
+nature = {}
+for key, name in nature_paths.items():
+    mime = 'model/gltf-binary' if name.endswith('.glb') else 'image/png'
+    nature[key] = 'data:' + mime + ';base64,' + encoded(DIST / 'assets/nature' / name)
+html = html.replace('</head>', '<script type="application/json" id="offline-nature">' + json.dumps(nature, separators=(',', ':')) + '</script></head>')
+
 styles = re.findall(r'<link\b[^>]*rel="stylesheet"[^>]*>', html)
 for tag in styles:
     href = re.search(r'href="([^"]+)"', tag).group(1)
@@ -53,7 +61,7 @@ if re.search(r'tsk_[A-Za-z0-9_-]{24,}', html):
 offline = OUT / 'MoleManor-Offline.html'
 offline.write_text(html)
 
-guide = '''摩尔庄园 · 经典城堡前庭 · 打开说明
+guide = '''摩尔庄园 · 经典世界 · 打开说明
 
 一、直接体验
 下载 MoleManor-Offline.html，使用电脑上的 Chrome 或 Edge 打开。
@@ -61,6 +69,7 @@ guide = '''摩尔庄园 · 经典城堡前庭 · 打开说明
 初次进入请等待场景加载。需要支持 WebGL 2 的浏览器，建议开启硬件加速。
 点击「走进庄园」，WASD 行走，按住画面拖动环顾，Esc 退出。
 右侧可切换天气和时间，点击扬声器开启音乐。
+点击上方「探索世界」打开世界地图，可前往12处地点的独立场景初版。
 手机文件预览器通常不支持完整 WebGL，请使用网站版本或电脑浏览器。
 
 二、发布为网站
@@ -70,8 +79,14 @@ MoleManor-Website.zip 内是完整的静态网站，没有服务端或密钥。
 也可部署到 Cloudflare Pages，构建输出目录为该文件夹根目录。
 请保留 assets 文件夹。当前版本支持部署在子目录中。
 
-这是场景原型：已有天气、昼夜、漫游、光影与合成音乐。
+这是场景原型：12处地点已搭建户外初版，室内和子地图尚未建成，画质未达到3A标准。
+已有天气、昼夜、漫游、接触阴影、植被模型与合成音乐。
 主城堡按页游参考在 Blender 中重构，带实体屋瓦、钟面和王冠入口；前庭布局为3D空间转译，并非一比一官方地图。
+
+树木模型：BabylonJS Assets contributors，CC BY 4.0，已调整格式、纹理与尺寸。
+来源 https://github.com/BabylonJS/Assets/tree/c81f5d744fe8d41acfebd89eaeb7008c6f9659e3/meshes/Trees
+许可 https://creativecommons.org/licenses/by/4.0/
+完整来源、修改说明及许可证随压缩包附带。
 '''
 (OUT / '打开说明.txt').write_text(guide)
 with zipfile.ZipFile(OUT / 'MoleManor-Website.zip', 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
@@ -81,5 +96,7 @@ with zipfile.ZipFile(OUT / 'MoleManor-Website.zip', 'w', zipfile.ZIP_DEFLATED, c
 with zipfile.ZipFile(OUT / 'MoleManor-Offline.zip', 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
     archive.write(offline, offline.name)
     archive.write(OUT / '打开说明.txt', '打开说明.txt')
-for path in OUT.iterdir():
+    archive.write(DIST / 'assets/nature/SOURCE.txt', '素材来源.txt')
+    archive.write(DIST / 'assets/nature/LICENSE-BabylonJS.txt', 'LICENSE-BabylonJS.txt')
+for path in [offline,OUT/'MoleManor-Offline.zip',OUT/'MoleManor-Website.zip',OUT/'打开说明.txt']:
     print(path.name, path.stat().st_size, 'bytes', hashlib.sha256(path.read_bytes()).hexdigest())
