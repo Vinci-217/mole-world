@@ -39,8 +39,11 @@
     "implementationStatusCounts": {
       "courtyard-prototype-only": 1,
       "outdoor-prototype-tested": 10,
-      "unbuilt": 302
-    }
+      "outdoor-site-prototype-tested": 8,
+      "unbuilt": 294
+    },
+    "runtimeOutdoorSubmaps": 8,
+    "runtimeUnbuiltSublocations": 23
   },
   "schema": {
     "maps.id": "第三方表内整数编号，非本项目运行时接口",
@@ -58,6 +61,7 @@
     "maps.implementationStatus": [
       "courtyard-prototype-only",
       "outdoor-prototype-tested",
+      "outdoor-site-prototype-tested",
       "unbuilt"
     ],
     "scenes.status": [
@@ -459,21 +463,36 @@
       "name": "浆果秘道",
       "mapId": 40,
       "regionId": "berry-jungle",
-      "status": "unbuilt"
+      "status": "outdoor-site-prototype-tested",
+      "worldPositionXZ": [
+        127,
+        137
+      ],
+      "officialLayoutVerified": false
     },
     {
       "id": "rainbow-falls",
       "name": "彩虹瀑布",
       "mapId": 42,
       "regionId": "berry-jungle",
-      "status": "unbuilt"
+      "status": "outdoor-site-prototype-tested",
+      "worldPositionXZ": [
+        242,
+        264
+      ],
+      "officialLayoutVerified": false
     },
     {
       "id": "strength-spring",
       "name": "力量之泉",
       "mapId": 43,
       "regionId": "berry-jungle",
-      "status": "unbuilt"
+      "status": "outdoor-site-prototype-tested",
+      "worldPositionXZ": [
+        119,
+        267
+      ],
+      "officialLayoutVerified": false
     },
     {
       "id": "moraya-foot",
@@ -487,14 +506,24 @@
       "name": "摩尔拉雅滑冰场",
       "mapId": 5,
       "regionId": "moraya-mountain",
-      "status": "unbuilt"
+      "status": "outdoor-site-prototype-tested",
+      "worldPositionXZ": [
+        -57,
+        -187
+      ],
+      "officialLayoutVerified": false
     },
     {
       "id": "moraya-summit",
       "name": "摩尔拉雅山顶",
       "mapId": 37,
       "regionId": "moraya-mountain",
-      "status": "unbuilt"
+      "status": "outdoor-site-prototype-tested",
+      "worldPositionXZ": [
+        5,
+        -288
+      ],
+      "officialLayoutVerified": false
     },
     {
       "id": "hunter-cabin",
@@ -529,14 +558,24 @@
       "name": "拉姆运动场",
       "mapId": 68,
       "regionId": "ram-academy",
-      "status": "unbuilt"
+      "status": "outdoor-site-prototype-tested",
+      "worldPositionXZ": [
+        250,
+        -200
+      ],
+      "officialLayoutVerified": false
     },
     {
       "id": "knight-training",
       "name": "骑士训练场",
       "mapId": 62,
       "regionId": "outpost",
-      "status": "unbuilt"
+      "status": "outdoor-site-prototype-tested",
+      "worldPositionXZ": [
+        -244,
+        -237
+      ],
+      "officialLayoutVerified": false
     },
     {
       "id": "fortress-top",
@@ -578,7 +617,12 @@
       "name": "摩摩赛车场",
       "mapId": 36,
       "regionId": "amusement-park",
-      "status": "unbuilt"
+      "status": "outdoor-site-prototype-tested",
+      "worldPositionXZ": [
+        -425,
+        101
+      ],
+      "officialLayoutVerified": false
     }
   ],
   "maps": [
@@ -652,7 +696,7 @@
       "regionAssociationEvidence": "runtime-registry-curation",
       "kind": "outdoor",
       "kindEvidence": "name-suggests-outdoor",
-      "implementationStatus": "unbuilt",
+      "implementationStatus": "outdoor-site-prototype-tested",
       "officialLayoutVerified": false
     },
     {
@@ -948,7 +992,7 @@
       "regionAssociationEvidence": "runtime-registry-curation",
       "kind": "outdoor",
       "kindEvidence": "name-suggests-outdoor",
-      "implementationStatus": "unbuilt",
+      "implementationStatus": "outdoor-site-prototype-tested",
       "officialLayoutVerified": false
     },
     {
@@ -960,7 +1004,7 @@
       "regionAssociationEvidence": "runtime-registry-curation",
       "kind": "outdoor",
       "kindEvidence": "name-suggests-outdoor",
-      "implementationStatus": "unbuilt",
+      "implementationStatus": "outdoor-site-prototype-tested",
       "officialLayoutVerified": false
     },
     {
@@ -984,7 +1028,7 @@
       "regionAssociationEvidence": "runtime-registry-curation",
       "kind": "submap",
       "kindEvidence": "name-suggests-dependent-map",
-      "implementationStatus": "unbuilt",
+      "implementationStatus": "outdoor-site-prototype-tested",
       "officialLayoutVerified": false
     },
     {
@@ -1008,7 +1052,7 @@
       "regionAssociationEvidence": "runtime-registry-curation",
       "kind": "outdoor",
       "kindEvidence": "name-suggests-outdoor",
-      "implementationStatus": "unbuilt",
+      "implementationStatus": "outdoor-site-prototype-tested",
       "officialLayoutVerified": false
     },
     {
@@ -1020,7 +1064,7 @@
       "regionAssociationEvidence": "runtime-registry-curation",
       "kind": "outdoor",
       "kindEvidence": "name-suggests-outdoor",
-      "implementationStatus": "unbuilt",
+      "implementationStatus": "outdoor-site-prototype-tested",
       "officialLayoutVerified": false
     },
     {
@@ -1256,7 +1300,7 @@
       "regionAssociationEvidence": "runtime-registry-curation",
       "kind": "submap",
       "kindEvidence": "name-suggests-dependent-map",
-      "implementationStatus": "unbuilt",
+      "implementationStatus": "outdoor-site-prototype-tested",
       "officialLayoutVerified": false
     },
     {
@@ -1328,7 +1372,7 @@
       "regionAssociationEvidence": "runtime-registry-curation",
       "kind": "outdoor",
       "kindEvidence": "name-suggests-outdoor",
-      "implementationStatus": "unbuilt",
+      "implementationStatus": "outdoor-site-prototype-tested",
       "officialLayoutVerified": false
     },
     {
@@ -4547,10 +4591,15 @@
     }
   ],
   "runtimeValidation": {
-    "regionsVisited": 12,
-    "result": "browser-tour-passed",
+    "regionsResident": 12,
+    "outdoorSites": 8,
+    "result": "connected-world-browser-tests-passed",
+    "browserTests": 11,
+    "crossedOldDistrictBoundary": true,
+    "navigationRoutesChecked": 19,
+    "routeCollisionSampleStepMetres": 0.25,
     "officialLayoutVerified": false,
     "artAcceptancePassed": false,
-    "note": "逐区加载、场景几何、相机、天气与时间保留已验证；不表示美术或原作还原完成。"
+    "note": "12区驻留、11条跨地区及8条子地点导航、跨旧边界步行、远处天气、自动漫游、鸟瞰及手机地图已验证；不代表全部地图或美术已完成。"
   }
 }

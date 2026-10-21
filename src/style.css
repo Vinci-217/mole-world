@@ -266,3 +266,14 @@ body.ui-hidden #app, body.ui-hidden #vignette { opacity: 0; }
 #region-transition>span{font-size:11px;letter-spacing:4px;color:#a9b7a0;}
 #region-transition>strong{font:36px 'Songti SC',serif;letter-spacing:5px;font-weight:400;}
 #region-transition>small{font-size:10px;color:#a2ad93;}
+
+/* A navigable world stays legible at eye level. */
+.main-nav kbd{font-size:10px;margin-left:5px;opacity:.6;border:1px solid #e5cfa444;border-radius:3px;padding:1px 4px}
+.walk-location{position:absolute;top:110px;left:44px;display:grid;grid-template-columns:22px auto;gap:5px;color:#f6e8c9;text-shadow:0 2px 12px #000}
+.walk-location>span{grid-row:span 2;color:#d3b57e}.walk-location strong{font:500 22px Georgia,serif;letter-spacing:3px}.walk-location small{font-size:11px;letter-spacing:1.2px;opacity:.7}
+#route-panel{position:fixed;z-index:25;top:108px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;background:#23342de8;border:1px solid #d8bd8040;border-radius:10px;padding:12px 16px;color:#f3dfb4;box-shadow:0 8px 40px #0003;backdrop-filter:blur(14px)}
+#route-panel[hidden]{display:none}#route-panel small{display:block;font-size:10px;letter-spacing:2px;opacity:.6}#route-panel strong{display:block;margin-top:4px;font-size:15px;font-weight:500;white-space:nowrap}#route-arrow{font-size:30px;display:inline-block;transition:transform .2s}#route-distance{font-size:14px;white-space:nowrap;font-weight:400;opacity:.75}#route-auto{background:#c9ad76;color:#27372c;border:0;border-radius:5px;padding:9px 12px;font-size:12px;cursor:pointer;white-space:nowrap}#route-cancel{background:none;border:0;color:#eed9af;font-size:22px;cursor:pointer}
+.walking .environment-panel{opacity:0;pointer-events:none;transform:translateX(12px);transition:opacity .2s,transform .2s}.walking.environment-open .environment-panel{opacity:1;pointer-events:auto;transform:none}.walking.environment-open .environment-panel *{pointer-events:auto!important}.walking .map-widget{width:230px}.walking #minimap{height:160px}.walking .world-status{display:none}
+@media(max-width:760px){.walk-location{top:90px;left:20px}.walk-location strong{font-size:18px}.walk-location small{font-size:9px}#route-panel{top:151px;width:calc(100% - 32px);gap:10px;padding:10px}#route-panel strong{font-size:13px}#route-distance{font-size:12px}#route-auto{padding:8px;font-size:11px}.walking .map-widget{width:150px}.walking #minimap{height:112px}.walking .walk-hints{font-size:10px}.main-nav kbd{display:none}}
+
+.environment-toggle{border:1px solid #e6d4ac44;border-radius:20px;background:#2e4536bb;color:#ead9b5;font-size:11px;padding:8px 13px;cursor:pointer;white-space:nowrap}.walking .map-widget{bottom:74px}.walking .map-bottom svg{height:13px!important;width:13px!important}.walking .map-bottom{margin-top:0}

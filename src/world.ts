@@ -4,6 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { createMaterials, seeded, radialTexture } from './materials';
 import { CourtyardLife } from './mole-life';
 import { Vegetation } from './vegetation';
+import { roadDistance } from './world-layout';
 
 export type Weather = 'clear' | 'mist' | 'rain' | 'snow';
 export type Collision = { x: number; z: number; w: number; d: number };
@@ -52,10 +53,10 @@ export class EstateWorld {
   private batch = new Map<T.Material, T.BufferGeometry[]>();
   private replacements = new Map<string, T.Group>();
 
-  constructor() {
+  constructor(private surfaceHeight=groundHeight, private connected=false) {
     this.group.add(this.staticRoot, this.assetRoot, this.vegetation.group);
     this.foliageMaterial = this.materials.foliage[0];
-    this.terrain(); this.courtyard(); this.gardens(); this.nature(); this.details(); this.flushBatch();
+    if(!connected)this.terrain(); this.courtyard(); this.gardens(); this.nature(); this.details(); this.flushBatch();
     this.group.add(this.life.group);
     this.water = this.createWater(); this.group.add(this.water);
     this.fireflies = this.particles(190, new T.PointsMaterial({ map: radialTexture(), color: 0xe1e79a, size: .22, transparent: true, opacity: .8, blending: T.AdditiveBlending, depthWrite: false }), 55, 5, 5);
@@ -105,7 +106,7 @@ export class EstateWorld {
     const geo = new T.PlaneGeometry(340, 340, 110, 110); geo.rotateX(-Math.PI / 2);
     const p = geo.attributes.position;
     const colors:number[]=[];const color=new T.Color();
-    for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i); p.setY(i, groundHeight(x, z));
+    for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i); p.setY(i, this.surfaceHeight(x, z));
       const patch=(Math.sin(x*.075+Math.sin(z*.1))*Math.cos(z*.06)+1)*.5;
       color.setHex(0x718852).lerp(new T.Color(0xb1ae73),patch*.42);colors.push(color.r,color.g,color.b);
     }
@@ -313,7 +314,7 @@ export class EstateWorld {
   }
 
   private tree(x: number, z: number, size: number, autumn = false) {
-    const h = groundHeight(x, z); const {bark, foliage} = this.materials;
+    const h = this.surfaceHeight(x, z); const {bark, foliage} = this.materials;
     this.cylinder(.12 * size, .23 * size, 2.8 * size, bark, [x, h + 1.4 * size, z], 7);
     const mat = foliage[autumn ? 4 + Math.floor(this.rand() * 2) : Math.floor(this.rand() * 4)];
     for (let i = 0; i < 11; i++) {
@@ -326,7 +327,7 @@ export class EstateWorld {
   }
 
   private pine(x: number, z: number, size: number) {
-    const y = groundHeight(x, z); this.cylinder(.09 * size, .18 * size, size * 5, this.materials.bark, [x, y + 2.5 * size, z], 5);
+    const y = this.surfaceHeight(x, z); this.cylinder(.09 * size, .18 * size, size * 5, this.materials.bark, [x, y + 2.5 * size, z], 5);
     for (let i = 0; i < 4; i++) this.mesh(new T.ConeGeometry(size * (1.7 - i * .3), size * 2.6, 9), this.materials.foliage[i % 3], [x, y + size * (2 + i * .9), z]);
   }
 
@@ -335,17 +336,17 @@ export class EstateWorld {
       const theta = this.rand() * Math.PI * 2; const r = 46 + this.rand() * 88;
       const x = Math.sin(theta) * r, z = Math.cos(theta) * r;
       if (z > 19 && z < 31 && Math.abs(x) < 75) continue;
-      this.vegetation.addTree(x, groundHeight(x,z), z, .7 + this.rand()*.55, this.rand()>.8?'pine':'oak');
+      if(roadDistance(x,z)>5)this.vegetation.addTree(x, this.surfaceHeight(x,z), z, .7 + this.rand()*.55, this.rand()>.8?'pine':'oak');
     }
     for (const [x,z,s] of [[-32,2,1.1],[35,6,1],[-21,18,.75],[23,18,.7],[-29,-29,1.1],[30,-29,1.2],[-34,35,1],[34,37,.8]]) {
-      this.vegetation.addTree(x,groundHeight(x,z),z,s,'oak');this.collide(x,z,.7,.7);
+      this.vegetation.addTree(x,this.surfaceHeight(x,z),z,s,'oak');this.collide(x,z,.7,.7);
     }
     for(let i=0;i<65;i++){
       const x=(this.rand()-.5)*110,z=(this.rand()-.5)*100;
       const forbidden=Math.hypot(x,z)<12 || Math.abs(x)<18&&z<12&&z>-43 || Math.abs(x)<4 || Math.abs(z)<4 || z>18&&z<32;
-      if(!forbidden)this.vegetation.addMeadow(x,groundHeight(x,z),z,3+this.rand()*3,65);
+      if(!forbidden)this.vegetation.addMeadow(x,this.surfaceHeight(x,z),z,3+this.rand()*3,65);
     }
-    for(const x of [-20,20,-30,30])for(const z of [-11,10,34])this.vegetation.addFlowerPatch(x,groundHeight(x,z),z,2,25);
+    for(const x of [-20,20,-30,30])for(const z of [-11,10,34])this.vegetation.addFlowerPatch(x,this.surfaceHeight(x,z),z,2,25);
     this.vegetation.finalize();
     const rockMaterial = new T.MeshStandardMaterial({color:0x73796c,roughness:1,bumpMap:this.materials.bark.bumpMap,bumpScale:.12});
     for (let i = 0; i < 90; i++) { const x = (this.rand() - .5) * 140, z = 24 + (this.rand() - .5) * 10; if (Math.abs(x) < 5) continue; const geo = new T.IcosahedronGeometry(.4 + this.rand() * 1.1, 0); geo.scale(1.5, .7, 1); this.mesh(geo, rockMaterial, [x, -.1, z]); }
@@ -467,15 +468,17 @@ export class EstateWorld {
   }
 
   setCourtyardVisible(visible: boolean) {
-    this.courtyardVisible=visible;
+    if(this.courtyardVisible===visible)return;this.courtyardVisible=visible;
     for(const root of [this.staticRoot,this.assetRoot,this.vegetation.group,this.life.group,this.water,this.fountainDrops,...this.birds,...this.lamps,...this.lanternSprites])root.visible=visible;
   }
 
-  update(t: number, dt: number, weather: Weather, daylight: number) {
+  update(t: number, dt: number, weather: Weather, daylight: number, observer?:T.Vector3) {
+    if(observer)for(const effect of [this.rain,this.snow,this.fireflies,this.leafParticles])effect.position.set(observer.x,this.surfaceHeight(observer.x,observer.z),observer.z);
     this.life.update(t);
     this.vegetation.update(t,weather==='rain'?1.3:.7);
     this.water.material.uniforms.uTime.value = t; this.water.material.uniforms.uLight.value = daylight; this.water.material.uniforms.uRain.value = weather === 'rain' ? 1 : 0;
     this.materials.window.emissiveIntensity = .2 + (1 - daylight) * 1.8;
+    for(const light of this.lamps)if(observer)light.visible=this.courtyardVisible&&Math.hypot(light.position.x-observer.x,light.position.z-observer.z)<45;
     for (const light of this.lamps) light.intensity = (.6 + (1 - daylight) * 7) * (1 + Math.sin(t * 3 + light.position.x) * .035);
     for (const sprite of this.lanternSprites) (sprite.material as T.SpriteMaterial).opacity = .1 + (1 - daylight) * .4;
     this.materials.path.roughness = T.MathUtils.damp(this.materials.path.roughness, weather === 'rain' ? .3 : .92, 1, dt); this.materials.path.metalness = weather === 'rain' ? .18 : .02;
@@ -488,7 +491,7 @@ export class EstateWorld {
     if (this.snow.visible) snowPos.needsUpdate = true;
     const flyPos = this.fireflies.geometry.attributes.position;
     for (let i = 0; i < flyPos.count; i++) {const seed = this.fireflySeeds[i]; flyPos.setY(i, 1 + Math.sin(t * .45 + seed) * .8 + seed % 3); flyPos.setX(i, Math.sin(seed * 5) * 28 + Math.sin(t * .3 + seed) * 1.5);}
-    flyPos.needsUpdate = true; (this.fireflies.material as T.PointsMaterial).opacity = .18 + (1 - daylight) * .7;
+    flyPos.needsUpdate = true; (this.fireflies.material as T.PointsMaterial).opacity = (1-daylight)**2*.7;
     const sp = this.smoke.geometry.attributes.position;
     for (let i = 0; i < sp.count; i++) {const v = (t * .025 + i / sp.count) % 1; sp.setXYZ(i, 19.6 + v * 5 + Math.sin(i * .7 + t * .2) * v, 8 + v * 12, -4 + Math.cos(i + t * .3) * v);}
     sp.needsUpdate = true;
@@ -504,9 +507,9 @@ export class EstateWorld {
   }
 
   canMove(x: number, z: number) {
-    if (Math.abs(x) > 46 || z < -43 || z > 48) return false;
-    if (z > 20 && z < 30 && Math.abs(x) > 2.7) return false;
+    if (!this.connected && (Math.abs(x) > 46 || z < -43 || z > 48)) return false;
+    if (z > 19.4 && z < 30.6 && Math.abs(x)>2.7 && Math.abs(x)<76) return false;
     return !this.collisions.some(c => Math.abs(x - c.x) < c.w / 2 + .32 && Math.abs(z - c.z) < c.d / 2 + .32);
   }
-  heightAt(x: number, z: number) { return z > 19.4 && z < 30.6 && Math.abs(x) < 2.8 ? .48 : groundHeight(x, z) + .12; }
+  heightAt(x: number, z: number) { return z > 19.4 && z < 30.6 && Math.abs(x) < 2.8 ? .48 : this.surfaceHeight(x, z) + .12; }
 }

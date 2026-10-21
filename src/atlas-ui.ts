@@ -1,5 +1,7 @@
 import './atlas.css';
 import { WORLD_REGIONS } from './world-atlas';
+import { WORLD_ROADS } from './world-layout';
+import { SITE_BY_ID } from './world-sites';
 
 type AtlasRegion = (typeof WORLD_REGIONS)[number];
 const biomeNames: Record<AtlasRegion['biome'], string> = {
@@ -16,9 +18,9 @@ export class WorldAtlas {
   private selected: AtlasRegion = WORLD_REGIONS[0];
   private currentId: string = WORLD_REGIONS[0].id;
   private readonly regionButtons = new Map<string, HTMLButtonElement[]>();
-  private readonly onTravel: (id: string) => void;
+  private readonly onTravel: (id: string, mode:'walk'|'fast') => void;
 
-  constructor(onTravel: (id: string) => void) {
+  constructor(onTravel: (id: string, mode:'walk'|'fast') => void,onOverview?:()=>void) {
     this.onTravel = onTravel;
     this.dialog.id = 'world-atlas';
     this.dialog.className = 'atlas-dialog';
@@ -29,22 +31,22 @@ export class WorldAtlas {
         <header class="atlas-header">
           <div class="atlas-brand-mark">${compass}</div>
           <div class="atlas-heading"><span class="atlas-overline">MOLE MANOR · WORLD ATLAS</span><h2 id="atlas-title">庄园世界地图</h2><p id="atlas-introduction">循着记忆里的小路，去下一个地方看看。</p></div>
-          <div class="atlas-header-note"><span>12 处经典地点</span><small>可进入的场景初版</small></div>
+          <div class="atlas-header-note"><span>12 个地区 · 8 处子地点</span><small>同一世界 · 道路相连</small></div>
           <button class="atlas-close dialog-close" type="button" aria-label="关闭世界地图"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
         </header>
         <div class="atlas-content">
           <nav class="atlas-directory" aria-label="选择探索地点">
             <div class="atlas-section-heading"><span>目的地</span><span>01 — 12</span></div>
             <div class="atlas-region-list"></div>
-            <p class="atlas-directory-note"><span>✦</span> 选中地点，查看介绍后出发。</p>
+            <p class="atlas-directory-note"><span>✦</span> 选中地点，沿路前往或快速到达。</p>
           </nav>
-          <section class="atlas-map-panel" aria-label="庄园地形示意图">
-            <div class="atlas-map-top"><span><i></i> 一张慢慢展开的庄园地图</span><span>地形示意</span></div>
+          <section class="atlas-map-panel" aria-label="庄园连续世界图">
+            <div class="atlas-map-top"><span><i></i> 道路连接全部 12 个户外区域</span><span>连续世界</span></div>
             <div class="atlas-map-canvas">
               ${this.mapIllustration()}
               <div class="atlas-map-sites"></div>
             </div>
-            <div class="atlas-map-bottom"><div class="atlas-map-key"><span><i class="atlas-key-current"></i> 当前位置</span><span><i class="atlas-key-route"></i> 示意路线</span></div><div class="atlas-compass">${compass}<span>N</span></div></div>
+            <div class="atlas-map-bottom"><div class="atlas-map-key"><span><i class="atlas-key-current"></i> 当前位置</span><span><i class="atlas-key-route"></i> 实际道路</span></div><div class="atlas-compass">${compass}<span>N</span></div></div>
             <p class="atlas-map-caption">经典地点 · 地形布局为本项目重构，非原版地图</p>
           </section>
           <aside class="atlas-preview" aria-label="选中地点介绍">
@@ -53,21 +55,23 @@ export class WorldAtlas {
               <div class="atlas-preview-eyebrow"><span class="atlas-place-number"></span><span class="atlas-phase"></span></div>
               <h3 class="atlas-place-name"></h3><p class="atlas-place-subtitle"></p><p class="atlas-place-description"></p>
               <div class="atlas-landmarks-heading">在这里寻找</div><ul class="atlas-landmarks"></ul>
-              <p class="atlas-prototype-note"></p>
+              <p class="atlas-prototype-note"></p><div class="atlas-sublocations"></div>
             </div>
-            <div class="atlas-travel-area"><span class="atlas-current-note"></span><button class="atlas-travel" type="button"><span>前往探索</span>${arrow}</button><p>进入场景后可自由环顾与漫游</p></div>
+            <div class="atlas-travel-area"><span class="atlas-current-note"></span><button class="atlas-travel" type="button"><span>沿路前往</span>${arrow}</button><button class="atlas-fast" type="button">快速前往 · 跳过路程</button><p>步行无需加载或切换场景</p></div>
           </aside>
         </div>
-        <div class="atlas-footer"><span>把熟悉的地方，一点点重新搭起来。</span><span>地点场景初版 · 持续细化中</span></div>
+        <div class="atlas-footer"><button class="atlas-overview-world" type="button">俯瞰全境 ↗</button><span>把熟悉的地方，一点点重新搭起来。</span><span>地点场景初版 · 持续细化中</span></div>
       </div>`;
     document.body.append(this.dialog);
     this.createLocations();
+    this.dialog.querySelector('.atlas-overview-world')!.addEventListener('click',()=>{this.close();onOverview?.();});
     this.dialog.querySelector<HTMLButtonElement>('.atlas-close')!.addEventListener('click', () => this.close());
     this.dialog.querySelector<HTMLButtonElement>('.atlas-travel')!.addEventListener('click', () => {
       const id = this.selected.id;
-      this.onTravel(id);
+      this.onTravel(id,'walk');
       this.close();
     });
+    this.dialog.querySelector<HTMLButtonElement>('.atlas-fast')!.addEventListener('click',()=>{this.onTravel(this.selected.id,'fast');this.close();});
     this.select(this.selected);
   }
 
@@ -128,7 +132,7 @@ export class WorldAtlas {
     write('.atlas-place-subtitle', region.subtitle);
     write('.atlas-place-description', region.description);
     write('.atlas-preview-biome', biomeNames[region.biome]);
-    write('.atlas-prototype-note', region.id === 'castle' ? '城堡前庭已有建筑、花园与石桥，细节仍在完善。' : '已搭建独立的地形与地标初版，建筑、植被和细节仍在完善。');
+    write('.atlas-prototype-note', region.id === 'castle' ? '城堡前庭已有建筑、花园与石桥，细节仍在完善。' : '已连接到连续世界，可沿道路走入。建筑、植被和细节仍在完善。');
     write('.atlas-current-note', region.id === this.currentId ? '你现在就在这里' : '下一站，去看看');
     this.dialog.querySelector('.atlas-preview-icon')!.innerHTML = landmarkIcon(region.id);
     const landmarks = this.dialog.querySelector('.atlas-landmarks')!;
@@ -137,6 +141,7 @@ export class WorldAtlas {
       item.textContent = landmark;
       return item;
     }));
+    const sublocations=this.dialog.querySelector('.atlas-sublocations')!;sublocations.replaceChildren();for(const sub of region.sublocations){const row=document.createElement('div');row.className='atlas-sublocation';const site=SITE_BY_ID[sub.id];if(site){const button=document.createElement('button');button.type='button';button.textContent=`${sub.label} →`;button.dataset.site=sub.id;button.addEventListener('click',()=>{this.onTravel(sub.id,'walk');this.close();});const fast=document.createElement('button');fast.type='button';fast.className='atlas-site-fast';fast.textContent='直达';fast.dataset.fastSite=sub.id;fast.setAttribute('aria-label',`快速前往${sub.label}`);fast.addEventListener('click',()=>{this.onTravel(sub.id,'fast');this.close();});row.append(button,fast);}else{row.textContent=`${sub.label} · 待搭建`;row.classList.add('not-built');}sublocations.append(row);}
     this.dialog.querySelector<HTMLElement>('.atlas-preview')!.style.setProperty('--region-color', region.color);
   }
 
@@ -163,9 +168,7 @@ export class WorldAtlas {
       <path d="M188 167q54-26 76 22t-12 79q-21-29-56-27t-29-34q-7-25 21-40Z" fill="#8b9c6e" opacity=".5"/>
       <path d="M629 452q-42 34-8 77t69 19q17-30 4-58t-65-38Z" fill="#9eac7a" opacity=".4"/>
       <path d="M403 416q29 1 27 31t-50 38q-31-15-22-43t45-26Z" fill="#d1ba80" opacity=".48"/>
-      <path d="M500 360Q425 345 350 360T200 360Q177 285 200 216M350 360Q333 290 350 216M500 360Q480 286 500 216T650 216Q680 288 650 360H500M350 360Q330 430 350 504T500 504Q577 523 650 504T800 504M500 360V504M650 360Q630 430 650 504" stroke="#aa936c" stroke-opacity=".35" stroke-width="10" stroke-linecap="round"/>
-      <path d="M500 360Q425 345 350 360T200 360Q177 285 200 216M350 360Q333 290 350 216M500 360Q480 286 500 216T650 216Q680 288 650 360H500M350 360Q330 430 350 504T500 504Q577 523 650 504T800 504M500 360V504M650 360Q630 430 650 504" stroke="#f5e5b7" stroke-width="6" stroke-linecap="round"/>
-      <path d="M500 360Q425 345 350 360T200 360Q177 285 200 216M350 360Q333 290 350 216M500 360Q480 286 500 216T650 216Q680 288 650 360H500M350 360Q330 430 350 504T500 504Q577 523 650 504T800 504M500 360V504M650 360Q630 430 650 504" stroke="#bba073" stroke-width="1.2" stroke-dasharray="3 7" stroke-linecap="round"/>
+      ${WORLD_ROADS.map(road=>{const points=road.points.map(([x,z])=>`${500+x/1.2},${360+z*.8}`).join(' ');return `<polyline points="${points}" stroke="#aa936c" stroke-opacity=".5" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><polyline points="${points}" stroke="#f5e5b7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;}).join('')}
       <g opacity=".9"><use href="#atlas-mountain" x="449" y="135" width="56" height="56"/><use href="#atlas-mountain" x="485" y="108" width="78" height="78"/><use href="#atlas-mountain" x="540" y="155" width="50" height="50"/></g>
       <g opacity=".78"><use href="#atlas-tree" x="176" y="155" width="23" height="36"/><use href="#atlas-tree" x="205" y="170" width="30" height="44"/><use href="#atlas-tree" x="155" y="183" width="28" height="42"/><use href="#atlas-tree" x="194" y="209" width="30" height="44"/><use href="#atlas-tree" x="227" y="206" width="25" height="40"/><use href="#atlas-tree" x="174" y="239" width="24" height="38"/><use href="#atlas-tree" x="230" y="259" width="22" height="33"/>
       <use href="#atlas-tree" x="607" y="457" width="23" height="36"/><use href="#atlas-tree" x="627" y="479" width="28" height="43"/><use href="#atlas-tree" x="688" y="530" width="23" height="36"/><use href="#atlas-tree" x="701" y="495" width="25" height="40"/><use href="#atlas-tree" x="671" y="478" width="24" height="38"/>

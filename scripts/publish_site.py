@@ -18,6 +18,9 @@ REGIONS = [
     ('happy-farm', '开心农场'), ('sunshine-ranch', '阳光牧场'), ('berry-jungle', '浆果丛林'),
     ('moraya-mountain', '摩尔拉雅雪山'), ('mystery-lake', '神秘湖'), ('ram-academy', '拉姆学院'),
     ('outpost', '前哨站'), ('black-forest', '黑森林'), ('amusement-park', '游乐场'),
+    ('rainbow-falls','彩虹瀑布'),('strength-spring','力量之泉'),('berry-passage','浆果秘道'),
+    ('moraya-rink','滑冰场'),('moraya-summit','雪山顶'),('ram-sports','拉姆运动场'),
+    ('knight-training','骑士训练场'),('race-track','摩摩赛车场'),
 ]
 
 def git(*args: str, data: bytes | None = None) -> bytes:
@@ -59,7 +62,7 @@ def stage() -> None:
     cards = []
     previews = STAGE / 'previews'
     previews.mkdir()
-    for region_id, label in REGIONS:
+    for region_id, label in [('world-overview','连续世界全境'),*REGIONS]:
         screenshot = source / f'{region_id}.png'
         if not screenshot.is_file():
             continue
@@ -76,7 +79,7 @@ main{max-width:1440px;margin:auto}h1{font-weight:400;letter-spacing:3px}p{color:
 grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}figure{margin:0;background:#203a30;border:1px solid #61755e;
 border-radius:8px;overflow:hidden}img{width:100%;display:block}figcaption{padding:14px}small{float:right;color:#a7b49d;font-size:11px}
 @media(max-width:600px){body{padding:20px}.grid{grid-template-columns:1fr}}</style><main><h1>摩尔庄园 · 实机图集</h1>
-<p>以下均为当前程序的实时 3D 截图。12 个导览地区仍在制作，布局尚未按某个年代一比一还原；室内和独立子地图未完成，画质未达到 3A 标准。</p>
+<p>以下均为当前程序的实时 3D 截图。12 个地区已由道路连接在同一个世界中，另有 8 处户外子地点初版；布局尚未按某个年代一比一还原；室内和独立子地图未完成，画质未达到 3A 标准。</p>
 <p><a href="index.html">进入世界 →</a>　<a href="downloads/MoleManor-Offline.zip">下载离线版</a></p><div class="grid">'''
     (STAGE / 'gallery.html').write_text(gallery + ''.join(cards) + '</div></main></html>')
     for path in STAGE.rglob('*'):

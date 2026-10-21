@@ -214,3 +214,11 @@
 @media (prefers-reduced-motion: reduce) {
   .atlas-dialog *, .atlas-dialog *::before { transition: none !important; }
 }
+
+.atlas-fast{display:block;width:100%;margin-top:8px;padding:9px;border:1px solid #8a795a55;border-radius:5px;background:transparent;color:#695638;font-size:12px;cursor:pointer}.atlas-fast:hover{background:#d8c79755}
+
+.atlas-sublocations{display:grid;gap:5px;margin-top:12px}.atlas-sublocation button{padding:7px 10px;border:1px solid #92836566;border-radius:4px;background:#ddd8b544;color:#496349;font-size:11px;width:100%;text-align:left;cursor:pointer}.atlas-sublocation.not-built{font-size:10px;opacity:.5;padding:3px 0}.atlas-sublocation button:hover{background:#c9ccac}
+
+.atlas-sublocation{display:flex;gap:5px}.atlas-sublocation button.atlas-site-fast{width:46px;flex-shrink:0;text-align:center;font-size:10px;padding:5px}.atlas-header-note>span{font-size:11px}
+
+.atlas-overview-world{padding:5px 10px;border:1px solid #8b9b7a88;border-radius:4px;background:transparent;font:inherit;color:#446247;cursor:pointer}

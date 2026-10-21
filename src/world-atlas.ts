@@ -7,7 +7,7 @@ export type RegionBiome = 'town' | 'farmland' | 'meadow' | 'forest' | 'snow' | '
 export interface AtlasSublocation {
   id: string;
   label: string;
-  status: 'not-built';
+  status: 'not-built' | 'outdoor-prototype';
   classicMapId?: number;
 }
 export interface WorldRegion {
@@ -33,7 +33,8 @@ export const ATLAS_METRES_PER_PERCENT = [12, 9] as const;
 export function atlasPosition([x, , z]: readonly [number, number, number]): [number, number] {
   return [ATLAS_ORIGIN[0] + x / ATLAS_METRES_PER_PERCENT[0], ATLAS_ORIGIN[1] + z / ATLAS_METRES_PER_PERCENT[1]];
 }
-const place = (id: string, label: string, classicMapId: number): AtlasSublocation => ({ id, label, classicMapId, status: 'not-built' });
+const builtOutdoorSites=new Set(['rainbow-falls','strength-spring','berry-passage','moraya-rink','moraya-summit','ram-sports','knight-training','race-track']);
+const place = (id: string, label: string, classicMapId: number): AtlasSublocation => ({ id, label, classicMapId, status: builtOutdoorSites.has(id)?'outdoor-prototype':'not-built' });
 type RegionInput = Omit<WorldRegion, 'label' | 'mapPosition'>;
 const region = (entry: RegionInput): WorldRegion => ({ ...entry, label: entry.name, mapPosition: atlasPosition(entry.worldPosition) });
 
@@ -59,7 +60,7 @@ export const WORLD_REGIONS: readonly WorldRegion[] = [
     worldPosition: [0, 0, 180], landmarks: ['草场', '木栅栏'], status: 'under-construction', evidence: 'name-listed',
     sublocations: [place('sunshine-cottage', '阳光草舍', 79)] }),
   region({ id: 'berry-jungle', name: '浆果丛林', subtitle: '林间浆果 · 瀑布水声', biome: 'forest', color: '#849e7d',
-    description: '以浆果、浓密植被与林间水体为主题的原型。秘道、瀑布与泉水等子地图仍待分别制作和核对。',
+    description: '以浆果、浓密植被与林间水体为主题的原型。已补入相连的秘道、瀑布与泉水初版，原版布局与美术仍待核对。',
     worldPosition: [180, 0, 180], landmarks: ['浆果灌木', '林间水体'], status: 'under-construction', evidence: 'name-listed',
     sublocations: [place('berry-passage', '浆果秘道', 40), place('rainbow-falls', '彩虹瀑布', 42), place('strength-spring', '力量之泉', 43)] }),
   region({ id: 'moraya-mountain', name: '摩尔拉雅雪山', subtitle: '山脚 · 冰场 · 雪峰', biome: 'snow', color: '#b5ced2',
@@ -71,7 +72,7 @@ export const WORLD_REGIONS: readonly WorldRegion[] = [
     worldPosition: [360, 0, 180], landmarks: ['湖面', '木码头'], status: 'under-construction', evidence: 'name-listed',
     sublocations: [place('mystery-dock', '神秘湖码头', 176)] }),
   region({ id: 'ram-academy', name: '拉姆学院', subtitle: '校园 · 拉姆课堂', biome: 'town', color: '#c6b1cc',
-    description: '以拉姆校园为主题的户外原型。课程、课堂、教导处与运动场仍需独立制作。',
+    description: '以拉姆校园为主题的户外原型。运动场已连接到校园东侧；课程、课堂和教导处仍待制作。',
     worldPosition: [180, 0, -180], landmarks: ['校园入口', '拉姆主题庭园'], status: 'under-construction', evidence: 'name-listed',
     sublocations: [place('ram-classroom', '拉姆课堂', 52), place('academy-office', '学院教导处', 53), place('ram-sports', '拉姆运动场', 68)] }),
   region({ id: 'outpost', name: '前哨站', subtitle: '骑士主题 · 边境瞭望', biome: 'meadow', color: '#a3a284',

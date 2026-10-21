@@ -222,7 +222,27 @@ export class Vegetation {
       const material = new T.MeshStandardMaterial({ vertexColors: true, roughness: .92, side: T.DoubleSide });
       this.instances(geometry, material, this.flowers, 'Meadow daisies and wildflowers');
     }
+    this.partitionLargeBatches();
     this.loadedAssets.push('meadow');
+  }
+
+  /** Keep instance bounds local, so looking at one town does not draw every tree in the world. */
+  private partitionLargeBatches(){
+    const matrix=new T.Matrix4(),color=new T.Color();
+    for(const root of [this.treeRoot,this.meadowRoot])for(const object of [...root.children]){
+      if(!(object instanceof T.InstancedMesh)||!object.boundingSphere||object.boundingSphere.radius<85)continue;
+      const cells=new Map<string,number[]>();
+      for(let i=0;i<object.count;i++){object.getMatrixAt(i,matrix);const e=matrix.elements,key=`${Math.floor(e[12]/80)},${Math.floor(e[14]/80)}`;if(!cells.has(key))cells.set(key,[]);cells.get(key)!.push(i);}
+      if(cells.size<2)continue;
+      for(const [key,indices] of cells){
+        const mesh=new T.InstancedMesh(object.geometry,object.material,indices.length);
+        mesh.name=`${object.name} · cell ${key}`;mesh.castShadow=object.castShadow;mesh.receiveShadow=object.receiveShadow;
+        mesh.customDepthMaterial=object.customDepthMaterial;mesh.customDistanceMaterial=object.customDistanceMaterial;
+        indices.forEach((source,i)=>{object.getMatrixAt(source,matrix);mesh.setMatrixAt(i,matrix);if(object.instanceColor){object.getColorAt(source,color);mesh.setColorAt(i,color);}});
+        mesh.instanceMatrix.needsUpdate=true;if(mesh.instanceColor)mesh.instanceColor.needsUpdate=true;mesh.computeBoundingBox();mesh.computeBoundingSphere();root.add(mesh);
+      }
+      object.removeFromParent();object.dispose();
+    }
   }
 
   private instances(geometry: T.BufferGeometry, material: T.MeshStandardMaterial, placements: MeadowPlacement[], name: string) {

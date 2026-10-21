@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createMaterials, seeded } from './materials';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 /** Playable architectural studies. Original map measurements and layouts are unverified. */
 export type RegionScene = {
@@ -12,7 +13,7 @@ export type RegionScene = {
   collisions: { x: number; z: number; w: number; d: number }[];
   name: string;
   description: string;
-  update?: (time: number, delta: number) => void;
+  update?: (time:number,delta:number,daylight?:number,observerX?:number,observerZ?:number)=>void;
   heightAt: (x: number, z: number) => number;
   canMove?: (x:number,z:number)=>boolean;
   heroTrees?: { x: number; z: number; scale: number }[];
@@ -36,7 +37,10 @@ class Builder {
   private geometryResources = new Set<T.BufferGeometry>();
   private random = seeded(817);
   animations: ((time: number, delta: number) => void)[] = [];
-  water = this.paint(0x4ea7ae, undefined, .27);
+  lamps:T.PointLight[]=[];
+  water = new T.MeshPhysicalMaterial({color:0x3e8188,roughness:.18,metalness:.22,clearcoat:1,clearcoatRoughness:.12});
+  private waterTime={value:0};
+  rock=this.paint(0x748275);
   white = this.paint(0xfff1cc);
   red = this.paint(0xd95948, this.m.roof);
   teal = this.paint(0x478e8a, this.m.roof);
@@ -45,7 +49,19 @@ class Builder {
   leaf = this.paint(0x5d963c);
   yellow = this.paint(0xf0c86b);
   mushroomCap = this.paint(0xb64c3c);
-  constructor(public id: string) { this.group.name = `region:${id}`; }
+  constructor(public id: string,public sharedTerrain=false) {
+    this.rock.bumpMap=this.m.plaster.bumpMap;this.rock.bumpScale=.16;
+    this.group.name=`region:${id}`;this.extraMaterials.add(this.water);
+    this.water.onBeforeCompile=shader=>{
+      shader.uniforms.manorWaterTime=this.waterTime;
+      shader.vertexShader='varying vec2 manorWaterXZ;\n'+shader.vertexShader;
+      shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n manorWaterXZ=(modelMatrix*vec4(transformed,1.)).xz;');
+      shader.fragmentShader='uniform float manorWaterTime;varying vec2 manorWaterXZ;\n'+shader.fragmentShader;
+      shader.fragmentShader=shader.fragmentShader.replace('#include <normal_fragment_begin>','#include <normal_fragment_begin>\n normal=normalize(normal+vec3(sin(manorWaterXZ.x*2.3+manorWaterXZ.y*.8+manorWaterTime*1.4)*.065,cos(manorWaterXZ.y*2.7-manorWaterTime)*.04,0.));');
+    };
+    this.water.customProgramCacheKey=()=>'manor-ripple-water';
+    this.animations.push(t=>{this.waterTime.value=t;});
+  }
 
   paint(color: T.ColorRepresentation, source?: T.MeshStandardMaterial, roughness = .86) {
     const mat = source ? source.clone() : new T.MeshStandardMaterial();
@@ -58,7 +74,7 @@ class Builder {
     if (!this.batches.has(mat)) this.batches.set(mat, []);
     this.batches.get(mat)!.push(g);
   }
-  box(w: number, h: number, d: number, mat: T.Material, p: Point, r?: Point) { this.add(new T.BoxGeometry(w, h, d), mat, p, r); }
+  box(w: number, h: number, d: number, mat: T.Material, p: Point, r?: Point) { this.add(w>5&&h>3&&d>3?new RoundedBoxGeometry(w,h,d,2,.085):new T.BoxGeometry(w, h, d), mat, p, r); }
   cyl(rt: number, rb: number, h: number, mat: T.Material, p: Point, n = 16) { this.add(new T.CylinderGeometry(rt, rb, h, n), mat, p); }
   ball(radius: number, mat: T.Material, p: Point, s: Point = [1, 1, 1]) { this.add(new T.SphereGeometry(radius, 12, 8), mat, p, undefined, s); }
   ring(radius: number, thick: number, mat: T.Material, p: Point, r: Point = [Math.PI / 2, 0, 0]) { this.add(new T.TorusGeometry(radius, thick, 6, 40), mat, p, r); }
@@ -70,6 +86,7 @@ class Builder {
   }
   block(x: number, z: number, w: number, d: number) { this.collisions.push({ x, z, w, d }); }
   ground(color: number, snow = false) {
+    if(this.sharedTerrain)return;
     const geo = new T.PlaneGeometry(240, 240, 96, 96); geo.rotateX(-Math.PI / 2);
     const positions = geo.attributes.position, colors: number[] = [], base = new T.Color(color);
     for (let i = 0; i < positions.count; i++) {
@@ -107,6 +124,10 @@ class Builder {
     this.ball(.11, this.m.gold, [x + w * .32, y + h * .46, z + .27]);
   }
   sign(text: string, p: Point, w = 7, color = '#315d55', icon?: Icon) {
+    if(p[1]<=3.5){
+      p=[p[0]===0?-8:p[0],2.25,p[2]];w=Math.min(4,w*.48);
+      for(const side of [-1,1]){const x=p[0]+side*w*.35;this.box(.16,2.45,.16,this.m.darkWood,[x,1.1,p[2]-.12]);this.block(x,p[2],.2,.2);}
+    }
     const canvas = document.createElement('canvas'); canvas.width = 1024; canvas.height = 256;
     const ctx = canvas.getContext('2d')!;
     ctx.fillStyle = '#f7edcd'; ctx.fillRect(0, 0, 1024, 256);
@@ -139,9 +160,10 @@ class Builder {
   pond(x: number, z: number, rx: number, rz: number) {
     this.add(new T.CircleGeometry(1, 56), this.water, [x, .015, z], [-Math.PI / 2, 0, 0], [rx, rz, 1]);
     this.block(x, z, rx * 1.68, rz * 1.68);
-    for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI * 2; this.ball(.6 + i % 3 * .13, this.m.stone, [x + Math.cos(a) * rx, .08, z + Math.sin(a) * rz], [1.3, .55, .9]); }
+    for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI * 2; this.ball(.6 + i % 3 * .13, this.rock, [x + Math.cos(a) * rx, .08, z + Math.sin(a) * rz], [1.3, .55, .9]); }
   }
   lamp(x: number, z: number) {
+    const light=new T.PointLight(0xffb665,0,14,2);light.position.set(x,3.9,z);this.group.add(light);this.lamps.push(light);
     this.cyl(.11, .16, 3.8, this.m.iron, [x, 1.9, z], 8);
     this.box(.7, .9, .7, this.m.window, [x, 4, z]);
     this.cyl(0, .65, .55, this.m.iron, [x, 4.7, z], 4); this.cyl(.48, .48, .15, this.m.iron, [x, 3.5, z], 4);
@@ -296,6 +318,7 @@ function mountain(b: Builder) {
   b.ground(0xe3edf1, true); b.path([0, 38], [0, -11], 7, b.paint(0xc4d8df));
   const snow = b.paint(0xf2f5f5);
   // A continuous alpine ridge replaces separate geometric peak primitives.
+  if(!b.sharedTerrain){
   const range = new T.PlaneGeometry(210, 110, 130, 90); range.rotateX(-Math.PI / 2); range.translate(0, 0, -101);
   const vertices = range.attributes.position, uv = range.attributes.uv;
   const smooth = (a: number, c: number, v: number) => { const t = T.MathUtils.clamp((v - a) / (c - a), 0, 1); return t * t * (3 - 2 * t); };
@@ -325,6 +348,7 @@ function mountain(b: Builder) {
   range.setAttribute('color', new T.Float32BufferAttribute(colors, 3));
   const alpine = b.paint(0xffffff); alpine.vertexColors = true; alpine.roughness = 1; alpine.bumpMap = b.m.stone.bumpMap; alpine.bumpScale = .14;
   const rangeMesh = new T.Mesh(range, alpine); rangeMesh.name = 'sculpted alpine ridge'; rangeMesh.castShadow = rangeMesh.receiveShadow = true; b.ownMesh(rangeMesh);
+  }
   b.box(15, 6, 11, b.m.wood, [-22, 3, 0]); b.roof(-22, 0, 18, 14, 6, 5, b.m.darkWood); b.roof(-22, 0, 18.3, 14.3, 6.25, 5, snow); b.block(-22, 0, 16, 12);
   for (let i = 0; i < 9; i++) for (const z of [-5.65, 5.65]) b.box(15.4, .4, .45, b.m.wood, [-22, .5 + i * .6, z]);
   b.door(-22, 5.8); b.window(-27, 3.7, 5.8); b.window(-17, 3.7, 5.8);
@@ -501,6 +525,50 @@ function amusement(b: Builder) {
   b.box(15, 1.6, 1.1, ruby, [0, 6.1, 24]); b.sign('快乐出发', [0, 6.5, 24.7], 8, '#a55268');
 }
 
+function architecturalDetails(b:Builder){
+  const buildings:Record<string,number[][]>={
+    'taotao-street':[[18,-14,11,10,7],[-21,14,11,8,6.5],[22,15,10,8,5.7]],
+    'love-church':[[-17,-24,16,17,10],[22,-18,17,12,7],[24,17,11,8,5]],
+    'happy-farm':[[-20,-22,15,11,8]],'sunshine-ranch':[[-20,-19,17,12,8]],
+    'ram-academy':[[0,-24,23,12,8]],'mystery-lake':[[-24,3,13,9,5.7]],
+    'amusement-park':[[-24,14,8,7,4]],
+  };
+  for(const [x,z,w,d,h] of buildings[b.id]??[]){
+    b.box(w+.3,.45,d+.3,b.m.stone,[x,.18,z]);
+    b.box(w+.6,.25,d+.6,b.m.lightStone,[x,h-.2,z]);
+    for(const side of [-1,1]){
+      for(let y=.8;y<h-.4;y+=.85){
+        b.box(.55,.36,.4,b.m.lightStone,[x+side*(w/2-.14),y,z+d/2+.04]);
+        b.box(.4,.36,.85,b.m.lightStone,[x+side*(w/2+.025),y,z+d/2-.25]);
+      }
+      b.box(.15,h-.6,.2,b.m.darkWood,[x+side*(w/2-1),h/2,z+d/2+.12]);
+      // Side windows, with inset dark frames and projecting stone sills.
+      for(const dz of [-d*.23,d*.23]){
+        b.box(.16,2.3,1.65,b.m.darkWood,[x+side*(w/2+.04),3,z+dz]);
+        b.box(.19,1.95,1.3,b.m.window,[x+side*(w/2+.08),3,z+dz]);
+        b.box(.22,.09,1.4,b.white,[x+side*(w/2+.12),3,z+dz]);
+        b.box(.35,.16,1.9,b.m.lightStone,[x+side*(w/2+.1),1.87,z+dz]);
+      }
+    }
+    b.box(w-.4,.18,.28,b.m.wood,[x,1.15,z+d/2+.18]);
+    b.box(w+.3,.15,.4,b.m.darkWood,[x,h-.65,z+d/2+.12]);
+    for(const dx of [-w*.34,w*.34]){
+      b.box(2,.5,.8,b.m.wood,[x+dx,1.35,z+d/2+.5]);
+      for(let i=0;i<5;i++){b.ball(.3,b.leaf,[x+dx-.8+i*.4,1.7,z+d/2+.5],[1,1.1,.8]);b.ball(.16,i%2?b.pink:b.yellow,[x+dx-.8+i*.4,1.97,z+d/2+.5]);}
+    }
+    // Brick chimney, terracotta cap and gutters make roofs read at walking scale.
+    b.box(1.1,3.3,1.1,b.m.stone,[x-w*.28,h+2,z-d*.22]);
+    b.box(1.35,.22,1.35,b.red,[x-w*.28,h+3.7,z-d*.22]);
+  }
+  if(b.id==='taotao-street'){
+    for(const x of [-27,29])for(const z of [-4,29]){
+      b.box(4,.22,1.15,b.m.wood,[x,1.05,z]);b.box(4,1.1,.18,b.m.darkWood,[x,1.65,z-.48]);
+      for(const dx of [-1.5,1.5])b.box(.2,1,.7,b.m.iron,[x+dx,.5,z]);
+    }
+    for(let i=0;i<10;i++){const x=-30+i*6.6,y=7.7-Math.sin(i/9*Math.PI)*1.6;b.beam([x,y,-1],[x+6.6,7.7-Math.sin(Math.min(9,i+1)/9*Math.PI)*1.6,-1],.035,b.m.iron);if(i<9)b.add(new T.ConeGeometry(.4,.8,3),[b.red,b.blue,b.yellow,b.teal][i%4],[x+1.3,y-.45,-1],[0,0,Math.PI]);}
+  }
+}
+
 const regions: Record<string, { name: string; description: string; build: (b: Builder) => void; camera?: Point; target?: Point }> = {
   'taotao-street': { name: '淘淘乐街', description: '地图原型 · 服装店、宠物店与道具店围绕彩石广场。', build: taotao, camera: [38, 22, 48] },
   'happy-farm': { name: '开心农场', description: '地图原型 · 风车、红谷仓与分区菜田。', build: farm },
@@ -522,13 +590,13 @@ function lakeDeckHeight(x:number,z:number):number|null{
   return null;
 }
 
-export function createRegionScene(id: string): RegionScene | null {
+export function createRegionScene(id: string,sharedTerrain=false): RegionScene | null {
   const entry = regions[id]; if (!entry) return null;
-  const b = new Builder(id); entry.build(b); b.flush();
+  const b = new Builder(id,sharedTerrain); entry.build(b); architecturalDetails(b); b.flush();
   b.animations.push(time => { b.water.roughness = .25 + Math.sin(time * .7) * .035; });
   const heightAt=id==='mystery-lake' ? (x:number,z:number)=>lakeDeckHeight(x,z)??regionGroundHeight(x,z) : regionGroundHeight;
   const canMove=id==='mystery-lake' ? (x:number,z:number)=>lakeDeckHeight(x,z)!==null || ((x-17)/27)**2+((z+15)/22)**2>=1 : undefined;
-  const scene: RegionScene = { group: b.group, camera: entry.camera ?? [40, 29, 49], target: entry.target ?? [0, 5, -9], spawn: [0, 30], bounds: 46, heightAt,canMove, heroTrees: b.heroTrees, collisions: b.collisions, name: entry.name, description: entry.description, update: (time, delta) => { for (const animate of b.animations) animate(time, delta); } };
+  const scene: RegionScene = { group: b.group, camera: entry.camera ?? [40, 29, 49], target: entry.target ?? [0, 5, -9], spawn: [0, 30], bounds: 46, heightAt,canMove, heroTrees: b.heroTrees, collisions: b.collisions, name: entry.name, description: entry.description, update: (time,delta,daylight=1,observerX=0,observerZ=0) => {b.m.window.emissiveIntensity=.12+(1-daylight)*2;for(const lamp of b.lamps){lamp.visible=daylight<.9&&Math.hypot(lamp.position.x-observerX,lamp.position.z-observerZ)<32;lamp.intensity=(1-daylight)*8;} for (const animate of b.animations) animate(time, delta); } };
   owned.set(scene, b); return scene;
 }
 
