@@ -36,7 +36,7 @@ function surface(kind: 'stone' | 'roof' | 'wood' | 'ground' | 'plaster' | 'path'
     image.data[i] += noise; image.data[i + 1] += noise; image.data[i + 2] += noise;
   }
   ctx.putImageData(image, 0, 0);
-  if (kind === 'ground') for (let i = 0; i < 8000; i++) { ctx.fillStyle = random() > .6 ? '#72764733' : '#343e2544'; ctx.fillRect(random() * 512, random() * 512, random() * 7 + 1, random() * 3 + 1); }
+  if (kind === 'ground') for (let i = 0; i < 8000; i++) { ctx.fillStyle = random() > .6 ? '#a2ac6533' : '#60713e33'; ctx.fillRect(random() * 512, random() * 512, random() * 7 + 1, random() * 3 + 1); }
   const map = new THREE.CanvasTexture(canvas); map.colorSpace = THREE.SRGBColorSpace; map.wrapS = map.wrapT = THREE.RepeatWrapping; map.anisotropy = 8;
   const bumpMap = map.clone(); bumpMap.colorSpace = THREE.NoColorSpace;
   return { map, bumpMap };
@@ -47,18 +47,18 @@ export function createMaterials() {
     const tex = surface(kind, color, seed); tex.map.repeat.setScalar(scale); tex.bumpMap.repeat.setScalar(scale);
     return new THREE.MeshStandardMaterial({ ...tex, roughness: .94, bumpScale: kind === 'wood' ? .035 : .085 });
   };
-  const stone = make('stone', '#898a79', 2);
-  const lightStone = make('stone', '#b1aa91', 3);
-  const roof = make('roof', '#485651', 4);
-  const wood = make('wood', '#675240', 5);
-  const darkWood = make('wood', '#3e3a2c', 6);
-  const plaster = make('plaster', '#c4b694', 7);
-  const ground = make('ground', '#596347', 8, 40);
-  const path = make('path', '#8a8b78', 9, 7);
-  const bark = make('wood', '#4b4935', 10);
-  const foliage = [0x394b36, 0x46563b, 0x586244, 0x66704b, 0x827847, 0x9c8950].map(color => new THREE.MeshStandardMaterial({ color, roughness: 1 }));
+  const stone = make('stone', '#c0ae88', 2);
+  const lightStone = make('stone', '#e0d1aa', 3);
+  const roof = make('roof', '#a44d3a', 4);
+  const wood = make('wood', '#7a593c', 5);
+  const darkWood = make('wood', '#4b3929', 6);
+  const plaster = make('plaster', '#e5d8b8', 7);
+  const ground = make('ground', '#82965b', 8, 40);
+  const path = make('path', '#c0b698', 9, 7);
+  const bark = make('wood', '#6a593e', 10);
+  const foliage = [0x405e38, 0x577644, 0x71894d, 0x839b59, 0x887a46, 0x9b8757].map(color => new THREE.MeshStandardMaterial({ color, roughness: 1 }));
   const iron = new THREE.MeshStandardMaterial({ color: 0x343d36, metalness: .65, roughness: .5 });
-  const gold = new THREE.MeshStandardMaterial({ color: 0x9a8555, metalness: .65, roughness: .42 });
+  const gold = new THREE.MeshStandardMaterial({ color: 0xcfaa55, metalness: .65, roughness: .42 });
   const window = new THREE.MeshStandardMaterial({ color: 0xe3ad54, emissive: 0xffb655, emissiveIntensity: .8, roughness: .4 });
   const canvas = new THREE.MeshStandardMaterial({ color: 0x757957, roughness: .95, side: THREE.DoubleSide });
   return { stone, lightStone, roof, wood, darkWood, plaster, ground, path, bark, foliage, iron, gold, window, canvas };

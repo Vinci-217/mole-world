@@ -1,22 +1,20 @@
-# 雾隐庄园 · Eldermere
+# 摩尔庄园 · 经典城堡前庭
 
-一个以中世纪欧洲庄园为主题的单机 3D 漫游原型。地图采用城堡、中央广场、酒馆与石桥相连的结构，建筑和文字为原创场景设定，并非《摩尔庄园》原版地图或官方产品。
+以经典页游可识别地标为基准的单机 3D 场景重构，保留精细材质、天气、昼夜与漫游。已替换上一版通用欧洲庄园主题：主地标现在是红陶瓦、奶油石墙、金色檐线、钟面和王冠入口的摩尔城堡，前庭有摩尔与拉姆动态模型。
 
-## 直接查看，不需要安装
+城堡轮廓参考已实际查看的页游客户端宣传画。前庭道路、水景、花园与石桥是便于漫游的空间转译，**不是已核实的一比一官方地图**。参考和证据边界见 [视觉基准](docs/visual-reference.md)。
 
-- [在线预览](https://raw.githack.com/Vinci-217/mole-world/gh-pages/index.html)：第三方静态预览入口；当前云环境的出站规则拦截该预览域名，因此外网访问尚未在此验证。
-- [下载离线版](https://github.com/Vinci-217/mole-world/raw/refs/heads/gh-pages/downloads/Eldermere-Offline.zip)：解压后用电脑 Chrome 或 Edge 打开 `Eldermere-Offline.html`。全部模型、脚本和贴图内嵌，无需 Node.js、服务器、模型 API 或网络连接。
-- [下载网站发布包](https://github.com/Vinci-217/mole-world/raw/refs/heads/gh-pages/downloads/Eldermere-Website.zip)：完整静态网站，可上传至 Netlify Drop、Cloudflare Pages 等平台。
+## 直接体验
 
-下载链接已经通过公开 HTTP 请求验证。离线版本在禁网的 Chromium 上实际加载五个模型、切换雨天并完成第一人称行走；网站版本也通过了部署在子路径下的浏览器检查。
+- [在线预览](https://raw.githack.com/Vinci-217/mole-world/gh-pages/index.html)：第三方静态预览入口，当前云环境无法直接验证该域名的外网可达性。
+- [下载离线版](https://github.com/Vinci-217/mole-world/raw/refs/heads/gh-pages/downloads/MoleManor-Offline.zip)：解压，用电脑 Chrome/Edge 打开 `MoleManor-Offline.html`。模型、贴图和脚本全部内嵌，无需 Node、服务器或模型 API。
+- [网站发布包](https://github.com/Vinci-217/mole-world/raw/refs/heads/gh-pages/downloads/MoleManor-Website.zip)：完整静态网站，可上传 Netlify Drop、Cloudflare Pages 等服务。
 
-源码位于 `main`，静态发布文件位于 `gh-pages`。需要正式 GitHub Pages 网址时，在该仓库的 **Settings → Pages** 中将发布来源设置为 **Deploy from a branch → gh-pages → /(root)**。当前只发布了静态文件，没有声称 GitHub Pages 已启用。
+源码在 `main`，静态发布文件在 `gh-pages`。第三方预览缓存旧版时，使用对应发布提交 SHA 的预览链接即可明确指定版本。正式 GitHub Pages 需在仓库 Settings → Pages 中设置 Deploy from a branch → gh-pages → /(root)。
 
-生成新的离线 HTML 和静态 ZIP：`npm run release`，输出至 `artifacts/release/`。下载包不包含任何密钥或生成任务回执。
+## 运行与验证
 
-## 运行
-
-需要 Node.js 22.12+，当前云环境使用 Node.js 24.19.0。
+需要 Node.js 22.12+；当前环境使用 24.19.0。云任务已经隔离，直接使用现有检出，无需额外 Git worktree。
 
 ```bash
 cd /workspace/mole-world
@@ -24,81 +22,61 @@ npm ci --cache /workspace/.npm-cache --no-audit --no-fund
 npm run dev
 ```
 
-默认监听所有网卡的 5173 端口。使用环境的应用预览功能打开；应用需要 WebGL 2。部署时使用 `npm run build`，将 `dist/` 作为静态网站发布。应用正常运行不需要密钥或外部服务，所有场景资产随应用提供。
+Vite 监听 5173，应用需要 WebGL 2 和现代浏览器。所有运行时模型均随网站提供，不依赖外部 CDN、账号、数据库或密钥。
 
 ```bash
 npm run build
 npm test
+npm run release
 ```
 
-测试包含 5 项 Python 资产管线测试，以及 7 项 Chromium 场景测试。生成服务测试使用模拟网络，验证任务恢复、避免重复付费、GLB 完整性和授权头隔离；它们不代表真实 Tripo 账号已通过验证。浏览器测试实际渲染模型，检查天气、昼夜、音频、移动和移动端布局。测试默认使用 `/usr/bin/chromium`，其他机器可设置 `CHROMIUM_PATH`。
+构建输出为 `dist/`。发布命令另生成 `artifacts/release/MoleManor-Offline.html`、离线 ZIP 和网站 ZIP。包中不含环境变量、密钥或生成任务回执。
 
-## 已实现
+测试包含五项 Python 资产管线测试及七项真实 Chromium 测试。管线测试中的付费网络请求均为模拟，用于验证 GLB 完整性、授权头隔离、任务恢复及避免重复提交；它们不代表真实 API 已验证。浏览器测试会加载实际城堡模型，检查雨雪、昼夜、音乐、地点切换、键盘漫游和移动端方向键。默认 Chromium 路径 `/usr/bin/chromium`，可设置 `CHROMIUM_PATH` 更换。
 
-- Three.js + TypeScript + Vite；GLB 资产随构建复制，无运行时 CDN 依赖。
-- 石砌古堡、半木构建筑、广场喷泉、酒馆、礼拜堂、铁匠铺、树林、溪流与石桥。
-- 四个观景点、可拖动/缩放的观景镜头、第一人称行走、简单建筑及河岸碰撞、移动端方向键。
-- 连续昼夜、可拖动时间、暂停时间、晴朗/薄雾/雨/雪。
-- 动态太阳、柔和阴影、夜间窗灯与路灯、辉光、色彩处理、动态云和夜空。
-- 雨雪、喷泉水滴、烟雾、落叶、萤火、风车、旗帜和飞鸟。
-- 原创 Web Audio 环境配乐、风雨流水层与脚步声；声音必须由用户点击开启。
-- 本地保存天气、时间、画质和音量；照片导出、地点手记和漫游指南。
+## 当前场景
 
-这是用于评估氛围和漫游的场景版本。它采用传统实时光照，并非光线追踪；建筑暂未提供室内空间，雪没有物理堆积。音效为合成声景。现有 CC0 建筑保留简化几何；更精细的 Tripo 建筑需要实际生成后验收，不能将当前版本描述为已经完成的 Tripo 高精度场景。
+- 实际 GLB 城堡：149,154 三角、9 个按材质合并的网格、6 张嵌入的 1024²色彩/法线贴图。
+- 红瓦尖塔、实体搭接瓦、金边钟面与指针、王冠与红宝石、细圆塔、窗框和后排城垛。
+- 原创网格重构的摩尔与拉姆，带简单行走、呼吸和漂浮动画。
+- 中轴道路、绿篱、花圃、水景、树林、溪水与石桥。
+- 四个观景位置；拖动/缩放视角；WASD、Shift、拖动环顾、Esc 退出的第一人称漫游；手机方向键。
+- 连续昼夜、时间暂停、晴朗/薄雾/雨/雪，夜间灯火、柔和阴影、辉光、云层和星空。
+- 水滴、雨雪、落叶、萤火、烟雾及飞鸟。
+- 原创合成环境音乐、风雨流水与脚步声。浏览器要求点击后开启音频。
+- 本地保存时间、天气、音量和画质；照片导出和地点导览。
 
-## Tripo 资产生成
+建筑目前不含室内场景，雪不产生物理堆积，光照不是光线追踪。整体地图和隐藏背立面仍属重构解释，需要更多原版参考才能进一步核对。不要把技术测试通过等同于美术还原验收。
 
-接口与参数根据 [Tripo 官方 Python SDK 的 apiv3 文档](https://github.com/VAST-AI-Research/tripo-python-sdk/blob/master/docs/API.md) 实现。直接使用 HTTPS 标准库请求，保留 TLS 校验；不会调用 SDK 中的禁用 TLS 校验回退逻辑。
+## Blender 来源与重建
 
-在云环境设置中安全绑定 `TRIPO_API_KEY`，允许 `openapi.tripo3d.ai`。密钥仅由 Python 离线生成脚本读取，不使用 `VITE_` 前缀，不进入网页、仓库或 GLB。不要把密钥作为命令行参数。生成返回的模型可能使用其他 CDN；遇到下载限制时，脚本只报告所需主机名，以便将该确切域名加入设置。
+主城堡是依据可查看轮廓新建的 Blender 网格，不是提取的官方模型，也不是 Tripo 结果。生成脚本会自行生成石灰石、陶瓦和木纹表面，建模并按材质合并，输出独立 GLB。
 
 ```bash
-# 仅查看生成计划，不联网也不产生费用。
+blender --background --factory-startup --python scripts/build_mole_castle.py
+```
+
+输出 `public/assets/mole/mole-castle.glb` 和建模信息 JSON；可编辑源文件保存在 `artifacts/authoring/mole-castle.blend`。普通安装运行不需要执行 Blender。页游参考截图仅用于观察，不随应用发布。
+
+## Tripo 集成
+
+`assets-plan.json` 已改为经典摩尔城堡的造型约束，取消上一版通用欧洲堡与酒馆计划。模型版本仍为用户指定的 `v3.1-20260211`，目前计划仅有一个城堡资产。
+
+```bash
 npm run assets:plan
-
-# 默认只处理第一项：城堡。
-npm run assets:generate
-
-# 处理城堡、酒馆、喷泉，最多三项付费任务。
-npm run assets:generate -- --limit 3
-
-# 单独处理一个资产。
-npm run assets:generate -- --asset tavern
+npm run assets:generate -- --asset mole-castle
 ```
 
-模型使用用户指定的 `v3.1-20260211`。提示词、面数预算、PBR 和 detailed 贴图质量配置见 `assets-plan.json`。实际费用以服务商为准。
+第一条仅打印计划，不联网或收费。生成命令需要安全运行时绑定 `TRIPO_API_KEY` 和 `openapi.tripo3d.ai` 的出站权限；只在明确授权生成时执行，普通安装和启动不会调用。当前运行环境没有该绑定，真实付费任务尚未提交。
 
-脚本先检查账户访问和余额，再提交任务。任务回执保存在被忽略的 `.asset-tasks/`，下载后校验 GLB、保存 SHA-256，并更新 `public/assets/manifest.json`。场景刷新后自动替换对应建筑。下载请求不携带 API 授权头。
-
-重复运行会复用已有任务或已校验的资产。付费 POST 失败不会自动重试；如果回执为 `submitting` 且没有 task ID，请先在 Tripo 控制台核对任务，再修复回执，防止重复扣费。运行锁也会阻止并行重复提交。安装和启动流程不会自动生成付费资产。
-
-**当前集成状态：**生成脚本和模拟测试已完成；真实 Tripo 调用需要运行环境的安全密钥绑定及出站域名规则生效。没有将聊天中的密钥复制到文件或命令中。
-
-## Blender 与现有资产
-
-五个外部建筑来自 Kay Lousberg 的 [KayKit Medieval Hexagon Pack 1.0](https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0)，CC0，来源提交为 `84fa4e91af6a88989be7c99e0891cede11f2ca38`。原始许可证与处理说明随文件保留在 `public/assets/kaykit/`。
-
-使用 Blender 4.3.2 将源 glTF 转为独立 GLB，替换原渐变色板为本项目生成的石材、板岩与木纹纹理，重新投射 UV 并加入法线贴图。地形、树木、道路、广场、主城堡替代模型及效果由场景代码构建。上述资产全部本地可用，无需付费生成即可查看原型。
-
-重新处理这些资产需要 Blender 和 Pillow；普通安装与运行不需要执行：
-
-```bash
-git clone https://github.com/KayKit-Game-Assets/KayKit-Medieval-Hexagon-Pack-1.0.git /tmp/mole-kaykit-source
-git -C /tmp/mole-kaykit-source checkout 84fa4e91af6a88989be7c99e0891cede11f2ca38
-python3 scripts/prepare_textures.py
-blender --background --factory-startup --python scripts/prepare_kaykit.py -- /tmp/mole-kaykit-source
-```
-
-这个转换命令会重建基础资产清单。已生成 Tripo 资产时，随后运行相应的 `assets:generate` 命令即可通过现有回执重新安装，已完成资产不会重复付费。
+脚本基于官方 apiv3 文档，保留 TLS 校验。密钥只用于服务端 HTTPS，不进入网页、GLB、仓库或 CDN 请求。回执在被忽略的 `.asset-tasks/`；重复运行复用已有任务，付费 POST 不自动重试。下载校验后更新资产清单，页面刷新即可接入。来源为 Tripo 的模型必须在实际生成和检查后才能这样标记。
 
 ## 文件
 
-- `src/world.ts`：场景布局、资产加载、粒子、动画与碰撞。
-- `src/main.ts`：渲染、相机、时间、天气和界面。
-- `src/materials.ts`：可复用表面材质。
-- `src/audio.ts`：原创环境音乐与声景。
-- `scripts/tripo_assets.py`：服务端离线生成、恢复和安装。
-- `assets-plan.json`：首批三个 Tripo 资产的风格与质量参数。
-- `tests/`：资产管线与真实浏览器检查。
-
-云任务本身已隔离，使用现有 `/workspace/mole-world` 检出目录，无需创建 Git worktree。
+- `src/world.ts`：前庭布局、模型加载、静态合批、天气粒子与碰撞。
+- `src/mole-life.ts`：摩尔和拉姆的网格、材质与动画。
+- `src/main.ts`：相机、时间、渲染和界面控制。
+- `src/audio.ts`：合成配乐和环境声景。
+- `scripts/build_mole_castle.py`：可重复的 Blender 城堡建模。
+- `scripts/package_release.py`：无安装离线网页和静态网站包。
+- `scripts/tripo_assets.py`：付费生成、恢复和安装流程。

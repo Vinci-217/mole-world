@@ -37,7 +37,8 @@ class AssetPipelineTests(unittest.TestCase):
     def test_real_bundled_models_are_valid(self):
         root = Path(__file__).parents[1]
         manifest = json.loads((root / 'public/assets/manifest.json').read_text())
-        self.assertGreaterEqual(len(manifest['assets']), 5)
+        self.assertGreaterEqual(len(manifest['assets']), 1)
+        self.assertIn('mole-castle', [asset['id'] for asset in manifest['assets']])
         for asset in manifest['assets']:
             pipeline.validate_glb(root / 'public' / asset['path'].lstrip('/'))
 

@@ -195,12 +195,12 @@ def generate(plan, selected, limit):
 
 
 def main():
+    plan = json.loads(PLAN.read_text())
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('command', choices=['plan', 'generate'])
-    parser.add_argument('--asset', choices=['castle', 'tavern', 'fountain'])
+    parser.add_argument('--asset', choices=[asset['id'] for asset in plan['assets']])
     parser.add_argument('--limit', type=int, choices=range(1, 4), default=1, help='Maximum assets considered in this invocation (default 1, hard maximum 3).')
     args = parser.parse_args()
-    plan = json.loads(PLAN.read_text())
     selected = [a for a in plan['assets'] if not args.asset or a['id'] == args.asset]
     if args.command == 'plan':
         print('Model:', plan['model'])

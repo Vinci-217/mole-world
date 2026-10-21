@@ -18,8 +18,8 @@ test.describe.serial('庄园漫游', () => {
 
   test('renders the actual bundled 3D assets without WebGL or resource errors',async()=>{
     const current = await state();
-    expect(current.loadedAssets).toEqual(expect.arrayContaining(['watchtower','tavern','cottage','chapel','blacksmith']));
-    await expect(page.locator('h1')).toContainText('雾隐庄园');
+    expect(current.loadedAssets).toEqual(['mole-castle']);
+    await expect(page.locator('h1')).toContainText('摩尔庄园');
     await page.screenshot({path:'artifacts/manor-desktop.png'});
     expect(errors).toEqual([]);
   });
@@ -63,7 +63,7 @@ test.describe.serial('庄园漫游', () => {
     await expect(page.locator('#journal')).toBeVisible();
     await page.locator('#journal [data-destination="2"]').click();
     await expect(page.locator('#journal')).not.toBeVisible();
-    await expect(page.locator('#location-title')).toHaveText('琥珀酒馆');
+    await expect(page.locator('#location-title')).toHaveText('花园步道');
     expect((await state()).activeDestination).toBe(2);
   });
 

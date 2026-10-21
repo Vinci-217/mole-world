@@ -19,10 +19,10 @@ let toastTimeout: ReturnType<typeof setTimeout>;
 function toast(message: string) { $('toast').textContent = message; $('toast').classList.add('visible'); clearTimeout(toastTimeout); toastTimeout = setTimeout(() => $('toast').classList.remove('visible'), 3800); }
 
 type SavedState = {weather: Weather; hour: number; volume: number; highQuality: boolean};
-function loadState(): Partial<SavedState> {try {const state = JSON.parse(localStorage.getItem('eldermere-v1') || '{}'); return state && typeof state === 'object' ? state : {};} catch {return {};}}
+function loadState(): Partial<SavedState> {try {const state = JSON.parse(localStorage.getItem('mole-courtyard-v2') || '{}'); return state && typeof state === 'object' ? state : {};} catch {return {};}}
 const saved = loadState();
-let weather: Weather = ['clear','mist','rain','snow'].includes(saved.weather ?? '') ? saved.weather! : 'mist';
-let hour = Number.isFinite(saved.hour) ? T.MathUtils.clamp(saved.hour!, 0, 23.99) : 16.8;
+let weather: Weather = ['clear','mist','rain','snow'].includes(saved.weather ?? '') ? saved.weather! : 'clear';
+let hour = Number.isFinite(saved.hour) ? T.MathUtils.clamp(saved.hour!, 0, 23.99) : 15.2;
 let highQuality = saved.highQuality ?? true;
 let autoTime = !matchMedia('(prefers-reduced-motion: reduce)').matches;
 let walking = false;
@@ -50,7 +50,7 @@ const daylightColor = new T.Color();
 const skyColor = new T.Color();
 const weatherText: Record<Weather,string> = {clear: '风吹散了云，石墙上留下一点暖意。', mist: '薄雾沿着河谷，缓缓走进庄园。', rain: '雨敲着旧屋顶，灯火替你守着归途。', snow: '第一片雪落下，世界轻轻安静了。'};
 
-function save() {try {localStorage.setItem('eldermere-v1', JSON.stringify({weather, hour, volume: +$<HTMLInputElement>('volume').value, highQuality}));} catch {/* Storage may be unavailable in private browsing. */}}
+function save() {try {localStorage.setItem('mole-courtyard-v2', JSON.stringify({weather, hour, volume: +$<HTMLInputElement>('volume').value, highQuality}));} catch {/* Storage may be unavailable in private browsing. */}}
 function syncTime() {
   const h = Math.floor(hour), m = Math.floor((hour % 1) * 60);
   $('clock').textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
@@ -69,7 +69,7 @@ function makeSky() {
     vertexShader:`varying vec3 vDirection; void main(){vDirection=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
     fragmentShader:`varying vec3 vDirection;uniform float uTime;uniform float uDay;uniform float uCloud;uniform vec3 uSky;uniform vec3 uSun;
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}float fbm(vec2 p){float a=.5,v=0.;for(int i=0;i<5;i++){v+=noise(p)*a;p=p*2.03+1.7;a*=.5;}return v;}
-void main(){vec3 d=normalize(vDirection);float h=max(d.y,0.);vec3 col=mix(uSky*1.1,uSky*.66,pow(h,.5));float horizon=pow(1.-abs(d.y),8.);col+=vec3(.15,.12,.07)*horizon*uDay;float sun=pow(max(dot(d,normalize(uSun)),0.),120.);col+=vec3(1.,.69,.35)*sun*uDay*.7;vec2 uv=d.xz/max(d.y+.18,.05)*1.6+uTime*.002;float cloud=fbm(uv);float clouds=smoothstep(.44-.13*uCloud,.68-.1*uCloud,cloud);col=mix(col,mix(vec3(.15,.2,.22),vec3(.71,.73,.63),uDay),clouds*uCloud*smoothstep(-.05,.18,d.y)*.8);float star=step(.9984,hash(floor(d.xz/(abs(d.y)+.08)*500.)));col+=vec3(star)*(1.-uDay)*smoothstep(.05,.5,d.y)*.7;gl_FragColor=vec4(col,1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>}`});
+void main(){vec3 d=normalize(vDirection);float h=max(d.y,0.);vec3 col=mix(uSky*1.1,uSky*.66,pow(h,.5));float horizon=pow(1.-abs(d.y),8.);col+=vec3(.15,.12,.07)*horizon*uDay;float sun=pow(max(dot(d,normalize(uSun)),0.),120.);col+=vec3(1.,.69,.35)*sun*uDay*.7;vec2 uv=d.xz/max(d.y+.18,.05)*1.6+uTime*.002;float cloud=fbm(uv);float clouds=smoothstep(.44-.13*uCloud,.68-.1*uCloud,cloud);col=mix(col,mix(vec3(.2,.24,.29),vec3(.89,.9,.87),uDay),clouds*uCloud*smoothstep(-.05,.18,d.y)*.8);float star=step(.9984,hash(floor(d.xz/(abs(d.y)+.08)*500.)));col+=vec3(star)*(1.-uDay)*smoothstep(.05,.5,d.y)*.7;gl_FragColor=vec4(col,1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>}`});
   const mesh = new T.Mesh(new T.SphereGeometry(280, 36, 20), material); mesh.renderOrder = -10; return mesh;
 }
 
@@ -79,20 +79,20 @@ async function init() {
   renderer.setPixelRatio(Math.min(devicePixelRatio, highQuality ? 1.6 : 1)); renderer.setSize(innerWidth, innerHeight);
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap; renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
   renderer.info.autoReset = false;
-  scene = new T.Scene(); scene.fog = new T.FogExp2(0x839486, .009);
+  scene = new T.Scene(); scene.fog = new T.FogExp2(0xbacbd0, .004);
   camera = new T.PerspectiveCamera(48, innerWidth / innerHeight, .1, 330); camera.position.set(...destinations[0].position);
   controls = new OrbitControls(camera, canvas); controls.target.set(...destinations[0].target); controls.enableDamping = true; controls.dampingFactor = .045; controls.minDistance = 10; controls.maxDistance = 90; controls.maxPolarAngle = Math.PI / 2 - .03; controls.minPolarAngle = .13; controls.enablePan = true; controls.panSpeed = .55; controls.rotateSpeed = .45; controls.zoomSpeed = .7;
   controls.addEventListener('start', () => { destinationTransition = null; });
   const environment = new RoomEnvironment(); const pmrem = new T.PMREMGenerator(renderer); const target = pmrem.fromScene(environment, .04); scene.environment = target.texture; scene.environmentIntensity = .33; environment.dispose(); pmrem.dispose();
-  hemi = new T.HemisphereLight(0xbac6bb, 0x343b29, 2); scene.add(hemi);
+  hemi = new T.HemisphereLight(0xd5e1f0, 0x685844, 2); scene.add(hemi);
   sun = new T.DirectionalLight(0xf9d39a, 3); sun.position.set(-30, 40, 5); sun.castShadow = true; sun.shadow.mapSize.set(2048,2048); sun.shadow.camera.left = -55; sun.shadow.camera.right = 55; sun.shadow.camera.top = 55; sun.shadow.camera.bottom = -55; sun.shadow.camera.near = 1; sun.shadow.camera.far = 180; sun.shadow.normalBias = .045; sun.shadow.bias = -.00012; sun.shadow.radius = 3; scene.add(sun); scene.add(sun.target);
   sky = makeSky(); scene.add(sky);
-  $('loading-detail').textContent = '正在铺开山谷与森林';
+  $('loading-detail').textContent = '正在展开摩尔城堡与前庭';
   await new Promise(resolve => setTimeout(resolve, 30));
   world = new EstateWorld(); scene.add(world.group);
   composer = new EffectComposer(renderer); composer.addPass(new RenderPass(scene, camera));
   bloom = new UnrealBloomPass(new T.Vector2(innerWidth,innerHeight), .21, .65, .85); composer.addPass(bloom);
-  const grade = new ShaderPass({uniforms: {tDiffuse:{value:null},uTime:{value:0}},vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`uniform sampler2D tDiffuse;uniform float uTime;varying vec2 vUv;void main(){vec4 c=texture2D(tDiffuse,vUv);float l=dot(c.rgb,vec3(.2126,.7152,.0722));c.rgb=mix(vec3(l),c.rgb,.88);c.rgb*=vec3(1.025,1.015,.96);float vig=1.-smoothstep(.2,.85,distance(vUv,vec2(.5)))*.18;c.rgb*=vig;gl_FragColor=c;}`}); composer.addPass(grade); composer.addPass(new OutputPass());
+  const grade = new ShaderPass({uniforms: {tDiffuse:{value:null},uTime:{value:0}},vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`uniform sampler2D tDiffuse;uniform float uTime;varying vec2 vUv;void main(){vec4 c=texture2D(tDiffuse,vUv);float l=dot(c.rgb,vec3(.2126,.7152,.0722));c.rgb=mix(vec3(l),c.rgb,.99);c.rgb*=vec3(1.01,1.,.99);float vig=1.-smoothstep(.2,.85,distance(vUv,vec2(.5)))*.1;c.rgb*=vig;gl_FragColor=c;}`}); composer.addPass(grade); composer.addPass(new OutputPass());
   setupEvents(); resize(); setWeather(weather, true); syncTime();
   renderLoop();
   await world.loadAssets(message => {$('loading-detail').textContent = message;});
@@ -103,7 +103,7 @@ async function init() {
 
 function resize() {
   camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); composer.setSize(innerWidth,innerHeight);
-  if (!walking && activeDestination === 0) { if (innerWidth < 760) {camera.position.set(37,27,53); controls.target.set(0,5,-10);} else {camera.position.set(...destinations[0].position); controls.target.set(...destinations[0].target);} }
+  if (!walking && activeDestination === 0) { if (innerWidth < 760) {camera.position.set(32,24,58); controls.target.set(0,7,-10);} else {camera.position.set(...destinations[0].position); controls.target.set(...destinations[0].target);} }
 }
 
 function setupEvents() {
@@ -129,7 +129,7 @@ function setupEvents() {
   document.querySelectorAll<HTMLElement|SVGElement>('[data-destination]').forEach(el=>el.addEventListener('click',()=>{document.querySelectorAll<HTMLDialogElement>('dialog[open]').forEach(d=>d.close());goToDestination(Number(el.dataset.destination));}));
   const quality=$('quality');const syncQuality=()=>{quality.innerHTML=`${highQuality?'高画质':'流畅画质'} <i data-lucide="chevron-down"></i>`;refreshIcons();};syncQuality();
   quality.addEventListener('click',()=>{highQuality=!highQuality;renderer.setPixelRatio(Math.min(devicePixelRatio,highQuality?1.6:1));composer.setPixelRatio(renderer.getPixelRatio());bloom.enabled=highQuality;sun.castShadow=highQuality;resize();syncQuality();save();toast(highQuality?'已开启柔和阴影与辉光。':'已切换流畅画质。');});
-  $('photo').addEventListener('click',()=>{document.body.classList.add('ui-hidden');requestAnimationFrame(()=>{composer.render();renderer.domElement.toBlob(blob=>{document.body.classList.remove('ui-hidden');if(!blob){toast('画面保存失败。');return;}const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`雾隐庄园-${weather}-${Math.floor(hour)}时.png`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('此刻的庄园，已为你留存。');});});});
+  $('photo').addEventListener('click',()=>{document.body.classList.add('ui-hidden');requestAnimationFrame(()=>{composer.render();renderer.domElement.toBlob(blob=>{document.body.classList.remove('ui-hidden');if(!blob){toast('画面保存失败。');return;}const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`摩尔庄园-${weather}-${Math.floor(hour)}时.png`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('此刻的庄园，已为你留存。');});});});
 }
 
 function goToDestination(index:number){
@@ -164,12 +164,12 @@ function renderLoop(){
   const elevation=Math.sin((hour-6)/24*Math.PI*2);const daylight=T.MathUtils.smoothstep(elevation,-.22,.45);
   const overcast=weather==='rain'?.88:weather==='snow'?.75:weather==='mist'?.55:.15;
   const warm=T.MathUtils.smoothstep(1-Math.abs(elevation),.35,1)*daylight;
-  daylightColor.setHex(0xdee6d2).lerp(new T.Color(0xf2bd7a),warm*.6);sun.color.copy(daylightColor);sun.intensity=daylight*(3.3-overcast*1.5);sun.position.set(Math.cos((hour-6)/24*Math.PI*2)*-55,Math.max(8,elevation*65),-35);
-  hemi.intensity=.25+daylight*1.9;scene.environmentIntensity=.12+daylight*.29;
-  skyColor.setHex(0x101e2a).lerp(new T.Color(weather==='rain'?0x71817b:weather==='snow'?0x9aaba3:0x829988),daylight);
+  daylightColor.setHex(0xfff3dd).lerp(new T.Color(0xffdba5),warm*.6);sun.color.copy(daylightColor);sun.intensity=daylight*(3.1-overcast*1.3);sun.position.set(Math.cos((hour-6)/24*Math.PI*2)*-55,Math.max(8,elevation*65),-35);
+  hemi.intensity=.35+daylight*1.5;scene.environmentIntensity=.12+daylight*.29;
+  skyColor.setHex(0x101e2a).lerp(new T.Color(weather==='rain'?0x82959e:weather==='snow'?0xb4c4cd:0x9bbccf),daylight);
   sky.material.uniforms.uTime.value=t;sky.material.uniforms.uDay.value=daylight;sky.material.uniforms.uCloud.value=overcast;sky.material.uniforms.uSky.value.copy(skyColor);sky.material.uniforms.uSun.value.copy(sun.position).normalize();
-  const fog=scene.fog as T.FogExp2;fog.color.copy(skyColor).multiplyScalar(.92);fog.density=T.MathUtils.damp(fog.density,weather==='mist'?.0105:weather==='rain'?.011:weather==='snow'?.013:.004,1,dt);
-  renderer.toneMappingExposure=.96+daylight*.17;
+  const fog=scene.fog as T.FogExp2;fog.color.copy(skyColor).multiplyScalar(.92);fog.density=T.MathUtils.damp(fog.density,weather==='mist'?.006:weather==='rain'?.009:weather==='snow'?.011:.003,1,dt);
+  renderer.toneMappingExposure=.98+daylight*.08;
   world.update(t,dt,weather,daylight);
   if(walking)updateWalking(dt,t);else{if(destinationTransition){camera.position.lerp(destinationTransition.position,1-Math.exp(-dt*2.8));controls.target.lerp(destinationTransition.target,1-Math.exp(-dt*2.8));if(camera.position.distanceTo(destinationTransition.position)<.03)destinationTransition=null;}controls.update();}
   uiTimer+=dt;saveTimer+=dt;frameCount++;fpsTimer+=realDelta;if(fpsTimer>1){fps=Math.round(frameCount/fpsTimer);frameCount=0;fpsTimer=0;}
@@ -178,4 +178,4 @@ function renderLoop(){
   renderer.info.reset();composer.render();
 }
 
-init().catch(err=>{console.error('Estate initialization failed',err);$('loading').innerHTML='<div class="fatal"><h2>庄园暂时未能展开</h2><p>请使用支持 WebGL 2 的现代浏览器，并开启硬件加速后刷新。</p><p>如果网络连接不稳定，请稍后重试。</p><button onclick="location.reload()">重新进入 →</button></div>';});
+init().catch(err=>{console.error('Estate initialization failed',err);$('loading').innerHTML='<div class="fatal"><h2>摩尔庄园暂时未能展开</h2><p>请使用支持 WebGL 2 的现代浏览器，并开启硬件加速后刷新。</p><p>如果网络连接不稳定，请稍后重试。</p><button onclick="location.reload()">重新进入 →</button></div>';});

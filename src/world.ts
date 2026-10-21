@@ -2,14 +2,15 @@ import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { createMaterials, seeded, radialTexture } from './materials';
+import { CourtyardLife } from './mole-life';
 
 export type Weather = 'clear' | 'mist' | 'rain' | 'snow';
 export type Collision = { x: number; z: number; w: number; d: number };
 export const destinations: {name: string; description: string; position: [number,number,number]; target: [number,number,number]; walk: [number,number]}[] = [
-  { name: '守望者广场', description: '钟声停留的地方，故事从这里开始。', position: [30, 21, 43], target: [0, 4, -4], walk: [0, 12] },
-  { name: '北境古堡', description: '青苔爬上石墙，风记得古老的名字。', position: [22, 13, -9], target: [0, 8, -28], walk: [0, -14] },
-  { name: '琥珀酒馆', description: '一盏未熄的灯，等着远道而来的你。', position: [28, 7, 12], target: [17, 3, -2], walk: [15, 4] },
-  { name: '回声石桥', description: '河流带走时间，也带来远方的消息。', position: [-18, 8, 35], target: [0, 1, 25], walk: [0, 27] },
+  { name: '城堡前庭', description: '红瓦、金色钟面，还有熟悉的摩尔身影。', position: [17, 13, 38], target: [0, 7, -15], walk: [0, 13] },
+  { name: '摩尔城堡', description: '沿着中央步道，走近红色尖塔与王冠大门。', position: [23, 12, -6], target: [0, 9, -29], walk: [0, -13] },
+  { name: '花园步道', description: '修剪整齐的绿篱之间，拉姆正轻轻浮动。', position: [28, 9, 17], target: [11, 1.5, 2], walk: [15, 8] },
+  { name: '石桥入口', description: '跨过溪水，前庭与城堡在眼前展开。', position: [-16, 8, 39], target: [0, 4, 3], walk: [0, 27] },
 ];
 
 export function groundHeight(x: number, z: number) {
@@ -35,19 +36,22 @@ export class EstateWorld {
   readonly mills: T.Group[] = [];
   readonly birds: T.Group[] = [];
   readonly externalAssets: string[] = [];
+  readonly life = new CourtyardLife();
   private rand = seeded(217);
   private fireflySeeds: number[] = [];
   private leafParticles: T.Points;
   private shadowed = new Set<T.Material>();
   private foliageMaterial: T.Material;
   private lanternSprites: T.Sprite[] = [];
+  private flowerMaterials = [0xd89b88,0xead5ac,0xc28ca1].map(color=>new T.MeshStandardMaterial({color,roughness:.9}));
   private batch = new Map<T.Material, T.BufferGeometry[]>();
   private replacements = new Map<string, T.Group>();
 
   constructor() {
     this.group.add(this.staticRoot, this.assetRoot);
     this.foliageMaterial = this.materials.foliage[0];
-    this.terrain(); this.courtyard(); this.castle(); this.village(); this.nature(); this.details(); this.flushBatch();
+    this.terrain(); this.courtyard(); this.gardens(); this.nature(); this.details(); this.flushBatch();
+    this.group.add(this.life.group);
     this.water = this.createWater(); this.group.add(this.water);
     this.fireflies = this.particles(190, new T.PointsMaterial({ map: radialTexture(), color: 0xe1e79a, size: .22, transparent: true, opacity: .8, blending: T.AdditiveBlending, depthWrite: false }), 55, 5, 5);
     for (let i = 0; i < 190; i++) this.fireflySeeds.push(this.rand() * 100);
@@ -219,6 +223,48 @@ export class EstateWorld {
     this.windmill(-34, -18);
   }
 
+  private gardens() {
+    const {stone,lightStone,gold,darkWood,foliage}=this.materials;
+    // A spacious axial courtyard interprets the castle backdrop in 3D. The
+    // arrangement is deliberately not presented as a verified old map layout.
+    this.box(11,.13,17,this.materials.path,[0,.05,-15]);
+    for (const x of [-16,16]) {
+      this.box(1.6,.4,24,lightStone,[x,.2,-5]);
+      this.box(1.4,1,24,foliage[1],[x,.85,-5]);
+      this.collide(x,-5,1.6,24);
+      for(const z of [-15,-7,1,7]) {
+        this.box(2.1,1.7,1.8,stone,[x,.85,z]);
+        this.box(2.35,.16,2.05,lightStone,[x,1.74,z]);
+        this.cylinder(.32,.32,.15,gold,[x,1.91,z],16);
+      }
+    }
+    for(const x of [-24,24]) {
+      this.box(7,.25,12,lightStone,[x,.12,-1]);
+      this.box(6.5,.35,11.5,this.materials.ground,[x,.36,-1]);
+      for(let i=0;i<3;i++)this.flowerBed(x,-5+i*5);
+    }
+    // The red standards echo the castle's palette without inventing a new
+    // named landmark. Their crest is a small gold crown.
+    for(const x of [-8,8]) {
+      const z=-17;
+      this.cylinder(.06,.09,5.3,gold,[x,2.65,z],10);
+      this.mesh(new T.SphereGeometry(.13,12,8),gold,[x,5.45,z]);
+      const banner=new T.Group();banner.position.set(x+1.1,3.7,z);this.staticRoot.add(banner);
+      const cloth=new T.MeshStandardMaterial({color:0xad433c,roughness:.88,side:T.DoubleSide});
+      this.box(1.8,2.1,.06,cloth,[0,0,0],banner);
+      this.box(1.8,.08,.09,gold,[0,-1,0],banner);
+      this.box(.8,.16,.1,gold,[0,-.1,.06],banner);
+      for(const dx of [-.3,0,.3])this.mesh(new T.ConeGeometry(.15,.38,4),gold,[dx,.16,.09],undefined,banner);
+    }
+    // Small garden pergolas, open to the walking path.
+    for(const x of [-24,24]) {
+      const z=12;
+      for(const dx of [-2.5,2.5])for(const dz of [-1.5,1.5])this.box(.22,3,.22,darkWood,[x+dx,1.5,z+dz]);
+      for(let i=0;i<8;i++)this.box(.18,.18,4,darkWood,[x-2.8+i*.8,3,z]);
+      this.box(6,.16,.18,darkWood,[x,2.9,z-1.5]);this.box(6,.16,.18,darkWood,[x,2.9,z+1.5]);
+    }
+  }
+
   private flag(x: number, y: number, z: number, parent?: T.Group) {
     const mat = new T.MeshStandardMaterial({color: 0x596754, roughness: 1, side: T.DoubleSide});
     const geo = new T.PlaneGeometry(1.8, .85, 12, 4); geo.translate(.9, -.4, 0);
@@ -256,19 +302,19 @@ export class EstateWorld {
   }
 
   private nature() {
-    for (let i = 0; i < 235; i++) {
+    for (let i = 0; i < 150; i++) {
       const theta = this.rand() * Math.PI * 2; const r = 42 + this.rand() * 100; const x = Math.sin(theta) * r, z = Math.cos(theta) * r;
       if (z > 20 && z < 30 && Math.abs(x) < 65) continue;
-      if (this.rand() > .4) this.pine(x, z, 1 + this.rand() * 1.5); else this.tree(x, z, .8 + this.rand() * .9, this.rand() > .6);
+      if (this.rand() > .8) this.pine(x, z, 1 + this.rand() * 1.4); else this.tree(x, z, .8 + this.rand() * .9, false);
     }
-    for (const [x, z, s] of [[-29, 2, 1.7], [29, 6, 1.6], [-12, 17, 1.2], [12, 17, 1.1], [-27, -26, 1.5], [27, -27, 1.6], [-32, 31, 1.5], [25, 32, 1.4]]) this.tree(x, z, s, true);
+    for (const [x, z, s] of [[-32, 2, 1.7], [32, 6, 1.6], [-18, 18, 1.2], [18, 18, 1.1], [-29, -26, 1.5], [29, -27, 1.6], [-32, 31, 1.5], [25, 32, 1.4]]) this.tree(x, z, s, false);
     // Instanced grasses: thousands of blades in two draw calls.
-    const blade = new T.PlaneGeometry(.12, .6); blade.translate(0, .3, 0);
+    const blade = new T.PlaneGeometry(.12, .24); blade.translate(0, .12, 0);
     const mat = new T.MeshStandardMaterial({color: 0xffffff, side: T.DoubleSide, roughness: 1});
-    const grass = new T.InstancedMesh(blade, mat, 12000); const dummy = new T.Object3D();
-    for (let i = 0; i < 12000; i++) {
+    const grass = new T.InstancedMesh(blade, mat, 7000); const dummy = new T.Object3D();
+    for (let i = 0; i < 7000; i++) {
       const x = (this.rand() - .5) * 140, z = (this.rand() - .5) * 140;
-      const forbidden = Math.hypot(x, z) < 11 || Math.abs(x) < 3.8 || (Math.abs(z) < 3 && Math.abs(x) < 30) || (z > 20 && z < 30);
+      const forbidden = Math.hypot(x, z) < 12 || (Math.abs(x) < 17 && z < 10 && z > -42) || Math.abs(x) < 3.8 || (Math.abs(z) < 3 && Math.abs(x) < 30) || (z > 20 && z < 30);
       dummy.position.set(x, forbidden ? -5 : groundHeight(x, z), z); dummy.rotation.set((this.rand() - .5) * .3, this.rand() * Math.PI * 2, .1); dummy.scale.setScalar(.5 + this.rand()); dummy.updateMatrix(); grass.setMatrixAt(i, dummy.matrix);
       grass.setColorAt(i, new T.Color().setHSL(.17 + this.rand() * .08, .22, .2 + this.rand() * .17));
     }
@@ -285,7 +331,7 @@ export class EstateWorld {
   private flowerBed(x: number, z: number) {
     this.cylinder(1.7, 1.7, .35, this.materials.stone, [x, .17, z], 12);
     this.cylinder(1.5, 1.5, .12, this.materials.ground, [x, .4, z], 14);
-    const colors = [0xac9b66, 0xc8c2a0, 0x8f817c].map(color => new T.MeshStandardMaterial({color, roughness: .9}));
+    const colors = this.flowerMaterials;
     for (let i = 0; i < 28; i++) {const t = this.rand() * Math.PI * 2, r = this.rand() * 1.4; const px = x + Math.cos(t) * r, pz = z + Math.sin(t) * r; this.cylinder(.02, .02, .35, this.materials.foliage[0], [px, .6, pz], 4); this.mesh(new T.IcosahedronGeometry(.12, 0), colors[i % 3], [px, .8 + this.rand() * .2, pz]);}
     this.collide(x, z, 3.2, 3.2);
   }
@@ -315,7 +361,6 @@ export class EstateWorld {
       for (const dx of [-.9, .9]) this.box(.1, .65, .5, this.materials.iron, [dx, .32, 0], g);
       this.collide(x, z, 2.5, 1);
     }
-    for (const [x, z] of [[14, 1], [23, 0], [-15, -1], [-23, 8]]) {this.cylinder(.45, .4, 1, this.materials.wood, [x, .5, z], 12); for (const y of [.2, .8]) this.cylinder(.47, .47, .08, this.materials.iron, [x, y, z], 12);}
     for (let i = 0; i < 15; i++) {
       const x = 28, z = 11 + i * 1.1; this.box(.12, 1.1, .12, this.materials.darkWood, [x, .55, z]);
       if (i < 14) for (const y of [.4, .85]) this.box(.1, .08, 1.15, this.materials.wood, [x, y, z + .55]);
@@ -371,9 +416,28 @@ export class EstateWorld {
         if (entry.replace) {const old = this.replacements.get(entry.replace); if (old) old.visible = false;}
       } catch (err) {console.warn(`Asset unavailable: ${entry.id}`, err);}
     }
+    if(!this.externalAssets.includes('mole-castle'))throw new Error('The referenced Mole Manor castle model could not be loaded.');
+    this.optimizeStaticGeometry();
+  }
+
+  private optimizeStaticGeometry() {
+    this.staticRoot.updateMatrixWorld(true);
+    const animated=new Set<T.Object3D>([...this.flags,...this.mills]);
+    const collected=new Map<T.Material,T.BufferGeometry[]>();const remove:T.Mesh[]=[];
+    this.staticRoot.traverse(o=>{
+      if(!(o instanceof T.Mesh)||o instanceof T.InstancedMesh||Array.isArray(o.material))return;
+      let node:T.Object3D|null=o;
+      while(node&&node!==this.staticRoot){if(!node.visible||animated.has(node))return;node=node.parent;}
+      const geo=o.geometry.clone().applyMatrix4(o.matrixWorld);const compatible=geo.index?geo.toNonIndexed():geo;
+      if(compatible!==geo)geo.dispose();
+      if(!collected.has(o.material))collected.set(o.material,[]);collected.get(o.material)!.push(compatible);remove.push(o);
+    });
+    for(const mesh of remove){mesh.removeFromParent();mesh.geometry.dispose();}
+    for(const [material,geometries] of collected){const merged=mergeGeometries(geometries,false);if(merged){const mesh=new T.Mesh(merged,material);mesh.castShadow=material!==this.materials.ground;mesh.receiveShadow=true;this.staticRoot.add(mesh);}for(const geo of geometries)geo.dispose();}
   }
 
   update(t: number, dt: number, weather: Weather, daylight: number) {
+    this.life.update(t);
     this.water.material.uniforms.uTime.value = t; this.water.material.uniforms.uLight.value = daylight; this.water.material.uniforms.uRain.value = weather === 'rain' ? 1 : 0;
     this.materials.window.emissiveIntensity = .2 + (1 - daylight) * 1.8;
     for (const light of this.lamps) light.intensity = (.6 + (1 - daylight) * 7) * (1 + Math.sin(t * 3 + light.position.x) * .035);
