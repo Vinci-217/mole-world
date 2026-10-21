@@ -386,17 +386,20 @@
       "region": "berry-jungle",
       "name": "浆果丛林",
       "kind": "region",
-      "description": "古树、浆果、林溪与通往秘境的小路。",
+      "description": "清爽卡通试作：圆润树冠、鲜明浆果、开阔小径与湖蓝溪水。",
       "brief": "The BERRY JUNGLE of classic Mole Manor reimagined as a beautifully crafted premium stylized 3D environment. Huge expressive twisting broadleaf trees with sculpted buttress roots, thick leafy canopies, trailing vines, lush layered ferns, distinctive red and blue berry bushes with individually shaped rich translucent berries, tiny cream-and-red mushrooms, an intimate turquoise forest stream and a handcrafted log-and-rope footbridge. An inviting organic winding path leads into a root-framed forest passage. Hints of rainbow waterfall mist beyond the trees, dappled warm sunlight through emerald canopies, lush cool green shade, fine natural materials, layered close foreground and deep readable forest space. This must feel like a beloved whimsical Chinese browser-game forest, not a generic realistic survival game or an empty park with stone highways. No buildings, no giant signs, no broad paved plazas. Use a generous elevated three-quarter overview, approximately 30 degrees downward, showing the overall district coherently with readable paths and landmarks, but still rich immersive environmental detail.",
       "status": "generated",
       "layoutVerified": false,
       "modelStatus": "not-generated",
       "image": "images/berry-jungle.png",
-      "bytes": 3554015,
+      "bytes": 2087893,
       "width": 1536,
       "height": 1024,
-      "sha256": "beeed5ad042265ebe254b1b4e2d16b8c9be9a833573444aa6d5a9b86d6168d26",
-      "generator": "image_gen"
+      "sha256": "26207aa38de866bfd21c81ee78b756237c2ea2a74cd8431acd5f8bb2161e1362",
+      "generator": "image_gen",
+      "styleId": "clean-cartoon-v2",
+      "revisionBrief": "Restyle the attached landscape into a MUCH SIMPLER, CLEAR, CLEAN cartoon 3D environment for the classic Chinese web game Mole Manor (摩尔庄园). This is a substantial art-direction redesign, not a small texture adjustment. Keep only the broad idea of a green berry forest with one hero tree-root arch near the center, a wooden footbridge, an inviting sandy path, a turquoise river and a waterfall at the right. The current reference has FAR TOO MUCH foliage, bark, moss, tiny flowers and cinematic surface detail: remove about 85 to 90 percent of that visual detail.\n\nNEW VISUAL TARGET: a polished, charming, clearly modeled 3D cartoon game environment with large rounded shapes, smooth continuous curved geometry, broad clean matte surfaces, very simple painted color blocks, gentle restrained shading, playful proportions and an immediately readable layout. Closer to a clean classic Mole Manor world than to a fantasy illustration. Sophisticated shape design and composition; no realism and no cheap angular low-poly facets. Full-bleed landscape image, elevated three-quarter view into the environment, not a miniature sitting on a plinth.\n\nCOMPOSITION AND SIMPLIFICATION: make the paths and open grass banks spacious and visually quiet, together at least half of the scene. The hero tree has a thick friendly honey-tan trunk with one root arch and a canopy made of only a few broad rounded cloud-like leaf masses; no individually rendered leaves, no carved bark grain, no vine mesh. Background trees are a handful of simple clearly separated rounded silhouettes, not a dense forest of hundreds of branches. Only FOUR to SIX berry-bush clusters in carefully chosen spots: each has a simple rounded green shape, a few oversized red berries and at most a few large stylized leaves. Only SIX to EIGHT large smooth rounded boulders, pale desaturated lavender-gray, no cracks or speckles, at most one simple flat green moss patch on some rocks. A short wooden bridge of about eight broad smooth planks, very simple rounded posts; no rope fuzz, wood grain, nail details or complex railings. A single broad waterfall from a low simple softly rounded rock ledge; not multiple towers of fractured cliffs. Calm turquoise water with a few broad curved pale-blue ripple accents and soft reflection, no realistic foam, caustics or noise. Two or three small simple flowers or cartoon mushrooms at most, not a carpet of tiny details.\n\nCOLOR: use a controlled cheerful palette of warm cream/apricot sandy paths, fresh soft yellow-green grass, mid-green tree crowns, subdued cool-green background trees, clear turquoise water and bright strawberry-red berry accents. Large coherent color areas, good separation of foreground and background; rich but not neon, not golden-brown. LIGHT: soft clear daytime illumination, subtle ambient occlusion only at contacts, broad gentle shadows, no god-rays, volumetric fog, sunset orange grading, intense bloom, lens blur, gritty textures or dramatic cinematic effects. The entire picture should be fresh, airy, uncluttered, friendly and cartoon-like. No text, no HUD, no labels, no borders, no collage, no people, no watermark. A new art draft; do not imply a verified original map layout.",
+      "previousImage": "style-studies/berry-jungle-v1.png"
     },
     {
       "id": "berry-passage",
@@ -879,5 +882,7 @@
       "generator": "image_gen",
       "revisionBrief": "Remove the backdrop and isolate the same rock, fern, moss and mushrooms on transparent background."
     }
-  ]
+  ],
+  "preferredStyleId": "clean-cartoon-v2",
+  "styleStudy": "style-study.html"
 }

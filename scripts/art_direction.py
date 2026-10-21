@@ -34,7 +34,11 @@ def record(entry_id:str, source:str):
     print(f'{entry_id}: generated concept recorded, {destination.stat().st_size} bytes; no 3D model claimed.')
 
 def render():
-    data=load();(FOLDER/'index.html').write_text(HTML.replace('__CATALOG__',json.dumps(data,ensure_ascii=False).replace('<','\\u003c')))
+    data=load();page=HTML.replace('__CATALOG__',json.dumps(data,ensure_ascii=False).replace('<','\\u003c'))
+    if (FOLDER/'style-study.html').is_file():
+        update='<aside style="padding:12px 5vw;background:#e1ebd7;font-size:12px"><a href="style-study.html">画风调整 · 浆果丛林清爽卡通试作，查看新版与对比 →</a></aside>'
+        page=page.replace('</header>','</header>'+update,1)
+    (FOLDER/'index.html').write_text(page)
     downloads=FOLDER/'downloads';downloads.mkdir(exist_ok=True)
     for region in data['regions']:
         entries=[e for e in data['entries'] if e['region']==region['id'] and e['status']=='generated']
