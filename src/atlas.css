@@ -222,3 +222,5 @@
 .atlas-sublocation{display:flex;gap:5px}.atlas-sublocation button.atlas-site-fast{width:46px;flex-shrink:0;text-align:center;font-size:10px;padding:5px}.atlas-header-note>span{font-size:11px}
 
 .atlas-overview-world{padding:5px 10px;border:1px solid #8b9b7a88;border-radius:4px;background:transparent;font:inherit;color:#446247;cursor:pointer}
+
+.atlas-fast{color:#deceaa;border-color:#b6c59a55;background:#132d2422}.atlas-fast:hover{background:#aac18b22}.atlas-sublocation button{color:#e7d8b6;border-color:#b9c99555;background:#b8cc9b14}.atlas-sublocation button:hover{background:#b8cc9b30}.atlas-sublocations{margin-bottom:14px}

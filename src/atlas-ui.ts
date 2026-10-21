@@ -53,9 +53,9 @@ export class WorldAtlas {
             <div class="atlas-preview-art" aria-hidden="true"><span class="atlas-art-orbit"></span><div class="atlas-preview-icon"></div><span class="atlas-art-sprig atlas-art-sprig-left">✧</span><span class="atlas-art-sprig atlas-art-sprig-right">✦</span><span class="atlas-art-horizon"></span><span class="atlas-preview-biome"></span></div>
             <div class="atlas-preview-copy" aria-live="polite" aria-atomic="true">
               <div class="atlas-preview-eyebrow"><span class="atlas-place-number"></span><span class="atlas-phase"></span></div>
-              <h3 class="atlas-place-name"></h3><p class="atlas-place-subtitle"></p><p class="atlas-place-description"></p>
+              <h3 class="atlas-place-name"></h3><p class="atlas-place-subtitle"></p><div class="atlas-sublocations" aria-label="区域内子地点"></div><p class="atlas-place-description"></p>
               <div class="atlas-landmarks-heading">在这里寻找</div><ul class="atlas-landmarks"></ul>
-              <p class="atlas-prototype-note"></p><div class="atlas-sublocations"></div>
+              <p class="atlas-prototype-note"></p>
             </div>
             <div class="atlas-travel-area"><span class="atlas-current-note"></span><button class="atlas-travel" type="button"><span>沿路前往</span>${arrow}</button><button class="atlas-fast" type="button">快速前往 · 跳过路程</button><p>步行无需加载或切换场景</p></div>
           </aside>

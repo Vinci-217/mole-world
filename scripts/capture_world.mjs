@@ -31,8 +31,9 @@ try{
     document.getElementById('auto-time').click();
     const time=document.getElementById('time');time.value='16';time.dispatchEvent(new Event('input',{bubbles:true}));
   });
+  let previousCaptureId=null;
   for(const id of regions){
-    if(id!==await page.evaluate(()=>window.__estate.activeRegion)){
+    if(id!==await page.evaluate(()=>window.__estate.activeRegion)||previousCaptureId in siteParents){
       await page.evaluate(({id,parent})=>{
         document.getElementById('nav-world').click();
         document.querySelector(`#world-atlas .atlas-region[data-region="${parent||id}"]`).click();
@@ -45,7 +46,7 @@ try{
     await page.screenshot({path:path.join(out,`${id}.png`),timeout:120000});
     const state=await page.evaluate(()=>window.__estate);
     if(!state.highQuality||!state.contactShadows)throw new Error('Captures must use the actual high-quality renderer.');
-    report.push({captureId:id,...state});console.log(`${id}: ${state.sceneTriangleCount??0} architectural triangles; captured actual high-quality view`);
+    previousCaptureId=id;report.push({captureId:id,...state});console.log(`${id}: ${state.sceneTriangleCount??0} architectural triangles; captured actual high-quality view`);
   }
   await page.evaluate(()=>{document.getElementById('nav-world').click();document.querySelector('.atlas-overview-world').click();});
   await page.screenshot({path:path.join(out,'world-overview.png'),timeout:120000});

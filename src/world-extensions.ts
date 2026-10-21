@@ -144,8 +144,8 @@ export class WorldExtensions {
   private sign(site:WorldSite,x:number,y:number,z:number){
     const c=document.createElement('canvas');c.width=768;c.height=192;const ctx=c.getContext('2d')!;
     ctx.fillStyle='#345246';ctx.fillRect(0,0,768,192);ctx.strokeStyle='#d9c591';ctx.lineWidth=6;ctx.strokeRect(9,9,750,174);ctx.fillStyle='#f6e5be';ctx.font='bold 62px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(site.name,384,98,710);
-    const texture=new T.CanvasTexture(c);texture.colorSpace=T.SRGBColorSpace;const mat=new T.MeshStandardMaterial({map:texture,roughness:.9,side:T.DoubleSide});
-    this.box(x,y+1.3,z,.16,2.6,.16,this.m.darkWood);const mesh=new T.Mesh(new T.PlaneGeometry(5,1.25),mat);mesh.position.set(x,y+2.5,z);this.group.add(mesh);
+    const texture=new T.CanvasTexture(c);texture.colorSpace=T.SRGBColorSpace;const mat=new T.MeshStandardMaterial({map:texture,roughness:.9,side:T.FrontSide});
+    this.box(x,y+1.3,z,.16,2.6,.16,this.m.darkWood);const mesh=new T.Mesh(new T.PlaneGeometry(5,1.25),mat);mesh.position.set(x,y+2.5,z+.012);this.group.add(mesh);const back=mesh.clone();back.rotation.y=Math.PI;back.position.z=z-.012;this.group.add(back);
   }
   private flush(){for(const [m,list] of this.batches){const normalized=list.map(g=>g.index?g.toNonIndexed():g),merged=mergeGeometries(normalized,false);if(merged){const mesh=new T.Mesh(merged,m);mesh.castShadow=mesh.receiveShadow=true;this.group.add(mesh);}list.forEach(g=>g.dispose());normalized.forEach(g=>g.dispose());}this.batches.clear();}
   async load(){await this.nature.loadAssets();}
