@@ -2,6 +2,7 @@
 from __future__ import annotations
 import argparse
 import hashlib
+import html
 import json
 from pathlib import Path
 import shutil
@@ -36,7 +37,8 @@ def record(entry_id:str, source:str):
 def render():
     data=load();page=HTML.replace('__CATALOG__',json.dumps(data,ensure_ascii=False).replace('<','\\u003c'))
     if (FOLDER/'style-study.html').is_file():
-        update='<aside style="padding:12px 5vw;background:#e1ebd7;font-size:12px"><a href="style-study.html">画风调整 · 浆果丛林清爽卡通试作，查看新版与对比 →</a></aside>'
+        title=html.escape(data.get('styleStudyTitle','浆果丛林画风调整'))
+        update=f'<aside style="padding:12px 5vw;background:#e1ebd7;font-size:12px"><a href="style-study.html">{title} · 查看新版与对比 →</a></aside>'
         page=page.replace('</header>','</header>'+update,1)
     (FOLDER/'index.html').write_text(page)
     downloads=FOLDER/'downloads';downloads.mkdir(exist_ok=True)

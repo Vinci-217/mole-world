@@ -9,6 +9,7 @@
 1. [页游客户端开始画面](https://raw.githubusercontent.com/Earthink030918/mole-flash-android/main/docs/screenshots/01-start.jpg)。仓库说明这是官方网页版客户端的实机兼容性展示。背景可见奶油石墙、红陶瓦尖塔、金色檐线、左右细圆塔、中央钟面、拱形正门与金色冠状装饰。它是登录宣传画，不能用来证明城堡前庭的具体道路、喷泉或雕像位置。
 2. [该客户端家园截图](https://raw.githubusercontent.com/Earthink030918/mole-flash-android/main/docs/screenshots/04-home.jpg)。用于核对圆润的摩尔/拉姆形象、植物与水体的视觉语言；这不是前庭地图。
 3. [经典页游城堡内部实机截图](https://raw.githubusercontent.com/oneman233/oneman233.github.io/master/images/2015-11-07-MoErZhuangYuan-1.jpg)，来自 2015 年回忆文章。可确认室内金边柱、左右成对盔甲像和中央拼图门；这些内容不能直接挪到前庭并称为原版位置。
+4. [第三方旧页游浆果丛林地图存档（41.swf）](https://github.com/Miigon/RecMoleRes/blob/7a6d6b3c7037a85afb28ad6abd4d7f4adfddb5ff/root/resource/map/41.swf)。通过 RecMole 的资源子模块找到，固定提交 `7a6d6b3c7037a85afb28ad6abd4d7f4adfddb5ff`，本地使用 Ruffle 0.7.1 实际显示并观察。可确认左后方水潭和狭长瀑布、左侧溪流与覆叶树干桥、后方垂藤大树、右上木栅洞口，以及右下褶叶植物与卷曲嫩芽。画面带兔兔、胡萝卜等活动内容和遮挡地面的对话气泡，具体年代与版本未确认；不把活动角色或遮挡下的推测当作常驻地标。该参考仅用于浆果丛林第三版效果图的可见布局和视觉语言，生成图仍需逐项验收。
 
 参考图仅用于观察，未打包进应用或离线版。相关原始游戏画面属于其权利人。
 

@@ -1,0 +1,42 @@
+{
+  "id": "browser-art-3d-v3",
+  "name": "页游原画的3D化",
+  "status": "candidate",
+  "scope": "浆果丛林主场景效果试作；按可见存档核对地标，未完成精确布局验收及3D建模。",
+  "principles": [
+    "先依据可查看的页游画面建立地标与相对空间关系，再进行3D风格转译。",
+    "轮廓保持克制的卡通夸张，树干、枝叶与岩石具有适量自然层次，避免圆球玩具造型。",
+    "材质有少量树皮纹理、柔和色差与粗糙度变化，给草地和道路保留安静区域。",
+    "保留适度林间明暗、接触阴影和远近层次，控制强辉光、浓雾与微小装饰密度。"
+  ],
+  "palette": [
+    "中调森林绿",
+    "橄榄绿与冷玉绿阴影",
+    "温暖木棕与赭石",
+    "安静的蓝色水面",
+    "局部粉红与浆果色点缀"
+  ],
+  "image": "images/berry-jungle.png",
+  "previousImage": "style-studies/berry-jungle-v2.png",
+  "reference": {
+    "type": "third-party archived browser-game map",
+    "mapId": 41,
+    "source": "https://raw.githubusercontent.com/Miigon/RecMoleRes/7a6d6b3c7037a85afb28ad6abd4d7f4adfddb5ff/root/resource/map/41.swf",
+    "renderedLocallyWith": "@ruffle-rs/ruffle 0.7.1",
+    "visibleLandmarks": [
+      "左后方水潭和狭长瀑布",
+      "左中部溪流与覆叶树干桥",
+      "后方垂藤与黄色浆果的大树",
+      "右上岩壁中的木栅洞口",
+      "右下褶叶植物与卷曲嫩芽"
+    ],
+    "limitations": [
+      "第三方存档带活动角色和界面，具体年代和版本未确认。",
+      "气泡遮挡的一小部分地面未能直接核对。",
+      "生成图的三维比例、遮挡背面和细节仍属解释，尚非逐项验收的原版复刻。"
+    ]
+  },
+  "layoutVerified": false,
+  "modelStatus": "not-generated",
+  "prompt": "Create a carefully art-directed 3D ENVIRONMENT REINTERPRETATION of the attached archived classic MOLE MANOR BERRY JUNGLE gameplay map. The attached image is the PRIMARY source for its visible geography, landmark placement, shapes and palette. This is a NEW 3D art draft based on the visible archive, NOT an official screenshot or proof of the exact historical version. The user wants 'the original browser-game painting brought into 3D, with moderate natural texture, restrained exaggeration and light filtering through the forest.' The last attempt failed because it looked like an oversimplified lime-green plastic preschool playset; another earlier attempt failed because it was crammed with photorealistic foliage and ornate fantasy detail. Aim for a beautiful balanced stylized environment with believable natural materials and the SPECIFIC identity of THIS original map.\n\nPRESERVE THE VISIBLE MAP'S SPATIAL RELATIONSHIPS, with a coherent elevated three-quarter perspective and walkable open grassy banks: a calm pool sits at the BACK LEFT, fed by a single NARROW waterfall between subdued gray/ochre cliff faces. The stream leaves this pool, flows downward through the LEFT-CENTER of the scene, and curves to the foreground. A short rough HOLLOW TREE-TRUNK footbridge with broad leaves growing along its top crosses the left-center stream. A wide grassy raised central bank occupies the CENTER and RIGHT of the stream, with irregular exposed earth and rock edges, not a set of separate floating rounded islands. At the BACK CENTER-RIGHT stands a tall old natural tree with angular flowing root lines, interesting branching structure, a leafy canopy, a couple of long curling draped vines, hanging small warm yellow/orange berry clusters and perhaps two tiny blue dragonflies. At the UPPER RIGHT is a DARK CAVE ENTRANCE in a natural rock outcrop with a simple rough WOODEN BARRED GATE and a few worn stone steps approaching it. At the LOWER RIGHT bank are a large pleated umbrella-like leaf plant with a hanging dewdrop, unfurling curling fern shoots, a few broad leaves and a small cluster of pink/red berries. The LEFT edge is framed by a mature berry-leaved tree; the lower-left edge has a restrained group of pink flowers and a distinctive broad pale-pink leaf-shaped flower nestled by its trunk. Keep these distinctive visual accents at a believable modest scale. Preserve natural green walking space and a few subtle earth patches; do not replace the meadow with a broad yellow theme-park road.\n\nIMPORTANT CORRECTION TO PREVIOUS DRAFTS: there is NO enormous walk-through root arch in the center of this source map. Do not introduce one. Do not put a giant broad waterfall on the right, a conventional bridge in the foreground center, alpine mountains, fantasy castles or invented elaborate structures. Do not turn the location into a generic waterfall resort. The pool, river, hollow-log bridge, rear vine tree and gated cave must read clearly as separate landmarks in the right relative positions.\n\nART STYLE: refined and immersive but unmistakably stylized 3D. Interesting slightly irregular natural silhouettes, modeled broad leaves with clear variation and small gaps, overlapping leaf groupings that suggest real branches without showing thousands of tiny leaves. Tree trunks have a few expressive shallow bark ridges, subtle hand-painted color variation and broad sculpted roots; NOT glossy clay, foam tubes or heavily scanned photoreal bark. Rock outcrops have believable layered planes and softly worn edges with a little restrained moss, NOT perfectly smooth inflated purple toy stones and NOT noisy fractured rock walls. Grass banks use broad painted green tones and just a few sparse tufts at edges, NOT uniform high-frequency grass blades or fluffy lime-green velvet. The log bridge feels like a real worn carved trunk with a hollow side and a few restrained grain marks, not eight polished toy planks. Restrained roughness variation, painterly clean materials with grounded contact shading. Quality should come from shape design, authored materials, composition and lighting; allow calm untextured areas between detailed accents.\n\nPALETTE AND ATMOSPHERE: take the original's MID-TONE NATURAL forest greens, olive and cool jade shadows, warm muted ochre-brown tree bark, quiet blue water and selective red/pink berry accents. Reduce fluorescent yellow-green and saturated cyan. Keep the original's inviting fairy-tale forest mood with a quiet sense of exploration and childhood familiarity; avoid both preschool candy colors and gritty desaturated realistic woodland. Soft late-morning sunlight FILTERS THROUGH CANOPY GAPS, giving a few broad broken patches of warm light on the central grass and cool soft shade underneath trees. Delicate atmospheric depth in the rear only, a little waterfall mist and gentle reflections, no enormous god-rays, cinematic orange grading, dense fog or excessive bloom. Legible forms across the scene, no tilt-shift miniature blur or flat studio lighting. Grounded eye-readable scale and believable depth. Full-bleed landscape composition.\n\nREMOVE the archived screenshot's floating white speech balloon, labels, user interface, temporary rabbit characters, seasonal carrot patch and floating game icons; do not use those as permanent geographic landmarks. Do not introduce other characters. The ground hidden by the speech balloon may be interpreted conservatively as a continuation of the surrounding meadow, without inventing major landmarks there. No text, UI, HUD, watermark, borders or multi-image collage."
+}
