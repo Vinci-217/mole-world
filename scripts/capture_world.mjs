@@ -15,9 +15,11 @@ const errors=[],requests=[],report=[];
 page.on('pageerror',error=>errors.push(error.message));
 page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
 page.on('request',request=>{if(/^https?:/.test(request.url()))requests.push(request.url());});
-const regions=['castle','taotao-street','love-church','happy-farm','sunshine-ranch','berry-jungle',
+const allRegions=['castle','taotao-street','love-church','happy-farm','sunshine-ranch','berry-jungle',
   'moraya-mountain','mystery-lake','ram-academy','outpost','black-forest','amusement-park'];
+const regions=process.argv.length>2?process.argv.slice(2):allRegions;
 try{
+  if(regions.some(id=>!allRegions.includes(id)))throw new Error('Unknown capture region.');
   await context.setOffline(true);
   // Managed Chromium blocks file://. setContent exercises the same self-contained
   // HTML with networking disabled, without claiming a file-navigation test.
@@ -48,6 +50,6 @@ try{
   await page.locator('.atlas-close').click();
   if(errors.length)throw new Error(errors.join('\n'));
   if(requests.length)throw new Error(`Unexpected offline HTTP requests: ${requests.length}`);
-  await writeFile(path.join(out,'verification.json'),JSON.stringify({offline:true,httpRequests:requests,errors,regions:report},null,2));
+  await writeFile(path.join(out,regions.length===allRegions.length?'verification.json':'verification-partial.json'),JSON.stringify({offline:true,httpRequests:requests,errors,regions:report},null,2));
   console.log(`Offline release: ${regions.length} actual regions captured; zero HTTP requests and zero browser errors.`);
 }finally{await browser.close();}

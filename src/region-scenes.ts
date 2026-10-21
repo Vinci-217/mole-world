@@ -263,11 +263,9 @@ function ranch(b: Builder) {
 }
 
 function giantTree(b: Builder, x: number, z: number, size: number, _dark = false) {
-  b.cyl(size * .36, size * .65, size * 2.1, b.m.bark, [x, size, z], 12); b.block(x, z, size * 1.3, size * 1.3);
-  for (let i = 0; i < 6; i++) {
-    const a = i * Math.PI / 3;
-    b.beam([x, size * .6, z], [x + Math.sin(a) * size * 1.6, .05, z + Math.cos(a) * size * 1.6], size * .29, b.m.bark);
-  }
+  // Reuse the model's own branching trunk and roots. A second primitive trunk
+  // was much wider than its canopy and made the combined tree look cut down.
+  b.block(x, z, size * .34, size * .34);
   b.heroTrees.push({ x, z, scale: size * .33 });
 }
 function mushroom(b: Builder, x: number, z: number, s: number, material = b.mushroomCap) {
@@ -313,7 +311,7 @@ function mountain(b: Builder) {
     const peaks = Math.max(gaussian(x, z, -43, -88, 26, 31, 47), gaussian(x, z, 1, -109, 31, 32, 59), gaussian(x, z, 51, -90, 28, 29, 48));
     const foothill = smooth(0, 23, -z - 47), edge = (1 - smooth(81, 105, Math.abs(x))) * (1 - smooth(143, 156, -z));
     const height = foothill * edge * Math.max(0, peaks + ridgeNoise(x, z) * Math.min(1, peaks / 18) - 3);
-    vertices.setY(i, regionGroundHeight(x, z) + height); uv.setXY(i, x / 18, z / 18);
+    vertices.setY(i, regionGroundHeight(x, z) + height + .04); uv.setXY(i, x / 18, z / 18);
   }
   range.computeVertexNormals();
   const normals = range.attributes.normal, colors: number[] = [], rockColor = new T.Color(0x66717b), iceColor = new T.Color(0xe9f0f1), footColor = new T.Color(0xd5e2e7);
