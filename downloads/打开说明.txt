@@ -1,7 +1,7 @@
-雾隐庄园 · 打开说明
+摩尔庄园 · 经典城堡前庭 · 打开说明
 
 一、直接体验
-下载 Eldermere-Offline.html，使用电脑上的 Chrome 或 Edge 打开。
+下载 MoleManor-Offline.html，使用电脑上的 Chrome 或 Edge 打开。
 全部模型、代码、贴图和声音生成逻辑都在这个文件里，不需要安装软件或连接模型 API。
 初次进入请等待场景加载。需要支持 WebGL 2 的浏览器，建议开启硬件加速。
 点击「走进庄园」，WASD 行走，按住画面拖动环顾，Esc 退出。
@@ -9,11 +9,11 @@
 手机文件预览器通常不支持完整 WebGL，请使用网站版本或电脑浏览器。
 
 二、发布为网站
-Eldermere-Website.zip 内是完整的静态网站，没有服务端或密钥。
+MoleManor-Website.zip 内是完整的静态网站，没有服务端或密钥。
 解压后，将包含 index.html 的整个文件夹上传至静态网站托管服务。
 例如，在 Netlify Drop（https://app.netlify.com/drop）登录后拖入解压的文件夹。
 也可部署到 Cloudflare Pages，构建输出目录为该文件夹根目录。
 请保留 assets 文件夹。当前版本支持部署在子目录中。
 
 这是场景原型：已有天气、昼夜、漫游、光影与合成音乐。
-目前使用 CC0 资产和场景模型，Tripo 精细模型尚未生成。
+主城堡按页游参考在 Blender 中重构，带实体屋瓦、钟面和王冠入口；前庭布局为3D空间转译，并非一比一官方地图。

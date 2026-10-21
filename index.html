@@ -3,57 +3,84 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#111b19" />
-    <meta name="description" content="雾隐庄园，一个可以漫游的中世纪庄园。听见风，走进雾，等待灯火亮起。" />
-    <title>雾隐庄园 · MOLE WORLD</title>
+    <meta name="theme-color" content="#392f29" />
+    <meta name="description" content="摩尔庄园经典城堡前庭的 3D 场景重构。探索熟悉的地标，体验昼夜、天气与沉浸光影。" />
+    <title>摩尔庄园 · 经典城堡前庭</title>
     <link rel="icon" type="image/svg+xml" href="./crest.svg" />
-    <script type="module" crossorigin src="./assets/index-CcC1WbfL.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-D2qna4e9.css">
+    <script type="module" crossorigin src="./assets/index-BeT550L5.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BG_uf5Jc.css">
   </head>
   <body>
-    <canvas id="world" aria-label="可漫游的三维中世纪庄园"></canvas>
+    <canvas id="world" aria-label="可漫游的摩尔庄园城堡前庭三维场景"></canvas>
     <div id="vignette"></div>
     <div id="app">
       <header class="topbar">
-        <a class="brand" href="#" aria-label="雾隐庄园首页"><span class="crest">M<span>✦</span></span><span class="brand-copy">MOLE WORLD<small>A LITTLE WORLD, A LONG STORY</small></span></a>
+        <a class="brand" href="#" aria-label="摩尔庄园场景首页"><span class="crest">M<span>●</span></span><span class="brand-copy">摩尔庄园<small>经典场景 · 3D 重构</small></span></a>
         <nav class="main-nav" aria-label="主要导航"><button class="nav-item active" id="nav-world">探索世界</button><button class="nav-item" id="nav-journal">庄园手记 <span class="tiny-dot"></span></button><button class="nav-item" id="nav-guide">漫游指南</button></nav>
-        <div class="top-actions"><span class="world-status"><span></span>世界已苏醒</span><button class="icon-button" id="audio-toggle" aria-label="开启音乐" title="开启音乐"><i data-lucide="volume-x"></i></button><button class="icon-button" id="fullscreen" aria-label="全屏"><i data-lucide="maximize"></i></button></div>
+        <div class="top-actions"><span class="world-status"><span></span>城堡前庭 · 可漫游</span><button class="icon-button" id="audio-toggle" aria-label="开启音乐" title="开启音乐"><i data-lucide="volume-x"></i></button><button class="icon-button" id="fullscreen" aria-label="全屏"><i data-lucide="maximize"></i></button></div>
       </header>
 
       <main>
         <section class="intro" id="intro">
-          <div class="eyebrow"><span></span> THE ELDERMERE ESTATE <span class="edition">VOL. 01</span></div>
-          <h1>雾隐庄园<span>ELDERMERE</span></h1>
-          <p class="intro-copy">穿过古老的石桥，让世界慢下来。<br />在风、森林与灯火之间，找到你的归处。</p>
-          <div class="location-note"><span class="line"></span><span>北境山谷 <b>·</b> 一处被时光遗忘的庄园</span></div>
+          <div class="eyebrow"><span></span> 经典场景 <span class="edition">CASTLE COURTYARD</span></div>
+          <h1>摩尔庄园<span>城堡前庭</span></h1>
+          <p class="intro-copy">从熟悉的城堡出发，走进立体的庄园。</p>
+          <div class="location-note"><span class="line"></span><span>经典地标 <b>·</b> 精细材质与沉浸光影</span></div>
         </section>
 
         <aside class="environment-panel" aria-label="环境控制">
-          <div class="panel-heading"><span>世界此刻</span><span class="live-dot"></span></div>
+          <div class="panel-heading"><span>时间与天气</span><span class="live-dot"></span></div>
           <div class="time-readout"><i data-lucide="sunset" id="time-icon"></i><span id="clock">17:30</span><span class="day-label">深秋<br /><b id="day-number">第 01 日</b></span></div>
           <div class="time-slider"><input id="time" type="range" min="0" max="23.99" step="0.01" value="17.5" aria-label="一天中的时间" /><div><span>日出</span><span>正午</span><span>日落</span><span>深夜</span></div></div>
           <div class="panel-divider"></div>
-          <div class="control-label">让天气，跟随心情 <button id="auto-time" class="text-button" aria-pressed="true" title="暂停昼夜流转"><i data-lucide="pause"></i> 流转中</button></div>
+          <div class="control-label">天气 <button id="auto-time" class="text-button" aria-pressed="true" title="暂停昼夜流转"><i data-lucide="pause"></i> 流转中</button></div>
           <div class="weather-options" role="group" aria-label="天气"><button data-weather="clear"><i data-lucide="sun"></i><span>晴朗</span></button><button data-weather="mist" class="selected" aria-pressed="true"><i data-lucide="cloud-fog"></i><span>薄雾</span></button><button data-weather="rain"><i data-lucide="cloud-rain"></i><span>雨幕</span></button><button data-weather="snow"><i data-lucide="snowflake"></i><span>初雪</span></button></div>
-          <p id="weather-description">薄雾沿着河谷，缓缓走进庄园。</p>
+          <p id="weather-description">薄雾轻轻笼罩着城堡前庭。</p>
           <div class="panel-divider"></div>
-          <button class="soundscape" id="soundscape"><span class="music-art"><i data-lucide="music-2"></i></span><span>风经过的地方<small id="sound-status">原创环境音乐 · 点击聆听</small></span><span class="equalizer"><b></b><b></b><b></b></span></button>
+          <button class="soundscape" id="soundscape"><span class="music-art"><i data-lucide="music-2"></i></span><span>庄园环境声景<small id="sound-status">原创环境音乐 · 点击聆听</small></span><span class="equalizer"><b></b><b></b><b></b></span></button>
           <input class="volume-slider" id="volume" type="range" min="0" max="1" step="0.01" value="0.45" aria-label="音乐音量" />
         </aside>
 
-        <div class="world-caption"><span class="caption-index">01 <span>/ 04</span></span><div><span class="caption-label">你正望向</span><h2 id="location-title">守望者广场</h2><p id="location-description">钟声停留的地方，故事从这里开始。</p></div></div>
+        <div class="world-caption"><span class="caption-index">01 <span>/ 04</span></span><div><span class="caption-label">你正望向</span><h2 id="location-title">城堡前庭</h2><p id="location-description">从广场望向熟悉的摩尔城堡。</p></div></div>
 
-        <aside class="map-widget" aria-label="庄园地图"><div class="map-top"><span>庄园一隅</span><span>N ↑</span></div><svg id="minimap" viewBox="0 0 180 140" role="img" aria-label="点击地标切换观景位置"><defs><pattern id="map-grid" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M 12 0 L 0 0 0 12" fill="none" stroke="#9baa8e" stroke-opacity=".08" stroke-width=".5" /></pattern></defs><rect width="180" height="140" fill="url(#map-grid)"/><path d="M2 123 Q45 90 68 112 T131 91 T179 77" stroke="#658980" stroke-width="12" fill="none" opacity=".6"/><path d="M34 132 Q87 108 87 74 L88 20 M23 76 L154 76" stroke="#aa9b75" stroke-width="4" fill="none" opacity=".6"/><g fill="#8d9c7a" opacity=".5"><path d="M20 22l7 13H13zM34 15l7 13H27zM14 42l7 13H7zM155 22l7 13h-14zM163 43l7 13h-14zM145 36l7 13h-14zM147 114l7 13h-14zM160 102l7 13h-14z"/></g><g fill="#817b67" stroke="#b8a77d" stroke-width=".6"><rect x="66" y="19" width="39" height="20"/><rect x="60" y="15" width="9" height="28"/><rect x="102" y="15" width="9" height="28"/><rect x="36" y="51" width="20" height="15"/><rect x="113" y="53" width="19" height="16"/><rect x="41" y="88" width="18" height="14"/><rect x="111" y="87" width="22" height="15"/></g><circle cx="86" cy="73" r="10" fill="none" stroke="#c3af7b" stroke-width="1"/><g class="map-spots"><circle data-destination="0" cx="86" cy="73" r="5"/><circle data-destination="1" cx="86" cy="30" r="5"/><circle data-destination="2" cx="125" cy="64" r="5"/><circle data-destination="3" cx="73" cy="113" r="5"/></g><circle id="map-player" cx="87" cy="105" r="3" fill="#f3dc9d"/><path d="M84 110l3-8 3 8" fill="#f3dc9d" opacity=".3"/></svg><div class="map-bottom"><span><b></b> 点击地标，去往远方</span><button id="map-expand" aria-label="查看所有地点"><i data-lucide="expand"></i></button></div></aside>
+        <aside class="map-widget" aria-label="庄园地图"><div class="map-top"><span>前庭导览</span><span>N ↑</span></div><svg id="minimap" viewBox="0 0 180 140" role="img" aria-label="城堡前庭导览：主城堡、左右花园与入口石桥，点击地标切换视角">
+            <defs><pattern id="map-grid" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M12 0H0V12" fill="none" stroke="#d7c39b" stroke-opacity=".09" stroke-width=".5" /></pattern></defs>
+            <rect width="180" height="140" fill="url(#map-grid)" />
+            <path d="M0 115C28 103 46 119 72 113S132 114 180 103" fill="none" stroke="#7aaca7" stroke-width="10" opacity=".68" />
+            <path d="M87 133V43M27 74H151" fill="none" stroke="#c8ad78" stroke-width="6" opacity=".82" />
+            <circle cx="87" cy="74" r="14" fill="#9b906b" stroke="#dac28c" stroke-width="1" />
+            <circle cx="87" cy="74" r="8" fill="#7b9c8a" stroke="#d1be93" stroke-width="1" />
+            <g class="map-gardens" fill="#657c4c" stroke="#b5b57b" stroke-width=".8">
+              <rect x="32" y="49" width="30" height="18" rx="4" /><rect x="111" y="49" width="30" height="18" rx="4" />
+              <rect x="32" y="82" width="30" height="18" rx="4" /><rect x="111" y="82" width="30" height="18" rx="4" />
+              <path d="M37 54H57V62H37ZM116 54H136V62H116ZM37 87H57V95H37ZM116 87H136V95H116Z" fill="#81905b" stroke="#c1bd8588" stroke-width=".6" />
+            </g>
+            <g fill="#dcb781"><circle cx="42" cy="58" r="1.7" /><circle cx="52" cy="58" r="1.7" /><circle cx="121" cy="58" r="1.7" /><circle cx="131" cy="58" r="1.7" /><circle cx="42" cy="91" r="1.7" /><circle cx="131" cy="91" r="1.7" /></g>
+            <g fill="#bd7c72"><circle cx="47" cy="58" r="1.5" /><circle cx="126" cy="58" r="1.5" /><circle cx="47" cy="91" r="1.5" /><circle cx="126" cy="91" r="1.5" /></g>
+            <g class="map-castle" stroke="#d6b574" stroke-width=".7">
+              <rect x="65" y="23" width="43" height="19" rx="1.5" fill="#ddcba4" />
+              <rect x="59" y="18" width="10" height="27" rx="2" fill="#ead9b3" /><rect x="104" y="18" width="10" height="27" rx="2" fill="#ead9b3" />
+              <rect x="80" y="12" width="14" height="21" rx="1" fill="#ead8ad" />
+              <path d="M57 19L64 7L71 19ZM102 19L109 7L116 19ZM78 13L87 2L96 13Z" fill="#8d3f3b" stroke="#c88164" />
+              <path d="M83 35Q87 29 91 35V43H83Z" fill="#9a7955" />
+              <path d="M74 29V34M99 29V34M64 25V30M109 25V30M87 18V23" stroke="#8b714c" stroke-width="2" />
+              <path d="M68 23H105" stroke="#edce8d" stroke-width="2" />
+            </g>
+            <g fill="#6f8252" stroke="#acb482" stroke-width=".6"><circle cx="21" cy="43" r="5" /><circle cx="20" cy="91" r="5" /><circle cx="155" cy="43" r="5" /><circle cx="155" cy="91" r="5" /></g>
+            <g class="map-bridge"><rect x="81" y="103" width="12" height="20" rx="1" fill="#c6b792" stroke="#e5cfa2" stroke-width=".6" /><path d="M80 102V124M94 102V124" stroke="#ecdbb6" stroke-width="1.5" /><path d="M83 107H91M83 112H91M83 117H91" stroke="#a49372" stroke-width=".7" /></g>
+            <g class="map-spots"><circle data-destination="0" cx="87" cy="74" r="4" /><circle data-destination="1" cx="87" cy="31" r="4" /><circle data-destination="2" cx="126" cy="58" r="4" /><circle data-destination="3" cx="87" cy="113" r="4" /></g>
+            <circle id="map-player" cx="87" cy="105" r="3" fill="#fff0ba" /><path d="M84 110L87 102L90 110" fill="#fff0ba" opacity=".3" />
+          </svg><div class="map-bottom"><span><b></b> 点击地标切换视角</span><button id="map-expand" aria-label="查看所有地点"><i data-lucide="expand"></i></button></div></aside>
 
         <div class="explore-dock"><button id="enter" class="enter-button"><i data-lucide="footprints"></i><span>走进庄园</span><i data-lucide="arrow-up-right"></i></button><div class="input-hints"><span><kbd>拖动</kbd> 环顾四周</span><span><kbd>滚轮</kbd> 拉近世界</span><button id="photo" title="保存当前画面"><i data-lucide="camera"></i> 留住此刻</button></div></div>
         <div id="walk-hud" hidden><span class="crosshair"></span><div class="walk-hints"><kbd>W A S D</kbd> 行走 <kbd>Shift</kbd> 快走 <kbd>拖动</kbd> 环顾 <button id="exit-walk">退出漫游 <kbd>Esc</kbd></button></div><div class="touch-pad"><button data-move="KeyW" aria-label="向前">↑</button><button data-move="KeyA" aria-label="向左">←</button><button data-move="KeyS" aria-label="向后">↓</button><button data-move="KeyD" aria-label="向右">→</button></div></div>
       </main>
 
-      <footer><span class="footer-symbol">✦</span><span>每一次停留，都是一次抵达。</span><span class="footer-right">一座庄园 · 四时风景 <span class="footer-dot">·</span> <button id="quality" title="切换画质">高画质 <i data-lucide="chevron-down"></i></button></span></footer>
+      <footer><span class="footer-symbol">✦</span><span>经典地标 · 立体漫游</span><span class="footer-right">摩尔庄园场景重构 <span class="footer-dot">·</span> <button id="quality" title="切换画质">高画质 <i data-lucide="chevron-down"></i></button></span></footer>
     </div>
-    <div id="loading"><div class="loading-crest">M<span>✦</span></div><p>让世界，慢慢醒来。</p><div class="loading-track"><span></span></div><small id="loading-detail">正在点亮庄园的灯火</small></div>
+    <div id="loading"><div class="loading-crest">M<span>●</span></div><p>正在展开摩尔庄园</p><div class="loading-track"><span></span></div><small id="loading-detail">正在准备城堡前庭</small></div>
     <div id="toast" role="status"></div>
-    <dialog id="journal"><button class="dialog-close" aria-label="关闭"><i data-lucide="x"></i></button><span class="eyebrow">THE ESTATE JOURNAL</span><h2>写给远道而来的你</h2><p class="journal-date">深秋 · 雾隐庄园</p><p>旧地图上没有这座庄园。旅人只记得，沿着河流向北，在第三次钟声响起以前，就能看见山谷里的灯火。</p><p>石桥通往广场，酒馆总留着一盏灯。你可以在这里等待一场雨，也可以看着月光，慢慢爬上城堡的屋顶。</p><div class="journal-places"><button data-destination="0"><span>01</span>守望者广场<i data-lucide="arrow-up-right"></i></button><button data-destination="1"><span>02</span>北境古堡<i data-lucide="arrow-up-right"></i></button><button data-destination="2"><span>03</span>琥珀酒馆<i data-lucide="arrow-up-right"></i></button><button data-destination="3"><span>04</span>回声石桥<i data-lucide="arrow-up-right"></i></button></div><small>这是借鉴庄园与城堡意象创作的原创场景。</small></dialog>
-    <dialog id="guide"><button class="dialog-close" aria-label="关闭"><i data-lucide="x"></i></button><span class="eyebrow">A SLOW WAY TO WANDER</span><h2>不必急着抵达</h2><p>拖动画面，寻找喜欢的角度；滚动鼠标，靠近那些细节。点击「走进庄园」，以第一人称沿石路漫步。</p><div class="guide-keys"><span><kbd>W A S D / 方向键</kbd>行走</span><span><kbd>Shift</kbd>快走</span><span><kbd>按住鼠标拖动</kbd>环顾</span><span><kbd>Esc</kbd>退出漫游</span></div><p>右侧可以改变时间与天气。地图上的金色地标会带你前往不同的观景点。开启声音，听听风、雨、流水与庄园的旋律。</p><small>耳机体验更佳。首次播放声音需要点击开启。</small></dialog>
+    <dialog id="journal"><button class="dialog-close" aria-label="关闭"><i data-lucide="x"></i></button><span class="eyebrow">COURTYARD GUIDE</span><h2>城堡前庭导览</h2><p class="journal-date">摩尔庄园 · 经典场景 3D 重构</p><p>以经典页游的地标与空间关系为线索，重新搭建可以走入的城堡前庭。城堡的轮廓、广场的路径与入口，是这次场景重构的重点。</p><p>点击下方地点切换观景位置，也可以走进场景，自由环顾建筑与广场。右侧可以选择天气、时间和环境音乐。</p><div class="journal-places"><button data-destination="0"><span>01</span>城堡前庭<i data-lucide="arrow-up-right"></i></button><button data-destination="1"><span>02</span>摩尔城堡<i data-lucide="arrow-up-right"></i></button><button data-destination="2"><span>03</span>花园步道<i data-lucide="arrow-up-right"></i></button><button data-destination="3"><span>04</span>石桥入口<i data-lucide="arrow-up-right"></i></button></div><small>经典场景的非官方 3D 重构；导览名称用于定位当前场景。</small></dialog>
+    <dialog id="guide"><button class="dialog-close" aria-label="关闭"><i data-lucide="x"></i></button><span class="eyebrow">EXPLORE MOLE MANOR</span><h2>走进城堡前庭</h2><p>拖动画面，寻找喜欢的角度；滚动鼠标，靠近那些细节。点击「走进庄园」，以第一人称沿石路漫步。</p><div class="guide-keys"><span><kbd>W A S D / 方向键</kbd>行走</span><span><kbd>Shift</kbd>快走</span><span><kbd>按住鼠标拖动</kbd>环顾</span><span><kbd>Esc</kbd>退出漫游</span></div><p>右侧可以改变时间与天气。地图上的金色地标会带你前往不同的观景点。开启声音，听听风、雨、流水与庄园的旋律。</p><small>首次播放声音需要点击开启，建议佩戴耳机体验环境声景。</small></dialog>
   </body>
 </html>
