@@ -31,7 +31,7 @@ try{
     const time=document.getElementById('time');time.value='16';time.dispatchEvent(new Event('input',{bubbles:true}));
   });
   for(const id of regions){
-    if(id!=='castle'){
+    if(id!==await page.evaluate(()=>window.__estate.activeRegion)){
       await page.evaluate(region=>{
         document.getElementById('nav-world').click();
         document.querySelector(`#world-atlas .atlas-region[data-region="${region}"]`).click();
