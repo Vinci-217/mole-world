@@ -10,6 +10,7 @@
 
 ## 直接体验
 
+- [美术画册](https://raw.githack.com/Vinci-217/mole-world/gh-pages/art/index.html)：AI 场景效果图与透明背景单体参考，可按地区筛选、放大查看和下载原图。这些图片尚未转成 3D 模型，原版布局也未逐图核对，不能当作实机截图。
 - [在线预览](https://raw.githack.com/Vinci-217/mole-world/gh-pages/index.html)：第三方静态预览入口，当前云环境无法直接验证该域名的外网可达性。
 - [下载离线版](https://github.com/Vinci-217/mole-world/raw/refs/heads/gh-pages/downloads/MoleManor-Offline.zip)：解压，用电脑 Chrome/Edge 打开 `MoleManor-Offline.html`。城堡、树木模型、贴图和脚本全部内嵌，无需 Node、服务器或模型 API。
 - [网站发布包](https://github.com/Vinci-217/mole-world/raw/refs/heads/gh-pages/downloads/MoleManor-Website.zip)：完整静态网站，可上传 Netlify Drop、Cloudflare Pages 等服务。
@@ -45,6 +46,8 @@ node scripts/capture_world.mjs
 当前托管式 Chromium 阻止 `file://` 导航，离线检查使用网络关闭的浏览器载入全部自包含 HTML，不声称已经测试被策略禁止的文件导航。截图保存到 `artifacts/world-previews/`。
 
 在已获授权的发布任务中，可运行 `python3 scripts/publish_site.py --push`，它将已构建网站、离线下载与实机图集写到 `gh-pages`，同时将当前源码提交推到 `main`，不会切换当前检出。未加 `--push` 时仅在本地准备静态提交。
+
+美术图稿独立保存在 `art-direction/`，登记范围为 12 个主地区、31 个子地点，另有浆果丛林古树、灌木和岩石共 3 个图生 3D 输入参考。这个范围不等于全部历史地图。运行 `python3 scripts/art_direction.py render` 更新画册及各地区 ZIP；发布时放在网站的 `/art/` 路径，避免将全部大图塞进当前游戏离线包。详细状态以 [图稿目录](art-direction/catalog.json) 为准，`modelStatus` 独立于图片生成状态。
 
 测试包含 Python 资产管线测试及真实 Chromium 集成测试。管线测试中的付费网络请求均为模拟，用于验证 GLB 完整性、授权头隔离、任务恢复及避免重复提交；它们不代表真实 API 已验证。浏览器测试会加载实际城堡和植被模型，检查全部地区同时驻留、跨越旧区域边界、20 处目的地的连续导航、远处雨雪跟随、昼夜、音乐、鸟瞰、键盘漫游及移动端地图。默认 Chromium 路径 `/usr/bin/chromium`，可设置 `CHROMIUM_PATH` 更换。
 
@@ -113,3 +116,4 @@ npm run assets:generate -- --asset mole-castle
 - `scripts/build_mole_castle.py`：可重复的 Blender 城堡建模。
 - `scripts/package_release.py`：无安装离线网页和静态网站包。
 - `scripts/tripo_assets.py`：付费生成、恢复和安装流程。
+- `scripts/art_direction.py`：图稿登记、画册和按地区原图包。

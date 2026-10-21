@@ -1,11 +1,12 @@
 """Publish the tested production build without switching the source checkout.
 
 Run npm run release first, then python3 scripts/publish_site.py --push.
-Only dist, packaged downloads and captured screenshots are distributed.
+Distribute the playable build, downloads, real screenshots and a separate art gallery.
 """
 from __future__ import annotations
 import argparse
 import html
+import json
 from pathlib import Path
 import shutil
 import subprocess
@@ -73,6 +74,21 @@ def stage() -> None:
     atlas = source / 'atlas.png'
     if atlas.is_file():
         shutil.copy2(atlas, previews / 'atlas.png')
+    art = ROOT / 'art-direction'
+    art_link = ''
+    if (art / 'catalog.json').is_file():
+        catalog = json.loads((art / 'catalog.json').read_text())
+        pending = [entry['id'] for entry in catalog['entries'] if entry['status'] != 'generated']
+        if pending:
+            raise SystemExit(f'Art gallery has {len(pending)} unfinished image entries; complete the current batch first.')
+        required_art = [art / 'index.html']
+        required_art.extend(art / entry['image'] for entry in catalog['entries']
+                            if entry['status'] == 'generated')
+        required_art.extend(art / 'downloads' / f"{region['id']}.zip" for region in catalog['regions'])
+        if not all(path.is_file() for path in required_art):
+            raise SystemExit('Run python3 scripts/art_direction.py render before publishing the art gallery.')
+        shutil.copytree(art, STAGE / 'art')
+        art_link = '<p><a href="art/index.html">查看 AI 美术画册 →</a>（效果图与单体建模参考，非实机画面）</p>'
     gallery = '''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>摩尔庄园 · 实机图集</title><style>body{margin:0;padding:40px;background:#152c27;color:#e8dfc4;font:15px/1.8 system-ui}
 main{max-width:1440px;margin:auto}h1{font-weight:400;letter-spacing:3px}p{color:#afbcac}a{color:#f0cd8e}.grid{display:grid;
@@ -81,7 +97,7 @@ border-radius:8px;overflow:hidden}img{width:100%;display:block}figcaption{paddin
 @media(max-width:600px){body{padding:20px}.grid{grid-template-columns:1fr}}</style><main><h1>摩尔庄园 · 实机图集</h1>
 <p>以下均为当前程序的实时 3D 截图。12 个地区已由道路连接在同一个世界中，另有 8 处户外子地点初版；布局尚未按某个年代一比一还原；室内和独立子地图未完成，画质未达到 3A 标准。</p>
 <p><a href="index.html">进入世界 →</a>　<a href="downloads/MoleManor-Offline.zip">下载离线版</a></p><div class="grid">'''
-    (STAGE / 'gallery.html').write_text(gallery + ''.join(cards) + '</div></main></html>')
+    (STAGE / 'gallery.html').write_text(gallery + ''.join(cards) + '</div>' + art_link + '</main></html>')
     for path in STAGE.rglob('*'):
         if path.is_file() and any(part.startswith('.env') or part == '.asset-tasks' for part in path.parts):
             raise ValueError('Private file found in published directory.')
@@ -102,6 +118,8 @@ def main() -> None:
         subprocess.check_call(['git', 'push', 'origin', 'HEAD:refs/heads/main', f'{commit}:refs/heads/gh-pages'], cwd=ROOT)
     print(f'Static commit: {commit}')
     print(f'Preview: https://raw.githack.com/Vinci-217/mole-world/{commit}/index.html')
+    if (STAGE / 'art/index.html').is_file():
+        print(f'Art gallery: https://raw.githack.com/Vinci-217/mole-world/{commit}/art/index.html')
 
 if __name__ == '__main__':
     main()
