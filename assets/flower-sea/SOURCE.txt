@@ -9,4 +9,6 @@ SHA256：888e35139f42a295fd8e73d0d35b938b032096418c3ab98ee9fc1d91fdf1ca26
 
 输入单体图为AI根据原图转译的建模参考，非官方单体素材、非3D模型。
 真实3D地标只有在模型生成、Blender整理并校验后才在manifest中标记ready。
+当前 pink-portal.glb、vine-arch.glb、cottage.glb、ancient-tree.glb 是用户授权调用腾讯云 TokenHub hy-3d-3.1 图生3D后下载的实际结果，再由 Blender 4.3.2 居中落地、统一尺度、将4096贴图缩到2048并嵌入导出；保留原生成的拓扑、UV、PBR材质与法线。它们是AI依据原图单体参考转译的模型，不是提取的官方3D模型。
+实际三角面数：粉花23996、拱门29950、小屋24000、古树40000。原始GLB、私有任务回执和可编辑blend未随网站发布。
 环境地形/小花/粒子为程序生成；既有环境树木使用BabylonJS Assets，详见 ../nature/SOURCE.txt。

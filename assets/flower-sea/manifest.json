@@ -7,32 +7,56 @@
       "label": "巨型粉花",
       "path": "./assets/flower-sea/pink-portal.glb",
       "height": 5.4,
-      "state": "pending",
-      "generationState": "generated"
+      "state": "ready",
+      "generationState": "downloaded",
+      "sha256": "9dcba1f03f706a9333c1ffacfc2726370da92be4fbdb0302248122195823682b",
+      "rawSha256": "7e900d89336e2b58c881d6458430ed7cf8f0a00e54da44eff51ddd3f68b81719",
+      "source": "TencentCloud Hunyuan Pro 3.1 → Blender",
+      "triangles": 23996,
+      "materials": 1,
+      "blenderVersion": "4.3.2"
     },
     {
       "id": "vine-arch",
       "label": "藤蔓拱门",
       "path": "./assets/flower-sea/vine-arch.glb",
       "height": 7.0,
-      "state": "pending",
-      "generationState": "generated"
+      "state": "ready",
+      "generationState": "downloaded",
+      "sha256": "c3ed6906f17e34a266382aa7827d26f5bdf730db7a9c3795b5bf1a62774be03e",
+      "rawSha256": "e255b6ff50c13df288e2109930e32bedb0cca0873784d65d6e876a7703d0ae8f",
+      "source": "TencentCloud Hunyuan Pro 3.1 → Blender",
+      "triangles": 29950,
+      "materials": 1,
+      "blenderVersion": "4.3.2"
     },
     {
       "id": "cottage",
       "label": "红顶小屋",
       "path": "./assets/flower-sea/cottage.glb",
       "height": 5.0,
-      "state": "pending",
-      "generationState": "generated"
+      "state": "ready",
+      "generationState": "downloaded",
+      "sha256": "4df67a964aae7bee903697e8ae586af6e5fdf221eee4fdadf5cf3f7fb0d472d1",
+      "rawSha256": "abc21b78b5f799b91683b5385f604907e16b88eef4fa23554f7eefa5296e9e40",
+      "source": "TencentCloud Hunyuan Pro 3.1 → Blender",
+      "triangles": 24000,
+      "materials": 1,
+      "blenderVersion": "4.3.2"
     },
     {
       "id": "ancient-tree",
       "label": "框景古树",
       "path": "./assets/flower-sea/ancient-tree.glb",
       "height": 17.0,
-      "state": "pending",
-      "generationState": "generated"
+      "state": "ready",
+      "generationState": "downloaded",
+      "sha256": "8c6e72ad70fb60796c7b33497740e208c09c41b59a50934081e3ca415208942d",
+      "rawSha256": "169b66dd457488b494796ae1955948553cd2dbacd925987813a7a2261e0c4d05",
+      "source": "TencentCloud Hunyuan Pro 3.1 → Blender",
+      "triangles": 40000,
+      "materials": 1,
+      "blenderVersion": "4.3.2"
     },
     {
       "id": "flowering-vine",
