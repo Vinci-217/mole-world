@@ -20,3 +20,10 @@ cloud-formation.glb 为上一版保留的辅助云团，当前场景不再加载
 各GLB的SHA256与实际三角面数见manifest.json；纹理来源与校验见art-materials.json。
 本轮可编辑源文件在 artifacts/flower-botanical-sculpt/，纹理已打包进.blend文件。
 原地图、原BGM和四项实际混元地标的来源见 ../flower-sea/SOURCE.txt。
+
+复用素材与渲染（2026-10-23）
+Rooitou Park：Greg Zaal / HDRI Haven（现 Poly Haven），CC0，用于 PMREM 环境照明。原作者、固定来源与文件校验见 lighting/source.json。
+wild-sorrel.glb：Rico Cilliers 的酢浆草与花朵，CC0；来自 Khronos glTF-Sample-Assets 的 GlassVaseFlowers。Eric Chadwick 制作来源展示组合（CC0）。在 Blender 移除花瓶与重复植物、统一为 0.8 米高，保留原始叶片、花瓣、法线、粗糙度与裁切纹理。整理脚本 scripts/prepare_reusable_sorrel.py。
+固定源 https://github.com/KhronosGroup/glTF-Sample-Assets/tree/15cd02d304e54cb42a4db4eefe719f76190f4b68/Models/GlassVaseFlowers
+来源的授权声明见 lighting/LICENSE-Sorrel.md，原始资源 CC0；来源元文档为 CC BY 4.0。
+N8AO 2.0.1 用于深度缓冲接触阴影；Three.js 与 pmndrs/postprocessing 用于渲染。附带发行包中的许可证，详见 lighting/。
