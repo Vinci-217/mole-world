@@ -23,6 +23,7 @@ import os
 from pathlib import Path
 import struct
 import sys
+import tempfile
 
 
 def file_hash(path: Path) -> str:
@@ -175,9 +176,22 @@ def main(argv=None):
         if max(width, height) > 2048:
             factor = 2048 / max(width, height)
             image.scale(max(1, round(width * factor)), max(1, round(height * factor)))
-        # The GLB exporter embeds all referenced images. Packing also makes
-        # the optional .blend independent of the raw model's directory.
-        image.pack()
+            # Re-encode the resized pixel buffer, not the old packed bytes.
+            # save(), unlike save_render(), retains data-texture channel values
+            # instead of applying the scene's display colour transform.
+            with tempfile.TemporaryDirectory(prefix="mole-asset-texture-") as directory:
+                original_path = image.filepath_raw
+                image.file_format = "PNG"
+                temporary_image = Path(directory) / "texture.png"
+                image.save(filepath=str(temporary_image))
+                data = temporary_image.read_bytes()
+                image.pack(data=data, data_len=len(data))
+                image.filepath_raw = original_path
+        elif image.packed_file is None:
+            image.pack()
+        # Do not repack an unchanged embedded image: Blender 4.3 may clear its
+        # existing packed_file on a redundant pack(), breaking ORM export.
+        # Keeping its source bytes also avoids needless PBR texture re-encoding.
         image_changes.append({"name": image.name, "before": original_size, "after": list(image.size[:])})
 
     triangles = 0

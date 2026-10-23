@@ -6,6 +6,7 @@ import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
 export interface FlowerAsset {
   id: string; label: string; path: string; sha256?: string;
   state: 'ready' | 'pending'; height: number;
+  generationState?: 'not-submitted' | 'submitted' | 'generating' | 'generated' | 'downloaded' | 'failed' | 'needs-review';
 }
 export interface FlowerPlacement {
   assetId: string; position: [number, number, number]; rotation?: number; scale?: number;

@@ -1,6 +1,6 @@
 # 神秘花海：原图到 3D
 
-本轮仅制作地图 362，浏览入口 `flower-sea.html`。它与旧的十二地区世界独立，尚未作为连续世界的一部分接入。原图风格与布局是依据；目前 5 个地标模型仍为 pending，不能视为还原完成。
+本轮仅制作地图 362，浏览入口 `flower-sea.html`。它与旧的十二地区世界独立，尚未作为连续世界的一部分接入。原图风格与布局是依据。已实际调用用户明确指定的 TokenHub 接口；模型就绪与生成进度分开显示，不能把服务端生成完成当作浏览器已安装模型。
 
 ## 已核验的原图
 
@@ -30,6 +30,9 @@ python3 scripts/hunyuan_assets.py generate --provider ai3d-key --asset pink-port
 # 无付费请求：核验回执并执行真实 Blender 整理
 python3 scripts/flower_sea.py prepare --asset pink-portal
 python3 scripts/flower_sea.py status
+
+# 仅发布回执中的状态枚举，不发布JobId、签名URL或计费记录
+python3 scripts/flower_sea.py progress
 
 # 浏览器开发与静态发布包
 npm run dev

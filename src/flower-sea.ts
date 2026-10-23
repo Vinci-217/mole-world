@@ -47,15 +47,20 @@ function updateAssetState(stats: FlowerSceneStats) {
   if (!currentManifest) return;
   const total = currentManifest.assets.length;
   const missing = total - stats.loaded.length;
+  const awaitingDownload = currentManifest.assets.filter(asset => asset.generationState === 'generated' && !stats.loaded.includes(asset.id)).length;
   element('flower-progress').textContent = missing > 0
-    ? `布局预览 · 地标模型 ${stats.loaded.length}/${total} 就绪${stats.failed.length ? ` · ${stats.failed.length} 项加载失败` : ''}`
+    ? `布局预览 · 地标模型 ${stats.loaded.length}/${total} 就绪${awaitingDownload ? ` · ${awaitingDownload} 项已生成待下载` : ''}${stats.failed.length ? ` · ${stats.failed.length} 项加载失败` : ''}`
     : `3D 场景 · ${stats.loaded.length} 项地标模型已就绪`;
   const list = element('flower-model-list'); list.replaceChildren();
   for (const asset of currentManifest.assets) {
     const loaded = stats.loaded.includes(asset.id), failure = stats.failed.find(f => f.id === asset.id);
     const row = document.createElement('li'); row.dataset.assetId = asset.id; row.dataset.state = loaded ? 'ready' : failure ? 'error' : 'pending';
     const label = document.createElement('span'); label.textContent = asset.label;
-    const status = document.createElement('span'); status.textContent = loaded ? '模型就绪' : failure ? '加载失败' : asset.state === 'ready' ? '加载中' : '待生成';
+    const generationLabels = {
+      'not-submitted': '待生成', submitted: '任务已提交', generating: '混元生成中',
+      generated: '已生成 · 待下载', downloaded: '待整理模型', failed: '生成失败', 'needs-review': '提交结果待核对',
+    };
+    const status = document.createElement('span'); status.textContent = loaded ? '模型就绪' : failure ? '加载失败' : asset.state === 'ready' ? '加载中' : generationLabels[asset.generationState ?? 'not-submitted'];
     if (failure) row.title = failure.message;
     row.append(label, status); list.append(row);
   }

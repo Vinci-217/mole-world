@@ -113,9 +113,27 @@ def prepare(assets):
             print(f'{asset["id"]}: installed real Blender-processed GLB; visual art review still required')
 
 
+def sync_progress(assets):
+    """Publish only a small state enum, never private job IDs, URLs or credits."""
+    manifest = json.loads((ROOT / MANIFEST).read_text())
+    entries = {entry["id"]: entry for entry in manifest["assets"]}
+    with generation.task_lock():
+        for asset in assets:
+            receipt = generation.read_receipt(asset)
+            state = (receipt or {}).get("state")
+            progress = {
+                None: "not-submitted", "submitted": "submitted", "waiting": "generating",
+                "running": "generating", "ready": "generated", "downloaded": "downloaded",
+                "failed": "failed", "submission_uncertain": "needs-review",
+            }.get(state, "needs-review")
+            entries[asset["id"]]["generationState"] = progress
+            print(f'{asset["id"]}: {progress}')
+        save_manifest(manifest)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["prepare", "status"])
+    parser.add_argument("command", choices=["prepare", "status", "progress"])
     parser.add_argument("--asset", action="append")
     args = parser.parse_args()
     plan = generation.load_plan()
@@ -125,6 +143,8 @@ def main():
     assets = [asset for asset in plan["assets"] if not args.asset or asset["id"] in args.asset]
     if args.command == "prepare":
         prepare(assets)
+    elif args.command == "progress":
+        sync_progress(assets)
     else:
         manifest = json.loads((ROOT / MANIFEST).read_text())
         for entry in manifest["assets"]:

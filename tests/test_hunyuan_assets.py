@@ -284,6 +284,50 @@ class HunyuanAssetTests(unittest.TestCase):
             pipeline.generate(assets[1:], limit=3, client_factory=lambda: client)
         self.assertEqual(client.submit.call_count, 4)
 
+    def test_submit_only_limit_three_saves_three_jobs_without_queries(self):
+        assets = [{**self.asset, "id": "flower-" + str(index)} for index in range(4)]
+        client = self.client()
+        submitted = []
+
+        def submit(payload):
+            asset = assets[len(submitted)]
+            receipt = json.loads(pipeline.receipt_path(asset).read_text())
+            self.assertEqual(receipt["state"], "submission_uncertain")
+            self.assertNotIn("job_id", receipt)
+            job_id = "queued-job-" + str(len(submitted))
+            submitted.append(job_id)
+            return {"JobId": job_id, "RequestId": "saved-submit-request"}
+
+        client.submit.side_effect = submit
+        with patch.object(pipeline, "download_model", side_effect=AssertionError("Submission-only must not download")):
+            pipeline.generate(assets, limit=3, client_factory=lambda: client, submit_only=True)
+        self.assertEqual(client.submit.call_count, 3)
+        client.query.assert_not_called()
+        self.assertFalse(pipeline.receipt_path(assets[3]).exists())
+        for asset, job_id in zip(assets[:3], submitted):
+            saved = json.loads(pipeline.receipt_path(asset).read_text())
+            self.assertEqual(saved["state"], "submitted")
+            self.assertEqual(saved["job_id"], job_id)
+            self.assertEqual(saved["submit_request_id"], "saved-submit-request")
+            self.assertNotIn("provider_status", saved)
+
+    def test_repeated_submit_only_never_resubmits_and_generate_resumes_saved_job(self):
+        client = self.client()
+        # Exercise CLI forwarding as well as the actual submission-only flow.
+        with patch.object(pipeline, "HunyuanClient", return_value=client):
+            pipeline.main(["generate", "--asset", self.asset["id"], "--submit-only"])
+        saved_job_id = self.receipt()["job_id"]
+        factory = Mock(side_effect=AssertionError("Saved jobs require no client in submission-only mode"))
+        pipeline.generate([self.asset], client_factory=factory, submit_only=True)
+        factory.assert_not_called()
+        client.query.assert_not_called()
+        self.assertEqual(client.submit.call_count, 1)
+        with patch.object(pipeline, "download_model", side_effect=self.fake_download):
+            pipeline.generate([self.asset], client_factory=lambda: client)
+        client.query.assert_called_once_with(saved_job_id)
+        self.assertEqual(client.submit.call_count, 1)
+        self.assertEqual(self.receipt()["state"], "downloaded")
+
     def test_lock_prevents_concurrent_submissions(self):
         with pipeline.task_lock():
             with self.assertRaisesRegex(pipeline.AssetError, "holds the lock"):

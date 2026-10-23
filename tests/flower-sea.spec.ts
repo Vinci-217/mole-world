@@ -5,16 +5,19 @@ import { createHash } from 'node:crypto';
 const original = JSON.parse(readFileSync('public/assets/flower-sea/manifest.json', 'utf8'));
 const snapshot = () => (window as any).__flowerSea;
 
-test('flower layout renders, preserves pending status, and responds to camera and weather controls', async ({ page }) => {
+test('flower map loads its real published assets and responds to camera and weather controls', async ({ page }) => {
   const errors: string[] = [], modelRequests: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('request', request => { if (request.url().endsWith('.glb')) modelRequests.push(request.url()); });
   await page.goto('/flower-sea.html');
   await page.waitForFunction(() => (window as any).__flowerSea?.ready);
-  await expect(page.locator('#flower-progress')).toContainText('布局预览');
+  const expectedReady = original.assets.filter((asset: any) => asset.state === 'ready').map((asset: any) => asset.id);
+  const expectedPending = original.assets.length - expectedReady.length;
+  await expect(page.locator('#flower-progress')).toContainText(expectedPending ? '布局预览' : '3D 场景');
   const initial = await page.evaluate(snapshot);
-  expect(initial.loaded).toEqual([]); expect(initial.pending).toHaveLength(5);
-  expect(modelRequests).toEqual([]);
+  expect(new Set(initial.loaded)).toEqual(new Set(expectedReady));
+  expect(initial.pending).toHaveLength(expectedPending); expect(initial.failed).toEqual([]);
+  expect(modelRequests).toHaveLength(expectedReady.length);
   await expect.poll(async () => (await page.evaluate(snapshot)).triangles).toBeGreaterThan(10000);
   const canvas = page.locator('#flower-canvas canvas');
   await expect(canvas).toBeVisible();
@@ -26,7 +29,8 @@ test('flower layout renders, preserves pending status, and responds to camera an
   await page.locator('#flower-reset').click();
   await expect.poll(async () => (await page.evaluate(snapshot)).camera[0]).toBeCloseTo(initial.camera[0], 3);
   await page.locator('#flower-models-toggle').click();
-  await expect(page.locator('#flower-model-list li[data-state="pending"]')).toHaveCount(5);
+  await expect(page.locator('#flower-model-list li[data-state="pending"]')).toHaveCount(expectedPending);
+  await expect(page.locator('#flower-model-list li[data-state="ready"]')).toHaveCount(expectedReady.length);
   await expect(page.locator('#flower-reference-image')).toBeVisible();
   expect(await page.locator('#flower-reference-image').evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(960);
   await page.locator('#flower-inputs-toggle').click();
@@ -43,6 +47,7 @@ test('ready status requires parsing a real matching GLB', async ({ page }) => {
   // A known local tree is a loader fixture only; never installed as a flower asset.
   const bytes = readFileSync('public/assets/nature/oak.glb');
   const manifest = structuredClone(original);
+  manifest.assets.forEach((asset: any) => { asset.state = 'pending'; });
   manifest.assets[0].state = 'ready';
   manifest.assets[0].path = './assets/nature/oak.glb';
   manifest.assets[0].sha256 = createHash('sha256').update(bytes).digest('hex');
@@ -56,6 +61,7 @@ test('ready status requires parsing a real matching GLB', async ({ page }) => {
 
 test('a corrupted ready asset remains a failure rather than becoming a substitute model', async ({ page }) => {
   const manifest = structuredClone(original);
+  manifest.assets.forEach((asset: any) => { asset.state = 'pending'; });
   manifest.assets[0].state = 'ready';
   manifest.assets[0].path = './assets/nature/oak.glb';
   manifest.assets[0].sha256 = '0'.repeat(64);
@@ -78,4 +84,16 @@ test('flower controls remain accessible on a phone viewport', async ({ page }) =
   await page.selectOption('#flower-weather', 'dusk');
   expect((await page.evaluate(snapshot)).weather).toBe('dusk');
   await page.screenshot({ path: 'artifacts/flower-review/mobile.png' });
+});
+
+test('pending landmarks do not request or claim missing GLB files', async ({ page }) => {
+  const manifest = structuredClone(original), modelRequests: string[] = [];
+  manifest.assets.forEach((asset: any) => { asset.state = 'pending'; });
+  page.on('request', request => { if (request.url().endsWith('.glb')) modelRequests.push(request.url()); });
+  await page.route('**/assets/flower-sea/manifest.json', route => route.fulfill({ json: manifest }));
+  await page.goto('/flower-sea.html');
+  await page.waitForFunction(() => (window as any).__flowerSea?.ready);
+  await expect(page.locator('#flower-progress')).toContainText('0/5');
+  expect((await page.evaluate(snapshot)).loaded).toEqual([]);
+  expect(modelRequests).toEqual([]);
 });

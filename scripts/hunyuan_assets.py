@@ -558,7 +558,7 @@ def check_receipt_provider(asset, receipt, provider):
         raise AssetError(f'{asset["id"]}: saved task belongs to a different API provider; use its original --provider to resume. No new task was submitted.')
 
 
-def generate(selected, limit=1, client_factory=None, poll_timeout=1200, poll_interval=5, provider="ai3d"):
+def generate(selected, limit=1, client_factory=None, poll_timeout=1200, poll_interval=5, provider="ai3d", submit_only=False):
     if type(limit) is not int or not 1 <= limit <= 3:
         raise AssetError("The generation limit must be from 1 to 3.")
     client_factory = selected_factory(provider, client_factory)
@@ -593,12 +593,18 @@ def generate(selected, limit=1, client_factory=None, poll_timeout=1200, poll_int
                 # Persist JobId immediately, before querying or doing other work.
                 save_receipt(asset, receipt)
                 print(f'{asset["id"]}: one paid submission saved.')
+            if submit_only:
+                print(f'{asset["id"]}: JobId already saved; query and download deferred. No resubmission.', flush=True)
+                continue
             client = client or client_factory()
             deadline = time.monotonic() + poll_timeout
+            last_status = None
             while True:
                 result = client.query(job_id)
                 status = record_query(asset, receipt, result)
-                print(f'{asset["id"]}: {status}')
+                if status != last_status:
+                    print(f'{asset["id"]}: {status}', flush=True)
+                    last_status = status
                 if status == "FAIL":
                     raise AssetError(f'{asset["id"]}: provider task failed; details are in the private receipt. No replacement task will be submitted automatically.')
                 if status == "DONE":
@@ -647,6 +653,7 @@ def main(argv=None):
     parser.add_argument("--asset", action="append", help="Asset ID; may be repeated. Default: plan order.")
     parser.add_argument("--provider", choices=("ai3d", "ai3d-key", "tokenhub"), default="ai3d", help="ai3d: TC3 SDK; ai3d-key: original HUNYUAN_API_KEY; tokenhub: separate TOKENHUB_API_KEY Bearer protocol.")
     parser.add_argument("--limit", type=int, choices=range(1, 4), default=1, help="Assets considered by generate (default 1; maximum 3).")
+    parser.add_argument("--submit-only", action="store_true", help="Save each generation JobId without querying or downloading; existing tasks are never resubmitted.")
     args = parser.parse_args(argv)
     plan = load_plan()
     known = {asset["id"] for asset in plan["assets"]}
@@ -663,7 +670,7 @@ def main(argv=None):
             print(f'{asset["id"]}: {asset["label"]}; PNG={asset["imagePath"]} ({"ready" if exists else "missing"}); faces={asset["faceCount"]}')
             print(f'  raw={RAW.as_posix()}/{asset["id"]}.glb; later Blender target={asset["outputPath"]}; worldHeight={asset["worldHeight"]}')
     elif args.command == "generate":
-        generate(selected, args.limit, provider=args.provider)
+        generate(selected, args.limit, provider=args.provider, submit_only=args.submit_only)
     else:
         show_status(selected, provider=args.provider)
 

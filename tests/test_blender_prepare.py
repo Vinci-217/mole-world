@@ -11,6 +11,8 @@ import subprocess
 import tempfile
 import unittest
 
+from test_hunyuan_assets import glb, png, triangle_scene
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts/blender_prepare_asset.py"
@@ -42,6 +44,71 @@ class BlenderPrepareValidationTests(unittest.TestCase):
 
 @unittest.skipUnless(BLENDER, "Blender is required for the real import/export verification")
 class BlenderPrepareIntegrationTests(unittest.TestCase):
+    def test_thin_double_sided_pbr_surface_retains_all_material_channels(self):
+        """A single triangle exercises thin petals without adding thickness."""
+        with tempfile.TemporaryDirectory() as folder:
+            work = Path(folder)
+            raw, output, report = [work / name for name in ("raw.glb", "prepared.glb", "report.json")]
+            scene, source_binary = triangle_scene()
+            binary = bytearray(source_binary)
+
+            def append_view(data):
+                binary.extend(b"\0" * (-len(binary) % 4))
+                scene["bufferViews"].append({"buffer": 0, "byteOffset": len(binary), "byteLength": len(data)})
+                binary.extend(data)
+                return len(scene["bufferViews"]) - 1
+
+            normals = append_view(struct.pack("<9f", *(0, 0, 1) * 3))
+            uv = append_view(struct.pack("<6f", 0, 0, 1, 0, 0, 1))
+            scene["accessors"].extend([
+                {"bufferView": normals, "componentType": 5126, "count": 3, "type": "VEC3"},
+                {"bufferView": uv, "componentType": 5126, "count": 3, "type": "VEC2"},
+            ])
+            primitive = scene["meshes"][0]["primitives"][0]
+            primitive["attributes"].update(NORMAL=2, TEXCOORD_0=3)
+            primitive["material"] = 0
+            scene.update(scene=0, scenes=[{"nodes": [0]}], nodes=[{"mesh": 0}])
+            scene["images"] = [
+                {"bufferView": append_view(png(128 + i, 128)), "mimeType": "image/png", "name": name}
+                for i, name in enumerate(("BaseColor", "Normal", "OcclusionRoughnessMetallic"))
+            ]
+            scene["textures"] = [{"source": i} for i in range(3)]
+            scene["materials"] = [{
+                "name": "Thin PBR petal test fixture",
+                "pbrMetallicRoughness": {
+                    "baseColorFactor": [.8, .5, .9, .7],
+                    "baseColorTexture": {"index": 0},
+                    "metallicFactor": .15,
+                    "roughnessFactor": .62,
+                    "metallicRoughnessTexture": {"index": 2},
+                },
+                "normalTexture": {"index": 1, "scale": .37},
+                "occlusionTexture": {"index": 2, "strength": .67},
+                "emissiveTexture": {"index": 0},
+                "emissiveFactor": [.07, .04, .02],
+                "alphaMode": "BLEND", "doubleSided": True,
+            }]
+            scene["buffers"][0]["byteLength"] = len(binary)
+            raw.write_bytes(glb(scene, bytes(binary)))
+            run_blender(SCRIPT, "--input", raw, "--output", output, "--height", "3", "--id", "thin-pbr-fixture", "--report", report)
+            exported = pipeline.glb_document(output)
+            self.assertEqual(pipeline.export_statistics(exported)["triangles"], 1)
+            material = exported["materials"][0]
+            self.assertTrue(material.get("doubleSided"), "Thin source surfaces must retain back-face visibility.")
+            self.assertEqual(material["alphaMode"], "BLEND")
+            pbr = material["pbrMetallicRoughness"]
+            for actual, expected in zip(pbr["baseColorFactor"], [.8, .5, .9, .7]):
+                self.assertAlmostEqual(actual, expected, places=5)
+            self.assertAlmostEqual(pbr["metallicFactor"], .15, places=5)
+            self.assertAlmostEqual(pbr["roughnessFactor"], .62, places=5)
+            self.assertAlmostEqual(material["normalTexture"]["scale"], .37, places=5)
+            self.assertAlmostEqual(material["occlusionTexture"]["strength"], .67, places=5)
+            for actual, expected in zip(material["emissiveFactor"], [.07, .04, .02]):
+                self.assertAlmostEqual(actual, expected, places=5)
+            for channel in (pbr["baseColorTexture"], pbr["metallicRoughnessTexture"], material["normalTexture"], material["occlusionTexture"], material["emissiveTexture"]):
+                texture = exported["textures"][channel["index"]]
+                self.assertIn("bufferView", exported["images"][texture["source"]])
+
     def test_normalizes_nested_asset_without_losing_materials_or_texture(self):
         with tempfile.TemporaryDirectory() as folder:
             work = Path(folder)
@@ -87,6 +154,14 @@ bpy.ops.export_scene.gltf(filepath=RAW, export_format='GLB')
             self.assertEqual(result["textures"][0]["before"], [4096, 16])
             self.assertEqual(result["textures"][0]["after"], [2048, 8])
             self.assertFalse(result["provenance"]["providerVerifiedByThisScript"])
+            exported = pipeline.glb_document(output)
+            texture_view = exported["bufferViews"][exported["images"][0]["bufferView"]]
+            output_bytes = output.read_bytes()
+            json_size = struct.unpack_from("<I", output_bytes, 12)[0]
+            texture_start = 12 + 8 + json_size + 8 + texture_view.get("byteOffset", 0)
+            embedded_png = output_bytes[texture_start:texture_start + texture_view["byteLength"]]
+            self.assertEqual(embedded_png[:8], b"\x89PNG\r\n\x1a\n")
+            self.assertEqual(struct.unpack_from(">II", embedded_png, 16), (2048, 8), "The browser must receive the resized texture, not stale packed bytes.")
 
             # Reimport the exported GLB in a fresh scene, so this does not just
             # trust the report's copy of the pre-export Blender transforms.

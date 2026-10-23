@@ -108,6 +108,24 @@ class FlowerInstallationTests(unittest.TestCase):
 
         self.blender.side_effect = completed
 
+    def test_progress_publishes_only_status_and_does_not_make_an_unprocessed_model_ready(self):
+        self.write_receipt(state="ready", job_id="private-job-reference", private_url="https://cdn.example/model?signature=private-signature", credit_consumed=20)
+        pipeline.sync_progress([self.asset])
+        public = json.loads(self.manifest.read_text())
+        self.assertEqual(public["assets"][0]["generationState"], "generated")
+        self.assertEqual(public["assets"][0]["state"], "pending")
+        for private in ["private-job-reference", "private-signature", "credit_consumed", "private_url"]:
+            self.assertNotIn(private, self.manifest.read_text())
+        self.blender.assert_not_called()
+
+    def test_uncertain_progress_never_claims_a_generation_succeeded(self):
+        self.write_receipt(state="submission_uncertain")
+        pipeline.sync_progress([self.asset])
+        entry = json.loads(self.manifest.read_text())["assets"][0]
+        self.assertEqual(entry["generationState"], "needs-review")
+        self.assertEqual(entry["state"], "pending")
+        self.blender.assert_not_called()
+
     def test_raw_file_without_generation_receipt_never_becomes_ready(self):
         original = self.manifest.read_bytes()
         pipeline.prepare([self.asset])
