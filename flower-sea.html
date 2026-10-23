@@ -4,11 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#e9f0df" />
-    <meta name="description" content="摩尔庄园神秘花海，按页游原图布局制作的可旋转3D场景。" />
+    <meta name="description" content="摩尔庄园神秘花海，依据经典页游与多视角设计参考构建的可探索3D花园。" />
     <title>神秘花海 · 摩尔庄园</title>
     <link rel="icon" type="image/svg+xml" href="./crest.svg" />
-    <script type="module" crossorigin src="./flower-assets/flower-sea-Q7yl0VzS.js"></script>
-    <link rel="stylesheet" crossorigin href="./flower-assets/flower-sea-tHXKOV27.css">
+    <script type="module" crossorigin src="./flower-assets/flower-sea-DWJL0Plg.js"></script>
+    <link rel="stylesheet" crossorigin href="./flower-assets/flower-sea-D9f7S5Gl.css">
   </head>
   <body>
     <main id="flower-app">
@@ -26,7 +26,7 @@
         <img id="flower-reference-image" alt="神秘花海原图：左侧藤蔓拱门，远处小屋，右下粉色巨花与两个入口" />
         <p id="flower-reference-caption">原资源绘图观察图</p>
       </aside>
-      <nav class="garden-nav" aria-label="花园导览"><span>花园导览</span><div id="garden-places"></div><p id="garden-location">花径入口</p></nav>
+      <nav class="garden-nav" aria-label="花园导览"><span>场景视角</span><div id="garden-views" class="garden-views"></div><a class="garden-study-link" href="./assets/flower-sea/views/index.html" target="_blank" rel="noopener">查看多视角设计图 ↗</a><span>花园导览</span><div id="garden-places"></div><p id="garden-location">花径入口</p></nav>
       <div id="flower-markers" class="flower-marker-layer" aria-hidden="true"></div>
       <aside id="flower-models" class="flower-models" hidden>
         <div class="flower-models-heading">地标资产 <button id="flower-models-close" aria-label="收起地标列表">×</button></div>
@@ -41,7 +41,7 @@
       <footer class="flower-bottom">
         <div class="flower-controls" aria-label="场景控制">
           <button id="garden-walk" aria-pressed="false">♧ <span>走入花园</span></button>
-          <button id="flower-reset" title="回到原图构图">↺ <span>原图视角</span></button>
+          <button id="flower-reset" title="回到南侧入口视角">↺ <span>入口视角</span></button>
           <button id="flower-reference-toggle" aria-pressed="false">▧ <span>原图对照</span></button>
           <button id="flower-models-toggle" aria-pressed="false">◇ <span>地标</span></button>
           <button id="flower-inputs-toggle">✿ <span>单体参考</span></button>

@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "units": "metres",
+  "north": "negative-z",
+  "cottage": {
+    "position": [
+      20,
+      0,
+      -62
+    ],
+    "height": 10.5,
+    "rotation": -0.3,
+    "halfWidth": 8.8,
+    "halfDepth": 6.5
+  },
+  "walkBounds": {
+    "minX": -36,
+    "maxX": 41,
+    "minZ": -88,
+    "maxZ": 25
+  },
+  "terrain": {
+    "width": 240,
+    "depth": 260,
+    "centerZ": -35
+  },
+  "views": {
+    "front": {
+      "label": "前视",
+      "eye": [
+        1.8,
+        9.4,
+        32
+      ],
+      "target": [
+        2,
+        4,
+        -23
+      ]
+    },
+    "left": {
+      "label": "左视",
+      "eye": [
+        -90,
+        45,
+        -28
+      ],
+      "target": [
+        2,
+        3,
+        -28
+      ]
+    },
+    "back": {
+      "label": "后视",
+      "eye": [
+        12,
+        25,
+        -105
+      ],
+      "target": [
+        1,
+        3,
+        -12
+      ]
+    },
+    "top": {
+      "label": "俯视",
+      "eye": [
+        0,
+        155,
+        -29.9
+      ],
+      "target": [
+        0,
+        0,
+        -30
+      ]
+    }
+  },
+  "referenceImages": {
+    "front": "front.png",
+    "left": "left.png",
+    "back": "back.png",
+    "top": "top.png"
+  },
+  "note": "AI concept references guide spatial reconstruction; unseen rear architecture is extrapolated, not extracted from the game. The house is a full-size building in the far north-east."
+}
