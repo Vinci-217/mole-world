@@ -23,6 +23,8 @@ paths={'index.html','flower-sea.html','black-forest.html','gallery.html','render
 paths.update('assets/flower-sea/views/'+kind+'.png' for kind in ['front','left','back','top'])
 paths.update('previews/flower-garden-'+kind+'.png' for kind in ['front','left','back','top','day','walk','night','dusk','rain','south-meadow','east-meadow','west-meadow','north-lookout','before-render'])
 paths.update('previews/black-forest-'+kind+'.png' for kind in ['entrance','bridge','mushrooms','hollow','moon','mist','rain'])
+paths.update(str(p.relative_to(stage)) for p in (stage/'assets/woodland').rglob('*') if p.is_file())
+paths.update(['previews/black-forest-night.png','downloads/Woodland-Blender-Source.zip'])
 paths.update(str(p.relative_to(stage)) for p in (stage/'assets/flower-garden/lighting').glob('LICENSE*'))
 for page in ['index.html','flower-sea.html','black-forest.html']:
     html=(stage/page).read_text()

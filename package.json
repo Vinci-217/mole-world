@@ -24,6 +24,7 @@
   "devDependencies": {
     "@playwright/test": "1.56.1",
     "@types/three": "0.180.0",
+    "esbuild": "0.25.12",
     "typescript": "5.9.3",
     "vite": "7.1.12"
   }

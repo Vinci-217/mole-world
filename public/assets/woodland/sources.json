@@ -1,0 +1,77 @@
+{
+  "generator": "EZ-Tree",
+  "revision": "dcf309bd86bd521083d9c70f01f2de45fdc7c457",
+  "generatorLicense": "MIT",
+  "assets": [
+    {
+      "file": "oak_color_1k.jpg",
+      "bytes": 297877,
+      "sha256": "053794dc9d3d5c39fc00f2d0f0fc5f6f5c9b81b58c016af26c4aba0335d01722",
+      "license": "MIT (leaves); CC0 (Poly Haven bark)",
+      "source": "https://registry.npmjs.org/@dgreenheck/ez-tree/-/ez-tree-1.1.0.tgz"
+    },
+    {
+      "file": "oak_normal_1k.jpg",
+      "bytes": 67610,
+      "sha256": "91c8e6166e47876b213c59207cc3addecec5c1303509960cd81167e6c48984a1",
+      "license": "MIT (leaves); CC0 (Poly Haven bark)",
+      "source": "https://registry.npmjs.org/@dgreenheck/ez-tree/-/ez-tree-1.1.0.tgz"
+    },
+    {
+      "file": "oak_roughness_1k.jpg",
+      "bytes": 16648,
+      "sha256": "e24b8ca0304ab42f025561646576031aaf9e2919f57582d85033e29e78054b61",
+      "license": "MIT (leaves); CC0 (Poly Haven bark)",
+      "source": "https://registry.npmjs.org/@dgreenheck/ez-tree/-/ez-tree-1.1.0.tgz"
+    },
+    {
+      "file": "willow_color_1k.jpg",
+      "bytes": 310660,
+      "sha256": "25d93112579146c55fa51cbf9749ef1de36a97f7620b9f5dc4ce5f5a9ab0f04e",
+      "license": "MIT (leaves); CC0 (Poly Haven bark)",
+      "source": "https://registry.npmjs.org/@dgreenheck/ez-tree/-/ez-tree-1.1.0.tgz"
+    },
+    {
+      "file": "willow_normal_1k.jpg",
+      "bytes": 87228,
+      "sha256": "695cdc3ef35b89ad6718b80f9e7e365efdd546e03f411594deb26683b0f41530",
+      "license": "MIT (leaves); CC0 (Poly Haven bark)",
+      "source": "https://registry.npmjs.org/@dgreenheck/ez-tree/-/ez-tree-1.1.0.tgz"
+    },
+    {
+      "file": "willow_roughness_1k.jpg",
+      "bytes": 11691,
+      "sha256": "81892cd29f186af5605385ae00cecd120fa3a87d43d18eb9d4ccc0b986accc7a",
+      "license": "MIT (leaves); CC0 (Poly Haven bark)",
+      "source": "https://registry.npmjs.org/@dgreenheck/ez-tree/-/ez-tree-1.1.0.tgz"
+    },
+    {
+      "file": "oak_color.png",
+      "bytes": 238115,
+      "sha256": "24451223cf396d22910a4932b8bb996a7274e63d81e24128c96a430ab67822b1",
+      "license": "MIT (leaves); CC0 (Poly Haven bark)",
+      "source": "https://registry.npmjs.org/@dgreenheck/ez-tree/-/ez-tree-1.1.0.tgz"
+    },
+    {
+      "file": "ash_color.png",
+      "bytes": 181423,
+      "sha256": "5ec987db3829a839856c32c79b18a33a78f209e911cad55c65abfb77f30e2d29",
+      "license": "MIT (leaves); CC0 (Poly Haven bark)",
+      "source": "https://registry.npmjs.org/@dgreenheck/ez-tree/-/ez-tree-1.1.0.tgz"
+    },
+    {
+      "file": "soil-color.png",
+      "bytes": 379092,
+      "sha256": "ae7381e02ba88405d6cd772ae57ab56d03c186d911b10b207554883e140b5512",
+      "license": "Original project material",
+      "source": "Blender UV plane material bake (refine_woodland.py)"
+    },
+    {
+      "file": "soil-normal.png",
+      "bytes": 709942,
+      "sha256": "d27295cda84ea5a9b7e0a509a847a0215343bbf2acfa6af6be8a56005698b4e2",
+      "license": "Original project material",
+      "source": "Blender UV plane material bake (refine_woodland.py)"
+    }
+  ]
+}

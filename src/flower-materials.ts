@@ -24,7 +24,10 @@ export function finishGardenMaterial(material:T.Material,finish:Finish){
     if(finish==='organic')shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
       // Lift shadows baked into generated albedo; real lighting supplies the
       // shading. Keep whites and the texture's hand-painted vein detail.
-      diffuseColor.rgb=mix(diffuseColor.rgb,sqrt(max(diffuseColor.rgb,0.))* .82,.30);`);
+      diffuseColor.rgb=mix(diffuseColor.rgb,sqrt(max(diffuseColor.rgb,0.))* .82,.12);`);
+    shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+      float gardenLuma=dot(diffuseColor.rgb,vec3(.2126,.7152,.0722));
+      diffuseColor.rgb=mix(vec3(gardenLuma),diffuseColor.rgb,.88);`);
     shader.fragmentShader=shader.fragmentShader.replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
       // Preserve the supplied roughness variation without the wet-looking
       // mid-grey roughness atlas on the generated vine.

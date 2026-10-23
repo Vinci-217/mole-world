@@ -9,6 +9,15 @@ def run_node(script):
     return json.loads(subprocess.check_output(['node','--input-type=module','-e',script],cwd=ROOT,text=True))
 
 class SceneExplorationTests(unittest.TestCase):
+    def test_authored_hollow_has_an_open_mouth_and_solid_sides(self):
+        result=run_node("""
+import {forestCanWalk} from './src/forest-terrain.ts';
+console.log(JSON.stringify({approach:forestCanWalk(2,-59),inside:forestCanWalk(2,-63),
+ left:forestCanWalk(-.3,-63),right:forestCanWalk(4.3,-63),back:forestCanWalk(2,-66)}));
+""")
+        self.assertTrue(result['approach']);self.assertTrue(result['inside'])
+        self.assertFalse(result['left']);self.assertFalse(result['right']);self.assertFalse(result['back'])
+
     def test_new_garden_districts_have_flowers_and_are_reachable_on_foot(self):
         result=run_node("""
 import {gardenCanWalk,gardenPlaces,gardenRoutes,flowerLayout,brookX,routeDistance} from './src/flower-terrain.ts';

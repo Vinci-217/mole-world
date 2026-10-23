@@ -47,7 +47,7 @@ export async function createFlowerSeaScene(
   const renderer = new T.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', alpha: false });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
   renderer.outputColorSpace = T.SRGBColorSpace;
-  renderer.toneMapping = T.NeutralToneMapping;
+  renderer.toneMapping = T.ACESFilmicToneMapping;
   renderer.toneMappingExposure = .98;
   renderer.info.autoReset=false;
   renderer.shadowMap.enabled = true;
@@ -125,8 +125,11 @@ export async function createFlowerSeaScene(
       const source = model.scene;
       source.traverse(object => { if (object instanceof T.Mesh) {
         object.castShadow = object.receiveShadow = true;
-        for(const material of Array.isArray(object.material)?object.material:[object.material])
-          finishGardenMaterial(material,asset.id==='cottage'?'house':asset.id==='pink-portal'?'petal':'organic');
+        for(const material of Array.isArray(object.material)?object.material:[object.material]){
+          const foliage=material instanceof T.MeshStandardMaterial&&material.name.includes('Foliage');
+          if(foliage){material.alphaTest=.48;material.transparent=false;material.side=T.DoubleSide;}
+          finishGardenMaterial(material,asset.id==='cottage'?'house':asset.id==='pink-portal'?'petal':foliage?'leaf':asset.id==='ancient-tree'?'bark':'organic');
+        }
       } });
       const root = new T.Group(); root.add(source);
       const height = Math.max(.01, asset.height); root.scale.setScalar(height / size.y);

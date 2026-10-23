@@ -58,6 +58,8 @@ def stage() -> None:
         shutil.copy2(RELEASE/'FlowerSea-Blender-Botanicals.zip',downloads/'FlowerSea-Blender-Botanicals.zip')
     for name in ['FlowerSea-FourViews.zip','FlowerSea-SpatialLayout.zip']:
         if (RELEASE/name).is_file():shutil.copy2(RELEASE/name,downloads/name)
+    if (RELEASE/'Woodland-Blender-Source.zip').is_file():
+        shutil.copy2(RELEASE/'Woodland-Blender-Source.zip',downloads/'Woodland-Blender-Source.zip')
     for filename, target in [('manor-desktop.png', 'preview.png'), ('manor-night.png', 'preview-night.png'),
                              ('manor-mobile.png', 'preview-mobile.png')]:
         screenshot = ROOT / 'artifacts' / filename
@@ -85,7 +87,7 @@ def stage() -> None:
             shutil.copy2(screenshot,previews/target)
             cards.append(f'<figure><a href="flower-sea.html"><img src="previews/{target}" loading="lazy" alt="{html.escape(label)}实时3D截图"></a><figcaption>{html.escape(label)} <small>独立花园场景</small></figcaption></figure>')
     before=ROOT/'artifacts/flower-review/before-render-day.png'
-    for name,label in [('entrance','黑森林 · 林径入口'),('bridge','黑森林 · 苔桥遗迹'),('mushrooms','黑森林 · 荧光蘑菇谷'),('hollow','黑森林 · 古树之心'),('moon','黑森林 · 月光林隙'),('mist','黑森林 · 林雾'),('rain','黑森林 · 细雨')]:
+    for name,label in [('entrance','黑森林 · 林径入口'),('bridge','黑森林 · 苔桥遗迹'),('mushrooms','黑森林 · 蘑菇林地'),('hollow','黑森林 · 古树之心'),('moon','黑森林 · 林隙溪谷'),('night','黑森林 · 月夜'),('mist','黑森林 · 林雾'),('rain','黑森林 · 细雨')]:
         screenshot=ROOT/'artifacts/forest-review'/f'{name}.png'
         if screenshot.is_file():
             target=f'black-forest-{name}.png';shutil.copy2(screenshot,previews/target)

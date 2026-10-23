@@ -17,6 +17,8 @@ export function createFlowerSky(scene:T.Scene){
         vec2 uv=vec2(fract(atan(d.z,d.x)/6.2831853+.80),asin(clamp(d.y,-1.,1.))/3.14159265+.5);
         vec3 gradient=mix(horizon,zenith,smoothstep(0.,.8,d.y));
         vec3 painted=texture2D(paintedSky,uv).rgb;
+        float skyLuma=dot(painted,vec3(.2126,.7152,.0722));
+        painted=mix(vec3(skyLuma)*vec3(1.02,1.01,1.),painted,.82);
         float seam=1.-smoothstep(0.,.035,min(uv.x,1.-uv.x));
         vec3 seamColor=(texture2D(paintedSky,vec2(.01,uv.y)).rgb+texture2D(paintedSky,vec2(.99,uv.y)).rgb)*.5;
         painted=mix(painted,seamColor,seam);

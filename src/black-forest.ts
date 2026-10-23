@@ -28,7 +28,7 @@ try{
 }catch(error){el('forest-error').textContent=`森林尚未打开：${error instanceof Error?error.message:'请使用支持 WebGL 2 的浏览器重试'}`;el('forest-error').hidden=false;}
 el('forest-walk').addEventListener('click',()=>{if(world?.walk.active)world.walk.stop();else world?.walk.start();update();},{signal:events.signal});
 el('forest-reset').addEventListener('click',()=>{world?.reset();el('forest-location').textContent='南侧林径';},{signal:events.signal});
-el('forest-atmosphere').addEventListener('change',e=>{const mode=(e.target as HTMLSelectElement).value;if(['moon','mist','rain'].includes(mode))world?.setAtmosphere(mode as ForestAtmosphere);},{signal:events.signal});
+el('forest-atmosphere').addEventListener('change',e=>{const mode=(e.target as HTMLSelectElement).value;if(['dusk','moon','mist','rain'].includes(mode))world?.setAtmosphere(mode as ForestAtmosphere);},{signal:events.signal});
 el('forest-audio').addEventListener('click',async()=>{
   const button=el<HTMLButtonElement>('forest-audio');button.disabled=true;
   try{const active=await audio.toggle();button.setAttribute('aria-pressed',String(active));button.textContent=active?'♪ 音景已开启':'♪ 林间音景';}catch{button.textContent='音景暂不可用';}finally{button.disabled=false;}

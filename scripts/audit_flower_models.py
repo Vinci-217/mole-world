@@ -15,9 +15,10 @@ ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / 'public'
 manifest = json.loads((PUBLIC / 'assets/flower-sea/manifest.json').read_text())
 support = json.loads((PUBLIC / 'assets/flower-garden/manifest.json').read_text())
+woodland = json.loads((PUBLIC / 'assets/woodland/manifest.json').read_text())
 report = []
 failures = []
-for asset in manifest['assets'] + support['assets']:
+for asset in manifest['assets'] + support['assets'] + woodland['assets']:
     if asset['state'] != 'ready':
         continue
     path = (PUBLIC / asset['path'].removeprefix('./')).resolve()

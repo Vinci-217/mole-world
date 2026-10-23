@@ -8,7 +8,7 @@ try{
   // animation/render frame per capture. No capture hooks ship with the app.
   await page.addInitScript(()=>{
     const nativeRAF=window.requestAnimationFrame.bind(window),nativeCancel=window.cancelAnimationFrame.bind(window);
-    const callbacks=new Map();let paused=false,id=-1;
+    const callbacks=new Map();let paused=true,id=-1;
     window.requestAnimationFrame=callback=>{if(!paused)return nativeRAF(callback);const key=id--;callbacks.set(key,callback);return key;};
     window.cancelAnimationFrame=key=>{if(key<0)callbacks.delete(key);else nativeCancel(key);};
     window.__flowerCaptureFrames={
@@ -19,7 +19,7 @@ try{
   page.on('pageerror',e=>errors.push(e.message));
   page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
   await page.goto(process.env.FLOWER_CAPTURE_URL||'http://127.0.0.1:4186/flower-sea.html');
-  await page.waitForFunction(()=>window.__flowerSea?.ready,{},{timeout:180000});
+  await page.waitForFunction(()=>window.__flowerSea?.ready,{},{timeout:180000,polling:100});
   const initial=await page.evaluate(()=>window.__flowerSea);
   if(initial.failed.length||!initial.environment.ready||!initial.rendering.environmentMap)throw Error('Production assets did not load');
   await page.evaluate(()=>window.__flowerCaptureFrames.pause());

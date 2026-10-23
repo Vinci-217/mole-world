@@ -5,6 +5,7 @@ import { brookX, flowerGroundHeight as h, flowerLayout, insideCottage, gardenRou
 import { createMeadowPlantings } from './flower-meadows';
 import { flowerParticleMaterial } from './flower-particles';
 import { finishGardenMaterial } from './flower-materials';
+import {loadWoodlandAssets,woodlandFloor,type WoodlandSpecies} from './woodland-assets';
 
 const seededRandom=(n:number)=>()=>{n=(Math.imul(n,1664525)+1013904223)|0;return(n>>>0)/4294967296;};
 const leafGeometry=(length=1,width=.22)=>{
@@ -51,7 +52,8 @@ export function fernGeometry(){
 }
 
 export function createFlowerGarden(scene:T.Scene){
-  const rnd=seededRandom(918362);
+  const rnd=seededRandom(918362),woodlandTime={value:0};
+  const woodlandReady=loadWoodlandAssets(woodlandTime);
   const stats={trees:0,butterflies:0,reusedFlowerClumps:0};
   const root=new T.Group();root.name='layered-garden-environment';scene.add(root);
   const dummy=new T.Object3D(),color=new T.Color();
@@ -60,33 +62,16 @@ export function createFlowerGarden(scene:T.Scene){
   for(let i=0;i<p.count;i++){
     const x=p.getX(i),z=p.getZ(i),y=h(x,z);p.setY(i,y);
     const mottling=.38+.22*Math.sin(x*.38+z*.3)+.13*Math.cos(x*.87-z*.61);
-    color.set('#528456').lerp(new T.Color('#b1c76b'),T.MathUtils.clamp(mottling+y*.025,0,1));
-    color.lerp(new T.Color('#c1d77b'),.35*Math.exp(-((x-12)**2/100+(z-2)**2/60)));
+    color.set('#4d6544').lerp(new T.Color('#9fa968'),T.MathUtils.clamp(mottling+y*.025,0,1));
+    color.lerp(new T.Color('#bdc28a'),.22*Math.exp(-((x-12)**2/100+(z-2)**2/60)));
     color.lerp(new T.Color('#639c92'),T.MathUtils.clamp((Math.hypot(x,z*.9)-42)/36,0,1)*.65);
     if(routeDistance(x,z)<1.2)color.lerp(new T.Color('#a6a17a'),.35);
     colors.push(color.r,color.g,color.b);
   }
   groundGeometry.setAttribute('color',new T.Float32BufferAttribute(colors,3));groundGeometry.computeVertexNormals();
   const earth=new T.MeshStandardMaterial({vertexColors:true,roughness:1});
-  surfaceGrain(earth,'earth');
-  const meadowMap={value:null as T.Texture|null},meadowReady={value:0},earthShader=earth.onBeforeCompile;
-  earth.onBeforeCompile=(shader,renderer)=>{
-    earthShader.call(earth,shader,renderer);shader.uniforms.meadowMap=meadowMap;shader.uniforms.meadowReady=meadowReady;
-    shader.fragmentShader='uniform sampler2D meadowMap;uniform float meadowReady;\n'+shader.fragmentShader;
-    shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
-      vec3 paintedGrass=texture2D(meadowMap,gardenSurface.xz*.22).rgb;
-      float paintedLuma=dot(paintedGrass,vec3(.2126,.7152,.0722));
-      // Texture supplies fine meadow detail; broad vertex colors keep the
-      // light/shade palette readable instead of tiling a flat yellow carpet.
-      diffuseColor.rgb*=mix(1.,.80+paintedLuma*.8,.52*meadowReady);`);
-  };
-  const meadowLoaded=new T.TextureLoader().loadAsync('./assets/flower-garden/painted-meadow.png').then(texture=>{
-    texture.colorSpace=T.SRGBColorSpace;texture.wrapS=texture.wrapT=T.RepeatWrapping;texture.anisotropy=8;
-    meadowMap.value=texture;meadowReady.value=1;
-    // Also expose the owned texture to the common scene-resource disposer.
-    earth.userData.meadowTexture=texture;
-  });
   const terrain=new T.Mesh(groundGeometry,earth);terrain.receiveShadow=true;root.add(terrain);
+  const meadowLoaded=woodlandReady.then(assets=>{terrain.material=woodlandFloor(groundGeometry,assets,'meadow');earth.dispose();});
 
   const pathMaterial=new T.MeshStandardMaterial({color:'#b5aa82',roughness:.95,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1});
   pathMaterial.onBeforeCompile=shader=>{
@@ -324,14 +309,14 @@ export function createFlowerGarden(scene:T.Scene){
     const light=new T.PointLight('#ffd19a',0,7,2);light.position.copy(bulb.position);root.add(light);lanterns.push(light);
   }
 
-  const forest:{mesh:T.InstancedMesh;local:T.Matrix4;near:boolean}[]=[],placements:{matrix:T.Matrix4;position:T.Vector3}[]=[];
+  const forest:{mesh:T.InstancedMesh;local:T.Matrix4;near:boolean;species:WoodlandSpecies}[]=[],placements:{matrix:T.Matrix4;position:T.Vector3;species:WoodlandSpecies}[]=[];
   const lastForestEye=new T.Vector3(Infinity,Infinity,Infinity);
   function updateForest(eye:T.Vector3){
     if(!forest.length||lastForestEye.distanceToSquared(eye)<2.25)return;
     lastForestEye.copy(eye);
     for(const row of forest){
       let count=0;
-      for(const tree of placements)if((tree.position.distanceToSquared(eye)<20*20)===row.near){
+      for(const tree of placements)if(tree.species===row.species&&(tree.position.distanceToSquared(eye)<25*25)===row.near){
         row.mesh.setMatrixAt(count++,new T.Matrix4().multiplyMatrices(tree.matrix,row.local));
       }
       row.mesh.count=count;row.mesh.instanceMatrix.needsUpdate=true;row.mesh.computeBoundingSphere();
@@ -340,27 +325,26 @@ export function createFlowerGarden(scene:T.Scene){
   // Blender-sculpted crowns with painted color transitions; two actual GLB LODs.
   const forestReady=(async()=>{
     const rnd=seededRandom(71926);
-    const loader=new GLTFLoader();
-    const models=await Promise.all(['near','far'].map(lod=>loader.loadAsync(`./assets/flower-garden/garden-tree-${lod}.glb`)));
+    const assets=await woodlandReady;
     for(let i=0;i<46;i++){
       const a=i/46*Math.PI*2;
       let x=Math.cos(a)*(31+rnd()*7),z=Math.sin(a)*(27+rnd()*6)-5;
       if(z>17&&Math.abs(x)<24)continue;
       if(z<-22&&Math.abs(x-20*(20-z)/82)<10)continue;
-      dummy.position.set(x,h(x,z)-.08,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.75+rnd()*.5);dummy.updateMatrix();placements.push({matrix:dummy.matrix.clone(),position:dummy.position.clone()});
+      dummy.position.set(x,h(x,z)-.08,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.43+rnd()*.26);dummy.updateMatrix();placements.push({matrix:dummy.matrix.clone(),position:dummy.position.clone(),species:placements.length%5===0?'young':placements.length%3===0?'ash':'oak'});
     }
     for(let i=0;i<25;i++){
       const x=-54+rnd()*108,z=-94-rnd()*21;
-      dummy.position.set(x,h(x,z)-.05,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.8+rnd()*.55);dummy.updateMatrix();placements.push({matrix:dummy.matrix.clone(),position:dummy.position.clone()});
+      dummy.position.set(x,h(x,z)-.05,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.5+rnd()*.3);dummy.updateMatrix();placements.push({matrix:dummy.matrix.clone(),position:dummy.position.clone(),species:placements.length%5===0?'young':placements.length%3===0?'ash':'oak'});
     }
     for(let i=0;i<22;i++){
       const z=-34-rnd()*53,x=(i%2?1:-1)*(35+rnd()*8);
-      dummy.position.set(x,h(x,z)-.05,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.65+rnd()*.65);dummy.updateMatrix();placements.push({matrix:dummy.matrix.clone(),position:dummy.position.clone()});
+      dummy.position.set(x,h(x,z)-.05,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.4+rnd()*.3);dummy.updateMatrix();placements.push({matrix:dummy.matrix.clone(),position:dummy.position.clone(),species:placements.length%5===0?'young':placements.length%3===0?'ash':'oak'});
     }
     for(let i=0;i<18;i++){
       const a=.12+i/18*Math.PI*1.83,x=Math.cos(a)*(30+rnd()*5),z=Math.sin(a)*(23+rnd()*5)-6;
       if(z>15&&Math.abs(x)<24)continue;
-      dummy.position.set(x,h(x,z)-1.45,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.40+rnd()*.17);dummy.updateMatrix();placements.push({matrix:dummy.matrix.clone(),position:dummy.position.clone()});
+      dummy.position.set(x,h(x,z)-.08,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.25+rnd()*.13);dummy.updateMatrix();placements.push({matrix:dummy.matrix.clone(),position:dummy.position.clone(),species:placements.length%5===0?'young':placements.length%3===0?'ash':'oak'});
     }
     // Reuse the authored low LOD to frame all sides of the garden. Two broken
     // bands give the side/rear views a wooded horizon beyond the walkable glade.
@@ -369,28 +353,15 @@ export function createFlowerGarden(scene:T.Scene){
       const x=Math.cos(angle)*(72+band*25+(rnd()-.5)*13);
       const z=-28+Math.sin(angle)*(79+band*29+(rnd()-.5)*12);
       dummy.position.set(x,h(x,z)-.18,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);
-      dummy.scale.setScalar(.82+rnd()*.8);dummy.updateMatrix();
-      placements.push({matrix:dummy.matrix.clone(),position:dummy.position.clone()});
+      dummy.scale.setScalar(.55+rnd()*.4);dummy.updateMatrix();
+      placements.push({matrix:dummy.matrix.clone(),position:dummy.position.clone(),species:placements.length%5===0?'young':placements.length%3===0?'ash':'oak'});
     }
     stats.trees=placements.length;
-    for(const [index,model] of models.entries()){
-    const bounds=new T.Box3().setFromObject(model.scene),center=bounds.getCenter(new T.Vector3()),scale=9.5/bounds.getSize(new T.Vector3()).y;
-    model.scene.position.set(-center.x*scale,-bounds.min.y*scale,-center.z*scale);model.scene.scale.setScalar(scale);model.scene.updateMatrixWorld(true);
-    model.scene.traverse(object=>{
-      if(!(object instanceof T.Mesh))return;
-      for(const mat of Array.isArray(object.material)?object.material:[object.material]){
-        if(mat instanceof T.MeshStandardMaterial&&mat.name.includes('Foliage')){
-          mat.alphaTest=.36;mat.transparent=false;mat.depthWrite=true;mat.side=T.DoubleSide;
-          finishGardenMaterial(mat,'leaf');
-          mat.emissive.set('#000000');mat.emissiveIntensity=0;
-        }else if(mat instanceof T.MeshStandardMaterial){
-          finishGardenMaterial(mat,'bark');
-        }
-      }
-      const instances=new T.InstancedMesh(object.geometry,object.material,placements.length);
+    for(const species of ['oak','ash','young'] as const)for(const lod of ['near','far'] as const)for(const row of assets.tree(species,lod)){
+      const instances=new T.InstancedMesh(row.geometry,row.material,placements.length);
       instances.count=0;instances.castShadow=instances.receiveShadow=true;root.add(instances);
-      forest.push({mesh:instances,local:object.matrixWorld.clone(),near:index===0});
-    });}
+      forest.push({mesh:instances,local:new T.Matrix4(),near:lod==='near',species});
+    }
     updateForest(new T.Vector3(1.8,11.8,32.5));
   })();
 
@@ -437,9 +408,9 @@ export function createFlowerGarden(scene:T.Scene){
     points.position.copy(origin);root.add(points);portals.push({origin,points,positions,phases});
   }
   addPortal(new T.Vector3(1,h(1,17)+.13,17),.6);
-  return {ready:Promise.all([forestReady,butterflyReady,bellflowersReady,flowersReady,sorrelReady,meadowLoaded]),stats,get flowerTotal(){return flowerTotal;},addPortal,treeSource:'Licensed broadleaf meshes refined in Blender; see flower-garden/SOURCE.txt',update(time:number,night:number,eye:T.Vector3){
+  return {ready:Promise.all([forestReady,butterflyReady,bellflowersReady,flowersReady,sorrelReady,meadowLoaded]),stats,get flowerTotal(){return flowerTotal;},addPortal,treeSource:'Three EZ-Tree skeletons refined in Blender; CC0 bark / MIT leaves, see woodland/sources.json',update(time:number,night:number,eye:T.Vector3){
     updateForest(eye);updatePlants(eye);
-    breeze.value=waterTime.value=time;wings.visible=night<.7;
+    woodlandTime.value=breeze.value=waterTime.value=time;wings.visible=night<.7;
     lightMaterial.emissiveIntensity=.2+night*2.5;for(const lamp of lanterns)lamp.intensity=night*12;
     for(const b of butterflies){
       b.group.position.copy(b.origin).add(new T.Vector3(Math.sin(time*.31+b.phase)*1.2,Math.sin(time*.8+b.phase)*.3,Math.cos(time*.26+b.phase)*.9));

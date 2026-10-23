@@ -57,15 +57,15 @@
       "path": "./assets/flower-sea/ancient-tree.glb",
       "height": 17.0,
       "state": "ready",
-      "generationState": "downloaded",
-      "sha256": "785a508df1a5c0827c05b8e0f2389d00dd0a4ee9c540335f9bde36293fe73cdc",
-      "rawSha256": "169b66dd457488b494796ae1955948553cd2dbacd925987813a7a2261e0c4d05",
-      "source": "TencentCloud Hunyuan Pro 3.1 → Blender",
-      "triangles": 107200,
+      "generationState": "not-submitted",
+      "sha256": "74452adba747a9a988a3d8eac13facd65f1f8deafe4372e6031945d878ec9a32",
+      "source": "EZ-Tree MIT skeleton → Blender refinement; Poly Haven CC0 bark; MIT leaf atlas",
+      "triangles": 21008,
       "materials": 2,
       "blenderVersion": "4.3.2",
-      "artPass": "Welded organic silhouettes, applied petal/leaf thickness and material grouping",
-      "meshes": 2
+      "artPass": "Replaced flattened generated crown with asymmetric branching oak, physical root flare, fine alpha foliage and PBR bark",
+      "meshes": 2,
+      "geometryPolicy": "alpha-cutout-foliage"
     },
     {
       "id": "canopy-vine-crafted",

@@ -99,6 +99,18 @@ with zipfile.ZipFile(OUT / 'MoleManor-Website.zip', 'w', zipfile.ZIP_DEFLATED, c
     for path in sorted(DIST.rglob('*')):
         if path.is_file():
             archive.write(path, path.relative_to(DIST))
+
+woodland=ROOT/'artifacts/woodland'
+if all((woodland/name).is_file() for name in ['Woodland-Tree-Variants.blend','Hollow-Oak-and-River-Stones.blend','Forest-Floor-Material.blend','Garden-Hero-Oak.blend']):
+    with zipfile.ZipFile(OUT/'Woodland-Blender-Source.zip','w',zipfile.ZIP_DEFLATED,compresslevel=9) as archive:
+        for path in sorted(woodland.glob('*.blend')):archive.write(path,path.name)
+        archive.write(woodland/'refinement-report.json','refinement-report.json')
+        for name in ['generate_woodland.mjs','refine_woodland.py','prepare_garden_oak.py','prepare_woodland_sources.py']:
+            archive.write(ROOT/'scripts'/name,'scripts/'+name)
+        for path in sorted((ROOT/'scripts/vendor/ez-tree').rglob('*')):
+            if path.is_file():archive.write(path,'scripts/vendor/ez-tree/'+str(path.relative_to(ROOT/'scripts/vendor/ez-tree')))
+        archive.write(ROOT/'public/assets/woodland/SOURCE.md','SOURCE.md')
+        archive.write(ROOT/'public/assets/woodland/LICENSE-EZ-Tree.txt','LICENSE-EZ-Tree.txt')
 with zipfile.ZipFile(OUT / 'MoleManor-Offline.zip', 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
     archive.write(offline, offline.name)
     archive.write(OUT / '打开说明.txt', '打开说明.txt')

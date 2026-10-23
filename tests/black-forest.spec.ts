@@ -8,6 +8,9 @@ test('forest loads reused foliage and procedural landmarks, supports walking, am
   await page.goto('/black-forest.html');await page.waitForFunction(()=>(window as any).__blackForest?.ready,{},{timeout:90000});
   const initial=await page.evaluate(snapshot);
   expect(initial.failed).toEqual([]);expect(initial.rendering.environmentMap).toBe(true);
+  expect(initial.rendering.volumetricLight).toBe(true);expect(initial.atmosphere).toBe('dusk');
+  expect(initial.authoredTrees).toBe(3);expect(initial.blenderLandmarks).toBe(1);
+  expect(initial.grassClumps).toBeGreaterThan(15000);expect(initial.leafLitter).toBeGreaterThan(3000);
   expect(initial.trees).toBeGreaterThan(170);expect(initial.mushrooms).toBeGreaterThan(250);expect(initial.ferns).toBe(1800);
   expect(initial.fireflies).toBe(420);expect(initial.triangles).toBeGreaterThan(10000);
   expect(await page.locator('#forest-error').isVisible()).toBe(false);
@@ -20,7 +23,7 @@ test('forest loads reused foliage and procedural landmarks, supports walking, am
   await page.locator('[data-forest-place="mushrooms"]').click({force:true});
   expect((await page.evaluate(snapshot)).player[0]).toBe(23);
   await page.keyboard.press('Escape');expect((await page.evaluate(snapshot)).walking).toBe(false);
-  for(const mode of ['mist','rain','moon']){await page.selectOption('#forest-atmosphere',mode);expect((await page.evaluate(snapshot)).atmosphere).toBe(mode);}
+  for(const mode of ['mist','rain','moon','dusk']){await page.selectOption('#forest-atmosphere',mode);expect((await page.evaluate(snapshot)).atmosphere).toBe(mode);}
   await page.locator('#forest-audio').click({force:true});await expect.poll(async()=>(await page.evaluate(snapshot)).audio).toBe(true);
   await page.locator('#forest-audio').click({force:true});await expect.poll(async()=>(await page.evaluate(snapshot)).audio).toBe(false);
   expect(errors).toEqual([]);
