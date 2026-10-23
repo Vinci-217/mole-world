@@ -5,7 +5,8 @@ import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
 import { createFlowerGarden } from './flower-garden';
 import { createGardenWalk } from './flower-walk';
 import { createFlowerSky } from './flower-sky';
-import { flowerGroundHeight } from './flower-terrain';
+import { flowerParticleMaterial } from './flower-particles';
+import { flowerGroundHeight, type GardenView } from './flower-terrain';
 export { flowerGroundHeight } from './flower-terrain';
 
 export interface FlowerAsset {
@@ -24,6 +25,7 @@ export type FlowerWeather = 'day' | 'dusk' | 'rain' | 'night';
 export interface FlowerSceneStats {
   ready: boolean; loaded: string[]; pending: string[]; failed: { id: string; message: string }[];
   draws: number; triangles: number; environmentSource: string; weather: FlowerWeather;
+  environment:{ready:boolean;failed:string[];clouds:number;trees:number;butterflies:number};
 }
 
 export async function createFlowerSeaScene(
@@ -34,6 +36,7 @@ export async function createFlowerSeaScene(
   const stats: FlowerSceneStats = {
     ready: false, loaded: [], pending: manifest.assets.filter(a => a.state !== 'ready').map(a => a.id),
     failed: [], draws: 0, triangles: 0, environmentSource: '原创环境底座；地标由独立GLB加载', weather: 'day',
+    environment:{ready:false,failed:[],clouds:0,trees:0,butterflies:0},
   };
   let seed = 362;
   const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) | 0; return (seed >>> 0) / 4294967296; };
@@ -65,15 +68,15 @@ export async function createFlowerSeaScene(
   }
   resetView();
 
-  const hemi = new T.HemisphereLight(0xdcf1e8, 0x5e693a, .95); scene.add(hemi);
-  const sun = new T.DirectionalLight(0xfff0ce, 2.5);
+  const hemi = new T.HemisphereLight(0xc7eaf2, 0x698d4c, 1.15); scene.add(hemi);
+  const sun = new T.DirectionalLight(0xfff2d3, 2.35);
   sun.position.set(-14, 25, 13); sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
   Object.assign(sun.shadow.camera, { left: -25, right: 25, top: 25, bottom: -25, near: 1, far: 75 });
   sun.shadow.bias = -.0003; sun.shadow.normalBias = .055;
   sun.shadow.radius = 3; scene.add(sun); scene.add(sun.target);
   const fill = new T.DirectionalLight(0xbcdcc3, .5); fill.position.set(20, 6, -18); scene.add(fill);
-  scene.background = new T.Color(0xb9d8d5); scene.fog = new T.FogExp2(0xb9d8d5, .006);
+  scene.background = new T.Color('#a6e6df'); scene.fog = new T.FogExp2('#a6e6df', .0045);
 
   const garden = createFlowerGarden(scene);
   const sky = createFlowerSky(scene);
@@ -84,7 +87,7 @@ export async function createFlowerSeaScene(
   for (let i = 0; i < particleCount; i++) { particleOffsets[i * 3] = (random() - .5) * 38; particleOffsets[i * 3 + 1] = .5 + random() * 9; particleOffsets[i * 3 + 2] = (random() - .5) * 25; }
   particlePositions.set(particleOffsets);
   const particleGeometry = new T.BufferGeometry(); particleGeometry.setAttribute('position', new T.BufferAttribute(particlePositions, 3));
-  const particleMaterial = new T.PointsMaterial({ color: '#fff2bb', size: .045, transparent: true, opacity: .54, depthWrite: false, sizeAttenuation: true });
+  const particleMaterial = flowerParticleMaterial({ color: '#fff4c7', size: .075, opacity: .65, blending:T.AdditiveBlending, sizeAttenuation: true });
   const particles = new T.Points(particleGeometry, particleMaterial); scene.add(particles);
   const rainPositions = new Float32Array(320 * 6);
   for (let i = 0; i < 320; i++) { const x = (random() - .5) * 43, y = random() * 17, z = (random() - .5) * 33; rainPositions.set([x, y, z, x - .04, y + .4, z], i * 6); }
@@ -156,9 +159,9 @@ export async function createFlowerSeaScene(
       hemi.color.set('#ccd9df'); hemi.intensity = 1.65; hemi.groundColor.set('#536c50');
       scene.background = new T.Color('#afc4bc'); scene.fog = new T.FogExp2('#afc4bc', .018); renderer.toneMappingExposure = 1.03;
     } else {
-      sun.color.set('#fff0ce'); sun.intensity = 2.5; sun.position.set(-14, 25, 13);
-      hemi.color.set('#dcf1e8'); hemi.intensity = .95; hemi.groundColor.set('#5e693a');
-      scene.background = new T.Color('#b9d8d5'); scene.fog = new T.FogExp2('#b9d8d5', .006); renderer.toneMappingExposure = 1.05;
+      sun.color.set('#fff2d3'); sun.intensity = 2.35; sun.position.set(-14, 25, 13);
+      hemi.color.set('#c7eaf2'); hemi.intensity = 1.15; hemi.groundColor.set('#698d4c');
+      scene.background = new T.Color('#a6e6df'); scene.fog = new T.FogExp2('#a6e6df', .0045); renderer.toneMappingExposure = 1.05;
       particleMaterial.opacity = .54;
     }
   }
@@ -172,7 +175,7 @@ export async function createFlowerSeaScene(
     if (disposed) return;
     frame = requestAnimationFrame(draw);
     const dt = clock.getDelta(); const elapsed = clock.elapsedTime;
-    walk.update(dt);garden.update(elapsed,stats.weather==='night'?1:stats.weather==='dusk'?.35:0);
+    walk.update(dt);garden.update(elapsed,stats.weather==='night'?1:stats.weather==='dusk'?.35:0,camera.position);
     if (!reducedMotion) {
       for (let i = 0; i < particleCount; i++) {
         particlePositions[i * 3] = particleOffsets[i * 3] + Math.sin(elapsed * .16 + i) * .35;
@@ -192,14 +195,24 @@ export async function createFlowerSeaScene(
     for (const subscriber of subscribers) subscriber();
   };
   draw();
-  await Promise.allSettled([...loadJobs,garden.ready]);
+  const loadResults=await Promise.allSettled([...loadJobs,garden.ready,sky.ready]);
+  const environmentResults=loadResults.slice(loadJobs.length);
+  stats.environment={ready:environmentResults.every(r=>r.status==='fulfilled'),
+    failed:environmentResults.flatMap((r,i)=>r.status==='rejected'?[i===0?'花园植被与蝴蝶':'天空云层']:[]),
+    clouds:sky.stats.clouds,trees:garden.stats.trees,butterflies:garden.stats.butterflies};
   renderer.shadowMap.needsUpdate = true;
   stats.ready = true; onProgress(stats);
   return {
     renderer, scene, camera, controls, stats, walk, resetView: () => {walk.stop();resetView();}, setWeather,
     flowerCount: garden.flowerTotal,
     onFrame(callback: () => void) { subscribers.add(callback); return () => subscribers.delete(callback); },
-    focus(position: [number, number, number]) { const [x, y, z] = position; if(walk.active){walk.moveTo(x,z);return;} controls.target.set(x, flowerGroundHeight(x, z) + y + 1, z); camera.position.set(x + 2, flowerGroundHeight(x, z) + y + 7, z + 12); controls.update(); },
+    focus(position: [number, number, number],view?:GardenView) {
+      const [x,y,z]=position;if(walk.active){walk.moveTo(x,z);return;}
+      const damping=controls.enableDamping;controls.enableDamping=false;controls.update();
+      const eye=view?.eye??[x+2,y+7,z+12],target=view?.target??[x,y+1,z];
+      camera.position.set(eye[0],flowerGroundHeight(eye[0],eye[2])+eye[1],eye[2]);
+      controls.target.set(target[0],flowerGroundHeight(target[0],target[2])+target[1],target[2]);controls.update();controls.enableDamping=damping;
+    },
     dispose() {
       disposed = true; cancelAnimationFrame(frame);walk.dispose(); observer.disconnect(); subscribers.clear(); controls.dispose();
       // Cloned instances share their mesh resources; dispose each geometry/material only once.

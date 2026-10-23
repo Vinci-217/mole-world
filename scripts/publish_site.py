@@ -74,6 +74,12 @@ def stage() -> None:
     atlas = source / 'atlas.png'
     if atlas.is_file():
         shutil.copy2(atlas, previews / 'atlas.png')
+    for filename,label in [('production-day.png','神秘花海 · 花园全景'),('production-walk.png','神秘花海 · 行走视角'),('production-night.png','神秘花海 · 月夜')]:
+        screenshot=ROOT/'artifacts/flower-review'/filename
+        if screenshot.is_file():
+            target='flower-garden-'+filename.removeprefix('production-')
+            shutil.copy2(screenshot,previews/target)
+            cards.append(f'<figure><a href="flower-sea.html"><img src="previews/{target}" loading="lazy" alt="{html.escape(label)}实时3D截图"></a><figcaption>{html.escape(label)} <small>独立花园场景</small></figcaption></figure>')
     art = ROOT / 'art-direction'
     art_link = ''
     if (art / 'catalog.json').is_file():

@@ -10,8 +10,8 @@ SHA256：888e35139f42a295fd8e73d0d35b938b032096418c3ab98ee9fc1d91fdf1ca26
 输入单体图为AI根据原图转译的建模参考，非官方单体素材、非3D模型。
 真实3D地标只有在模型生成、Blender整理并校验后才在manifest中标记ready。
 当前 pink-portal.glb、vine-arch.glb、cottage.glb、ancient-tree.glb 是用户授权调用腾讯云 TokenHub hy-3d-3.1 图生3D后下载的实际结果，由 Blender 4.3.2 居中落地、统一尺度，将4096贴图缩到2048并嵌入导出。它们是AI依据原图单体参考转译的模型，不是提取的官方3D模型。
-第二轮 Blender 精修保留UV与三类PBR贴图，降低金属响应；对粉花和拱门柔和松弛与细分，补建花蕊和花药，对古树上部增加浅体积与700片叶片，对小屋补建沿墙藤叶。
-当前导出三角面：粉花152184、拱门179700、小屋34428、古树44200。各项输出哈希见 manifest.json；精修脚本 scripts/refine_flower_models.py 可复查。原始GLB、私有任务回执和可编辑blend未随网站发布。
-canopy-vine-crafted.glb 为 Blender 新建的曲线花藤、钟形黄花与卷叶，9884三角，不是混元生成结果。原空中花藤及新变体提交均有未取得JobId的待核对记录，不自动重提，也未将它们标为成功结果。
-环境地形、花草、木桥、长椅、灯具、溪水、天空与粒子为程序生成；环境树林使用 BabylonJS Assets，详见 ../nature/SOURCE.txt。路径与溪畔树林为扩展探索区域，不声称逐点复刻原地图。
+多轮 Blender 精修保留UV与三类PBR贴图。先焊接重合网格顶点、保留面角UV，再平滑和细分粉花与拱门，避免接缝收缩开裂；补建花蕊花药、700片曲面树叶、小屋沿墙藤叶。叶片与顶棚花瓣的厚度修改器实际应用后再导出，曲线补齐端面，同材质细节合并。
+当前导出三角面：粉花152412、拱门179700、小屋43992、古树107200。各项输出哈希见 manifest.json；精修脚本 scripts/refine_flower_models.py 可复查。原始GLB、私有任务回执和可编辑blend未随网站发布。
+canopy-vine-crafted.glb 为 Blender 新建的曲线花藤、钟形黄花与卷叶，29908三角，不是混元生成结果。原空中花藤及新变体提交均有未取得JobId的待核对记录，不自动重提，也未将它们标为成功结果。
+环境地形、花草、木桥、长椅、灯具、溪水、天空与粒子为程序生成；花海环境树林、云团和蝴蝶为Blender构建，来源见 ../flower-garden/SOURCE.txt；旧世界保留 BabylonJS Assets 树木，许可见 ../nature/SOURCE.txt。路径与溪畔树林为扩展探索区域，不声称逐点复刻原地图。
 原版 BGM_131 的配置依据、文件哈希及来源见 audio/SOURCE.txt。音乐与原图权利归原游戏权利方，没有标为原创或额外授予许可。

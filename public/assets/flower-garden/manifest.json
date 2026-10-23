@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "id": "cloud-formation",
+      "state": "ready",
+      "path": "./assets/flower-garden/cloud-formation.glb",
+      "sha256": "6c6887a262f5b5368887136b4739508c99646adbbd8ebc63c4729b5c358a9139",
+      "triangles": 2484,
+      "source": "Blender authored supporting garden asset",
+      "blenderVersion": "4.3.2"
+    },
+    {
+      "id": "garden-tree-near",
+      "state": "ready",
+      "path": "./assets/flower-garden/garden-tree-near.glb",
+      "sha256": "5110c54e3a62c4fd5c0dc3dafcdffa7d8d36539df89b901fb0a04d8317f04793",
+      "triangles": 9208,
+      "source": "Blender authored supporting garden asset",
+      "blenderVersion": "4.3.2"
+    },
+    {
+      "id": "garden-tree-far",
+      "state": "ready",
+      "path": "./assets/flower-garden/garden-tree-far.glb",
+      "sha256": "c56a6d13df100917903f73838e061c700386c53cc5d7991b8127e9113c01fddc",
+      "triangles": 2976,
+      "source": "Blender authored supporting garden asset",
+      "blenderVersion": "4.3.2"
+    },
+    {
+      "id": "garden-butterfly",
+      "state": "ready",
+      "path": "./assets/flower-garden/garden-butterfly.glb",
+      "sha256": "aac5f05e8114fd2bee7ee300b4d540e5174da5404c04a9870b3794294bb06126",
+      "triangles": 2240,
+      "source": "Blender authored supporting garden asset",
+      "blenderVersion": "4.3.2"
+    },
+    {
+      "id": "garden-bellflowers",
+      "state": "ready",
+      "path": "./assets/flower-garden/garden-bellflowers.glb",
+      "sha256": "bd3618b7c8ce506f22fe42f187fe8c15abbc50eac15d12141b868ab37d986fa4",
+      "triangles": 6060,
+      "source": "Blender authored supporting garden asset",
+      "blenderVersion": "4.3.2"
+    }
+  ]
+}

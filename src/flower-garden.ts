@@ -2,13 +2,28 @@ import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { brookX, flowerGroundHeight as h, gardenRoutes, routeDistance } from './flower-terrain';
+import { flowerParticleMaterial } from './flower-particles';
 
 const rnd = (()=>{let n=918362;return()=>{n=(Math.imul(n,1664525)+1013904223)|0;return(n>>>0)/4294967296;};})();
 const leafGeometry=(length=1,width=.22)=>{
   const g=new T.BufferGeometry();
-  g.setAttribute('position',new T.Float32BufferAttribute([0,0,0,-width,.3*length,.025,-width*.8,.7*length,.10,0,length,.17,width*.8,.7*length,.10,width,.3*length,.025,0,.48*length,.14],3));
+  g.setAttribute('position',new T.Float32BufferAttribute([0,0,0,-width,.3*length,.025*length,-width*.8,.7*length,.10*length,0,length,.17*length,width*.8,.7*length,.10*length,width,.3*length,.025*length,0,.48*length,.14*length],3));
   g.setIndex([0,1,6,1,2,6,2,3,6,3,4,6,4,5,6,5,0,6]);g.computeVertexNormals();return g;
 };
+function roundedPetal(length:number,width:number){
+  const positions:number[]=[],indices:number[]=[];
+  for(let row=0;row<=5;row++){
+    const t=row/5,spread=width*(.035+Math.pow(Math.sin(t*Math.PI),.72));
+    for(let col=0;col<=2;col++){
+      const s=col-1;
+      positions.push(s*spread,t*length,(Math.sin(t*Math.PI)*.14+t*t*.13+(1-s*s)*.08)*length);
+    }
+    if(row<5)for(let col=0;col<2;col++){
+      const a=row*3+col;indices.push(a,a+1,a+3,a+1,a+4,a+3);
+    }
+  }
+  const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));geometry.setIndex(indices);geometry.computeVertexNormals();return geometry;
+}
 function tinted(g:T.BufferGeometry,color:T.ColorRepresentation){
   let geometry=g.index?g.toNonIndexed():g;geometry.deleteAttribute('uv');
   const c=new T.Color(color),colors=[];
@@ -17,29 +32,50 @@ function tinted(g:T.BufferGeometry,color:T.ColorRepresentation){
 }
 function flowerGeometry(petal:string,tall=false){
   const parts:T.BufferGeometry[]=[];
-  const stem=new T.CylinderGeometry(.017,.026,tall?.8:.43,5);stem.translate(0,(tall?.8:.43)/2,0);parts.push(tinted(stem,'#426d39'));
+  const stem=new T.CylinderGeometry(.013,.02,tall?.8:.43,8);stem.translate(0,(tall?.8:.43)/2,0);parts.push(tinted(stem,'#426d39'));
   for(let i=0;i<3;i++){
     const leaf=leafGeometry(.25,.065);leaf.rotateZ((i%2?1:-1)*.75);leaf.rotateY(i*2.4);leaf.translate(0,.1+i*.1,0);parts.push(tinted(leaf,'#648d3b'));
   }
   const count=tall?10:7;
   for(let i=0;i<count;i++){
     const a=i*Math.PI*2/count;
-    const p=leafGeometry(tall?.11:.18,tall?.05:.065);p.rotateX(Math.PI/2-.27);p.rotateY(a);
+    const p=roundedPetal(tall?.11:.18,tall?.05:.075);p.rotateX(Math.PI/2-.20);p.rotateY(a);
     p.translate(Math.sin(a)*.035,(tall?.62:.44)+(tall?i*.017:0),Math.cos(a)*.035);parts.push(tinted(p,petal));
   }
-  const center=new T.SphereGeometry(tall?.045:.048,7,4);center.translate(0,tall?.83:.455,0);parts.push(tinted(center,tall?'#d6b2ed':'#d4a23e'));
+  const center=new T.SphereGeometry(tall?.04:.045,10,6);center.scale(1,.65,1);center.translate(0,tall?.83:.455,0);parts.push(tinted(center,tall?'#d6b2ed':'#d4a23e'));
   const result=mergeGeometries(parts)!;parts.forEach(g=>g.dispose());return result;
 }
 
+function fernGeometry(){
+  const parts:T.BufferGeometry[]=[];
+  for(let frond=0;frond<3;frond++){
+    const angle=frond*Math.PI*2/3;
+    const curve=new T.CatmullRomCurve3([new T.Vector3(),new T.Vector3(0,.28,.20),new T.Vector3(0,.40,.48),new T.Vector3(0,.32,.72)]);
+    const spine=new T.TubeGeometry(curve,6,.008,4,false);spine.rotateY(angle);parts.push(tinted(spine,'#6e8a47'));
+    for(let row=0;row<6;row++)for(const side of [-1,1]){
+      const t=.13+row*.14,point=curve.getPoint(t),direction=new T.Vector3(side*.8,.15,.35).normalize();
+      const edge=new T.Vector3().crossVectors(direction,new T.Vector3(0,1,0)).normalize();
+      const normal=new T.Vector3().crossVectors(edge,direction).normalize();
+      const leaf=leafGeometry(.23*(1-t*.65),.045*(1-t*.55));
+      leaf.applyMatrix4(new T.Matrix4().makeBasis(edge,direction,normal));leaf.translate(point.x,point.y,point.z);leaf.rotateY(angle);
+      parts.push(tinted(leaf,row%2?'#6e944b':'#567f3e'));
+    }
+  }
+  const geometry=mergeGeometries(parts)!;parts.forEach(part=>part.dispose());return geometry;
+}
+
 export function createFlowerGarden(scene:T.Scene){
+  const stats={trees:0,butterflies:0};
   const root=new T.Group();root.name='layered-garden-environment';scene.add(root);
   const dummy=new T.Object3D(),color=new T.Color();
-  const groundGeometry=new T.PlaneGeometry(90,80,180,160);groundGeometry.rotateX(-Math.PI/2);
+  const groundGeometry=new T.PlaneGeometry(150,170,220,230);groundGeometry.rotateX(-Math.PI/2);
   const p=groundGeometry.attributes.position,colors=[];
   for(let i=0;i<p.count;i++){
     const x=p.getX(i),z=p.getZ(i),y=h(x,z);p.setY(i,y);
     const mottling=.38+.22*Math.sin(x*.38+z*.3)+.13*Math.cos(x*.87-z*.61);
-    color.set('#427c39').lerp(new T.Color('#a7bd51'),T.MathUtils.clamp(mottling+y*.025,0,1));
+    color.set('#318c57').lerp(new T.Color('#a3d34f'),T.MathUtils.clamp(mottling+y*.025,0,1));
+    color.lerp(new T.Color('#badb50'),.55*Math.exp(-((x-12)**2/100+(z-2)**2/60)));
+    color.lerp(new T.Color('#438f9b'),T.MathUtils.clamp((Math.hypot(x,z*.9)-42)/36,0,1)*.8);
     if(routeDistance(x,z)<1.2)color.lerp(new T.Color('#a6a17a'),.35);
     colors.push(color.r,color.g,color.b);
   }
@@ -116,18 +152,15 @@ export function createFlowerGarden(scene:T.Scene){
       if(routeDistance(x,z)<.95||Math.abs(x-brookX(z))<1.2)continue;
       dummy.position.set(x,h(x,z),z);dummy.rotation.set((rnd()-.5)*.14,rnd()*Math.PI*2,(rnd()-.5)*.14);dummy.scale.setScalar(.65+rnd()*.75);dummy.updateMatrix();flowers.setMatrixAt(count++,dummy.matrix);
     }
-    flowers.count=count;flowers.receiveShadow=true;root.add(flowers);flowerTotal+=count;
+    flowers.count=count;flowers.castShadow=flowers.receiveShadow=true;root.add(flowers);flowerTotal+=count;
   }
-  const fern=mergeGeometries([0,1,2,3,4].map(i=>{
-    const g=leafGeometry(.48,.10);g.rotateZ(1.04);g.rotateY(i*Math.PI*2/5);g.translate(0,.09,0);return tinted(g,i%2?'#689048':'#4f7d3e');
-  }))!;
-  const shrubs=new T.InstancedMesh(fern,vegetation,1300);let shrubCount=0;
-  for(let i=0;i<3500&&shrubCount<1300;i++){
+  const shrubs=new T.InstancedMesh(fernGeometry(),vegetation,480);let shrubCount=0;
+  for(let i=0;i<3500&&shrubCount<480;i++){
     const bed=beds[Math.floor(rnd()*beds.length)],a=rnd()*Math.PI*2,r=bed[2]*(.8+rnd()*.4);
     const x=bed[0]+Math.cos(a)*r,z=bed[1]+Math.sin(a)*r;
     if(routeDistance(x,z)<1||Math.abs(x-brookX(z))<1.1)continue;
-    dummy.position.set(x,h(x,z),z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.85+rnd()*.9);dummy.updateMatrix();shrubs.setMatrixAt(shrubCount++,dummy.matrix);
-  }shrubs.count=shrubCount;shrubs.receiveShadow=true;root.add(shrubs);
+    dummy.position.set(x,h(x,z),z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.65+rnd()*.55);dummy.updateMatrix();shrubs.setMatrixAt(shrubCount++,dummy.matrix);
+  }shrubs.count=shrubCount;shrubs.castShadow=shrubs.receiveShadow=true;root.add(shrubs);
 
   const waterTime={value:0},waterNight={value:0};
   const waterMat=new T.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{time:waterTime,night:waterNight},vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`varying vec2 vUv;uniform float time;uniform float night;void main(){float ripple=sin(vUv.y*160.-time*2.+sin(vUv.x*18.))*sin(vUv.x*35.+time)*.5+.5;float edge=smoothstep(.34,.49,abs(vUv.x-.5));vec3 c=mix(vec3(.19,.48,.47),vec3(.48,.72,.62),ripple*.30+edge*.46);float sparkle=pow(max(0.,sin(vUv.y*225.-time*3.)*sin(vUv.x*64.+time*.4)),22.);c+=sparkle*.24;c*=mix(1.,.32,night);gl_FragColor=vec4(c,.91);}`});
@@ -176,36 +209,72 @@ export function createFlowerGarden(scene:T.Scene){
     const light=new T.PointLight('#ffd19a',0,7,2);light.position.copy(bulb.position);root.add(light);lanterns.push(light);
   }
 
-  // Downloaded authored tree LODs, instanced around the playable glades.
-  const ready=(async()=>{
-    const model=await new GLTFLoader().loadAsync('./assets/nature/oak.glb');
-    const placements:T.Matrix4[]=[];
+  const forest:{mesh:T.InstancedMesh;local:T.Matrix4;near:boolean}[]=[],placements:{matrix:T.Matrix4;position:T.Vector3}[]=[];
+  const lastForestEye=new T.Vector3(Infinity,Infinity,Infinity);
+  function updateForest(eye:T.Vector3){
+    if(!forest.length||lastForestEye.distanceToSquared(eye)<2.25)return;
+    lastForestEye.copy(eye);
+    for(const row of forest){
+      let count=0;
+      for(const tree of placements)if((tree.position.distanceToSquared(eye)<20*20)===row.near){
+        row.mesh.setMatrixAt(count++,new T.Matrix4().multiplyMatrices(tree.matrix,row.local));
+      }
+      row.mesh.count=count;row.mesh.instanceMatrix.needsUpdate=true;row.mesh.computeBoundingSphere();
+    }
+  }
+  // Blender-sculpted crowns with painted color transitions; two actual GLB LODs.
+  const forestReady=(async()=>{
+    const loader=new GLTFLoader();
+    const models=await Promise.all(['near','far'].map(lod=>loader.loadAsync(`./assets/flower-garden/garden-tree-${lod}.glb`)));
     for(let i=0;i<46;i++){
       const a=i/46*Math.PI*2;
       let x=Math.cos(a)*(31+rnd()*7),z=Math.sin(a)*(27+rnd()*6)-5;
-      if(z>19&&Math.abs(x)<13)continue;
-      dummy.position.set(x,h(x,z)-.08,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.55+rnd()*.55);dummy.updateMatrix();placements.push(dummy.matrix.clone());
+      if(z>17&&Math.abs(x)<24)continue;
+      dummy.position.set(x,h(x,z)-.08,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.75+rnd()*.5);dummy.updateMatrix();placements.push({matrix:dummy.matrix.clone(),position:dummy.position.clone()});
     }
-    for(let i=0;i<13;i++){
-      const x=-30+rnd()*58,z=-24-rnd()*7;
-      dummy.position.set(x,h(x,z)-.05,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.6+rnd()*.45);dummy.updateMatrix();placements.push(dummy.matrix.clone());
+    for(let i=0;i<25;i++){
+      const x=-53+rnd()*106,z=-38-rnd()*18;
+      dummy.position.set(x,h(x,z)-.05,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.8+rnd()*.55);dummy.updateMatrix();placements.push({matrix:dummy.matrix.clone(),position:dummy.position.clone()});
     }
-    model.scene.updateMatrixWorld(true);
+    stats.trees=placements.length;
+    for(const [index,model] of models.entries()){
+    const bounds=new T.Box3().setFromObject(model.scene),center=bounds.getCenter(new T.Vector3()),scale=9.5/bounds.getSize(new T.Vector3()).y;
+    model.scene.position.set(-center.x*scale,-bounds.min.y*scale,-center.z*scale);model.scene.scale.setScalar(scale);model.scene.updateMatrixWorld(true);
     model.scene.traverse(object=>{
       if(!(object instanceof T.Mesh))return;
       const instances=new T.InstancedMesh(object.geometry,object.material,placements.length);
-      for(let i=0;i<placements.length;i++)instances.setMatrixAt(i,new T.Matrix4().multiplyMatrices(placements[i],object.matrixWorld));
-      instances.castShadow=instances.receiveShadow=true;root.add(instances);
-    });
+      instances.count=0;instances.castShadow=instances.receiveShadow=true;root.add(instances);
+      forest.push({mesh:instances,local:object.matrixWorld.clone(),near:index===0});
+    });}
+    updateForest(new T.Vector3(1.8,11.8,32.5));
   })();
 
-  const wings=new T.Group();root.add(wings);const butterflies:{group:T.Group;left:T.Mesh;right:T.Mesh;origin:T.Vector3;phase:number}[]=[];
+  const wings=new T.Group();root.add(wings);const butterflies:{group:T.Group;left:T.Object3D;right:T.Object3D;origin:T.Vector3;phase:number}[]=[];
+  const butterflyReady=(async()=>{
+  const model=await new GLTFLoader().loadAsync('./assets/flower-garden/garden-butterfly.glb');
   for(let i=0;i<8;i++){
-    const g=new T.Group(),mat=new T.MeshBasicMaterial({color:i%2?'#e8c781':'#cda4dc',side:T.DoubleSide});
-    const left=new T.Mesh(new T.CircleGeometry(.09,8),mat),right=new T.Mesh(new T.CircleGeometry(.09,8),mat);
-    left.position.x=-.055;right.position.x=.055;left.scale.set(1,1.5,1);right.scale.set(1,1.5,1);g.add(left,right);wings.add(g);
+    const g=new T.Group(),copy=model.scene.clone(true);g.add(copy);wings.add(g);
+    const left=copy.getObjectByName('wing-left'),right=copy.getObjectByName('wing-right');
+    if(!left||!right)throw new Error('Butterfly wing hinges are missing');
     const bed=beds[i],origin=new T.Vector3(bed[0],h(bed[0],bed[1])+1.1,bed[1]);butterflies.push({group:g,left,right,origin,phase:rnd()*8});
-  }
+    stats.butterflies++;
+  }})();
+  const bellflowersReady=(async()=>{
+    const model=await new GLTFLoader().loadAsync('./assets/flower-garden/garden-bellflowers.glb');
+    model.scene.updateMatrixWorld(true);
+    const spots=[[-10,8],[-8.2,9],[-12,6],[-9,5],[-25,-9],[10,-6],[24,-15],[14,13]];
+    model.scene.traverse(o=>{
+      if(!(o instanceof T.Mesh))return;
+      const mesh=new T.InstancedMesh(o.geometry,o.material,spots.length);
+      for(const m of Array.isArray(o.material)?o.material:[o.material])m.onBeforeCompile=vegetation.onBeforeCompile;
+      for(const [i,[x,z]] of spots.entries()){
+        dummy.position.set(x,h(x,z),z);dummy.rotation.set(0,i*2.4,0);dummy.scale.setScalar(1.15+i%3*.12);dummy.updateMatrix();mesh.setMatrixAt(i,new T.Matrix4().multiplyMatrices(dummy.matrix,o.matrixWorld));
+      }
+      mesh.castShadow=mesh.receiveShadow=true;root.add(mesh);
+    });
+  })();
+  const driftingPetals=new T.InstancedMesh(roundedPetal(.1,.045),new T.MeshStandardMaterial({color:'#ffd3d1',side:T.DoubleSide,roughness:.83}),30);
+  const petalPhases=Array.from({length:30},()=>[rnd()*36-18,rnd()*26-13,rnd()*10]);root.add(driftingPetals);
   const portals:{origin:T.Vector3;points:T.Points;positions:Float32Array;phases:Float32Array}[]=[];
   function addPortal(origin:T.Vector3,radius:number){
     const material=new T.ShaderMaterial({transparent:true,depthWrite:false,blending:T.AdditiveBlending,side:T.DoubleSide,
@@ -215,17 +284,23 @@ export function createFlowerGarden(scene:T.Scene){
     const positions=new Float32Array(28*3),phases=new Float32Array(28);
     for(let i=0;i<28;i++)phases[i]=rnd();
     const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.BufferAttribute(positions,3));
-    const points=new T.Points(geometry,new T.PointsMaterial({color:'#ffe9a5',size:.04,transparent:true,opacity:.74,depthWrite:false}));
+    const points=new T.Points(geometry,flowerParticleMaterial({color:'#ffe9a5',size:.065,opacity:.74,blending:T.AdditiveBlending}));
     points.position.copy(origin);root.add(points);portals.push({origin,points,positions,phases});
   }
   addPortal(new T.Vector3(1,h(1,17)+.13,17),.6);
-  return {ready,flowerTotal,addPortal,treeSource:'BabylonJS Assets CC BY 4.0',update(time:number,night:number){
+  return {ready:Promise.all([forestReady,butterflyReady,bellflowersReady]),stats,flowerTotal,addPortal,treeSource:'Blender authored painted tree LODs',update(time:number,night:number,eye:T.Vector3){
+    updateForest(eye);
     breeze.value=waterTime.value=time;waterNight.value=night;wings.visible=night<.7;
     lightMaterial.emissiveIntensity=.2+night*2.5;for(const lamp of lanterns)lamp.intensity=night*12;
     for(const b of butterflies){
       b.group.position.copy(b.origin).add(new T.Vector3(Math.sin(time*.31+b.phase)*1.2,Math.sin(time*.8+b.phase)*.3,Math.cos(time*.26+b.phase)*.9));
-      b.group.rotation.y=time*.3+b.phase;b.left.rotation.y=Math.sin(time*10+b.phase)*1.1;b.right.rotation.y=-b.left.rotation.y;
+      b.group.rotation.y=time*.3+b.phase;b.left.rotation.z=Math.sin(time*10+b.phase)*1.1;b.right.rotation.z=-b.left.rotation.z;
     }
+    driftingPetals.visible=night<.7;
+    for(let i=0;i<petalPhases.length;i++){
+      const [x,z,phase]=petalPhases[i];dummy.position.set(x+Math.sin(time*.15+phase)*1.4,h(x,z)+.4+((phase-time*.17)%5+5)%5,z+Math.cos(time*.12+phase));
+      dummy.rotation.set(time*.7+phase,time*.3+phase,Math.sin(time*.8+phase));dummy.scale.setScalar(.65+i%3*.2);dummy.updateMatrix();driftingPetals.setMatrixAt(i,dummy.matrix);
+    }driftingPetals.instanceMatrix.needsUpdate=true;
     for(const portal of portals){
       for(let i=0;i<28;i++){
         const t=(time*.21+portal.phases[i])%1,a=i*2.4+time*.14;

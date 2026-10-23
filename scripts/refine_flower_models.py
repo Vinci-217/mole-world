@@ -4,6 +4,7 @@ blender -b --python-exit-code 1 --python scripts/refine_flower_models.py
 Raw generated GLBs and the first normalization export remain untouched.
 """
 import bpy
+import bmesh
 from mathutils import Vector, Matrix
 from mathutils.bvhtree import BVHTree
 from pathlib import Path
@@ -45,18 +46,21 @@ class Leaves:
         self.faces.extend([tuple(start+i for i in face) for face in [(0,1,6),(1,2,6),(2,3,6),(3,4,6),(4,5,6),(5,0,6)]])
         tint = tint or (rng.uniform(.14,.26),rng.uniform(.30,.48),rng.uniform(.09,.20),1)
         self.colors.extend([tint]*7)
-    def finish(self, name):
+    def finish(self, name, thickness=.006):
         mesh=bpy.data.meshes.new(name); mesh.from_pydata(self.vertices,[],self.faces); mesh.update()
         obj=bpy.data.objects.new(name,mesh); bpy.context.collection.objects.link(obj)
         attr=mesh.color_attributes.new(name='Color',type='FLOAT_COLOR',domain='POINT')
         for item,color in zip(attr.data,self.colors): item.color=color
         mesh.materials.append(material(name+' foliage',(.25,.42,.14),vertex=True))
         for face in mesh.polygons: face.use_smooth=True
+        smooth=obj.modifiers.new('Rounded leaf silhouette','SUBSURF'); smooth.levels=1
+        solid=obj.modifiers.new('Physical leaf thickness','SOLIDIFY'); solid.thickness=thickness; solid.offset=0
+        solid.use_quality_normals=True
         return obj
 
 
 def curve(name, points, radius, mat):
-    data=bpy.data.curves.new(name,'CURVE'); data.dimensions='3D'; data.bevel_depth=radius; data.bevel_resolution=2
+    data=bpy.data.curves.new(name,'CURVE'); data.dimensions='3D'; data.bevel_depth=radius; data.bevel_resolution=2; data.use_fill_caps=True
     spline=data.splines.new('BEZIER'); spline.bezier_points.add(len(points)-1)
     for p,co in zip(spline.bezier_points,points): p.co=co; p.handle_left_type=p.handle_right_type='AUTO'
     obj=bpy.data.objects.new(name,data); bpy.context.collection.objects.link(obj); data.materials.append(mat)
@@ -71,6 +75,12 @@ def load_base(asset_id):
     meshes=[o for o in bpy.context.scene.objects if o.type=='MESH']
     for obj in meshes:
         world=obj.matrix_world.copy(); obj.parent=None; obj.data.transform(world); obj.matrix_world=Matrix.Identity(4)
+        # GLB vertices split at UV seams. Weld positions before subdivision or
+        # canopy deformation, while retaining each face corner's UV coordinates.
+        # Otherwise smoothing shrinks each side of a seam into a visible crack.
+        bm=bmesh.new();bm.from_mesh(obj.data)
+        bmesh.ops.remove_doubles(bm,verts=list(bm.verts),dist=.000001)
+        bm.to_mesh(obj.data);bm.free();obj.data.update()
     for obj in list(bpy.context.scene.objects):
         if obj.type!='MESH': bpy.data.objects.remove(obj,do_unlink=True)
     return source,meshes
@@ -94,9 +104,27 @@ def tune_materials(meshes):
 
 
 def export(asset_id, source, changes, portal=None):
+    bpy.ops.object.select_all(action='DESELECT')
     for o in list(bpy.context.scene.objects):
         if o.type=='CURVE':
             bpy.context.view_layer.objects.active=o; o.select_set(True); bpy.ops.object.convert(target='MESH'); o.select_set(False)
+    # Bake the authored thickness into real mesh data before exporting. Exporting
+    # the modifier stack without applying it previously left the bell petals open.
+    for o in list(bpy.context.scene.objects):
+        if o.type!='MESH': continue
+        bpy.context.view_layer.objects.active=o
+        for modifier in list(o.modifiers): bpy.ops.object.modifier_apply(modifier=modifier.name)
+    groups={}
+    for o in bpy.context.scene.objects:
+        if o.type=='MESH' and len(o.data.materials)==1:
+            groups.setdefault(o.data.materials[0],[]).append(o)
+    for mat,objects in groups.items():
+        if len(objects)<2:continue
+        bpy.ops.object.select_all(action='DESELECT')
+        for o in objects:o.select_set(True)
+        bpy.context.view_layer.objects.active=objects[0];bpy.ops.object.join()
+        objects[0].name='detail-'+mat.name.replace(' ','-')
+    bpy.ops.object.select_all(action='DESELECT')
     destination=PUBLIC/(asset_id+'.glb')
     bpy.ops.export_scene.gltf(filepath=str(destination),export_format='GLB',export_normals=True,export_texcoords=True,export_materials='EXPORT',export_yup=True)
     bpy.ops.wm.save_as_mainfile(filepath=str(REPORTS/(asset_id+'.blend')))
@@ -105,7 +133,7 @@ def export(asset_id, source, changes, portal=None):
         if obj.type=='MESH': obj.data.calc_loop_triangles(); triangles+=len(obj.data.loop_triangles)
     raw=destination.read_bytes(); json_length=struct.unpack_from('<I',raw,12)[0]
     exported=json.loads(raw[20:20+json_length])
-    report={'id':asset_id,'inputSha256':digest(source) if source else None,'outputSha256':digest(destination),'triangles':triangles,'materials':len(exported.get('materials',[])),'changes':changes,'portalHeight':portal,'blender':bpy.app.version_string}
+    report={'id':asset_id,'inputSha256':digest(source) if source else None,'outputSha256':digest(destination),'triangles':triangles,'materials':len(exported.get('materials',[])),'meshes':len(exported.get('meshes',[])),'changes':changes+['Applied authored modifiers, capped curves and merged geometry sharing one material before GLB export'],'portalHeight':portal,'blender':bpy.app.version_string}
     (REPORTS/(asset_id+'.json')).write_text(json.dumps(report,indent=2))
     return report
 
@@ -113,7 +141,8 @@ def export(asset_id, source, changes, portal=None):
 reports={}
 for asset_id in ['pink-portal','vine-arch','cottage','ancient-tree']:
     source,meshes=load_base(asset_id); tune_materials(meshes)
-    changes=['Clamped organic material roughness; removed metallic response; retained base/normal/ORM textures and UVs']
+    changes=['Welded coincident geometry before deformation while preserving per-corner UV seams',
+             'Clamped organic material roughness; removed metallic response; retained base/normal/ORM textures and UVs']
     if asset_id in ['pink-portal','vine-arch']:
         for obj in meshes:
             bpy.context.view_layer.objects.active=obj
@@ -161,9 +190,10 @@ for asset_id in ['pink-portal','vine-arch','cottage','ancient-tree']:
             lo=Vector([min(p[j] for p in coords) for j in range(3)]);hi=Vector([max(p[j] for p in coords) for j in range(3)])
             center=(lo+hi)*.5;rx=max(.2,(hi.x-lo.x)*.5);ry=max(.2,(hi.y-lo.y)*.5)
             if rx<.5 or ry<.4:continue
+            lift=min(1.1,max(.45,min(rx,ry)*.35))
             for i in component:
                 v=obj.data.vertices[i].co;r=((v.x-center.x)/rx)**2+((v.y-center.y)/ry)**2
-                v.z+=max(0,1-r)*.28
+                v.z+=max(0,1-r)*lift
         obj.data.update();obj.data.calc_loop_triangles()
         candidates=[t for t in obj.data.loop_triangles if sum(obj.data.vertices[i].co.z for i in t.vertices)/3>9 and t.normal.z>.25]
         for i in range(700):
@@ -220,9 +250,10 @@ for x in [-11,-3,6,13]:
                 q=start+j*3+k;faces.append((q,q+1,q+4,q+3))
     mesh=bpy.data.meshes.new('Golden bell petals');mesh.from_pydata(verts,[],faces);mesh.materials.append(gold)
     obj=bpy.data.objects.new('Golden bell flower',mesh);bpy.context.collection.objects.link(obj)
-    solid=obj.modifiers.new('Petal thickness','SOLIDIFY');solid.thickness=.018
+    smooth=obj.modifiers.new('Rounded bell petals','SUBSURF');smooth.levels=1
+    solid=obj.modifiers.new('Petal thickness','SOLIDIFY');solid.thickness=.018;solid.offset=0
     for poly in mesh.polygons:poly.use_smooth=True
-leaf.finish('Canopy curling leaves')
+leaf.finish('Canopy curling leaves',.012)
 reports['canopy-vine-crafted']=export('canopy-vine-crafted',None,['Blender-authored suspended vines, modeled golden bells and curved leaves; not claimed as AI output'])
 
 manifest=json.loads((PUBLIC/'manifest.json').read_text())
@@ -231,7 +262,7 @@ for asset in manifest['assets']:
         asset.update(id='canopy-vine-crafted',label='顶棚花藤',path='./assets/flower-sea/canopy-vine-crafted.glb',height=6,state='ready',source='Blender authored canopy detail',generationState='downloaded')
     report=reports.get(asset['id'])
     if report:
-        asset.update(sha256=report['outputSha256'],triangles=report['triangles'],materials=report['materials'],blenderVersion=report['blender'],artPass='Organic silhouette, PBR material and botanical geometry pass')
+        asset.update(sha256=report['outputSha256'],triangles=report['triangles'],materials=report['materials'],meshes=report['meshes'],blenderVersion=report['blender'],artPass='Welded organic silhouettes, applied petal/leaf thickness and material grouping')
         if report['portalHeight'] is not None:asset['portalHeight']=report['portalHeight']
 for placement in manifest['placements']:
     if placement['assetId']=='flowering-vine':placement.update(assetId='canopy-vine-crafted',position=[0,9,-2])

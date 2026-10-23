@@ -9,14 +9,15 @@
       "height": 5.4,
       "state": "ready",
       "generationState": "downloaded",
-      "sha256": "881f736554e88c3d808d96e47a9f66440706dafaf1cae6a2c1ab075f1df16697",
+      "sha256": "159495e8288cec98346c46cf01ae9f9a7c6f514849f22f3e5b174decd07aa524",
       "rawSha256": "7e900d89336e2b58c881d6458430ed7cf8f0a00e54da44eff51ddd3f68b81719",
       "source": "TencentCloud Hunyuan Pro 3.1 → Blender",
-      "triangles": 152184,
+      "triangles": 152412,
       "materials": 2,
       "blenderVersion": "4.3.2",
-      "artPass": "Organic silhouette, PBR material and botanical geometry pass",
-      "portalHeight": 0.3399430465698242
+      "artPass": "Welded organic silhouettes, applied petal/leaf thickness and material grouping",
+      "portalHeight": 0.34588205337524414,
+      "meshes": 2
     },
     {
       "id": "vine-arch",
@@ -25,13 +26,14 @@
       "height": 7.0,
       "state": "ready",
       "generationState": "downloaded",
-      "sha256": "69d0656bf68fbac1af8eb9a74642402653b4f8a3ab7030bf77538c79bdbdc350",
+      "sha256": "c608637d638b1e0e2fc07635aa5bed7a822e159acb6f2578a37a1bdaa20b876d",
       "rawSha256": "e255b6ff50c13df288e2109930e32bedb0cca0873784d65d6e876a7703d0ae8f",
       "source": "TencentCloud Hunyuan Pro 3.1 → Blender",
       "triangles": 179700,
       "materials": 1,
       "blenderVersion": "4.3.2",
-      "artPass": "Organic silhouette, PBR material and botanical geometry pass"
+      "artPass": "Welded organic silhouettes, applied petal/leaf thickness and material grouping",
+      "meshes": 1
     },
     {
       "id": "cottage",
@@ -40,13 +42,14 @@
       "height": 5.0,
       "state": "ready",
       "generationState": "downloaded",
-      "sha256": "8ff5c106faafe6dfe7c49116f5f055903e748301526c12ecf87252104f1ff537",
+      "sha256": "178ee04f23bc2629f744bf467eb1d3c3fc39ea9df630a086085becd407434ade",
       "rawSha256": "abc21b78b5f799b91683b5385f604907e16b88eef4fa23554f7eefa5296e9e40",
       "source": "TencentCloud Hunyuan Pro 3.1 → Blender",
-      "triangles": 34428,
+      "triangles": 43992,
       "materials": 3,
       "blenderVersion": "4.3.2",
-      "artPass": "Organic silhouette, PBR material and botanical geometry pass"
+      "artPass": "Welded organic silhouettes, applied petal/leaf thickness and material grouping",
+      "meshes": 3
     },
     {
       "id": "ancient-tree",
@@ -55,13 +58,14 @@
       "height": 17.0,
       "state": "ready",
       "generationState": "downloaded",
-      "sha256": "453876dc75ffaae5e14b456d97c9335e1c7f781303f38c521ea3c1bda48e3d05",
+      "sha256": "785a508df1a5c0827c05b8e0f2389d00dd0a4ee9c540335f9bde36293fe73cdc",
       "rawSha256": "169b66dd457488b494796ae1955948553cd2dbacd925987813a7a2261e0c4d05",
       "source": "TencentCloud Hunyuan Pro 3.1 → Blender",
-      "triangles": 44200,
+      "triangles": 107200,
       "materials": 2,
       "blenderVersion": "4.3.2",
-      "artPass": "Organic silhouette, PBR material and botanical geometry pass"
+      "artPass": "Welded organic silhouettes, applied petal/leaf thickness and material grouping",
+      "meshes": 2
     },
     {
       "id": "canopy-vine-crafted",
@@ -71,11 +75,12 @@
       "state": "ready",
       "generationState": "downloaded",
       "source": "Blender authored canopy detail",
-      "sha256": "2b3b26d7171439db46ea824fd550441f74c93689f1476003caead19e59c04ab3",
-      "triangles": 9884,
-      "artPass": "Organic silhouette, PBR material and botanical geometry pass",
+      "sha256": "b627a2db0d445aa21612dcd9b14eb24bc2489fc885a6f4be65073592bb2516dc",
+      "triangles": 29908,
+      "artPass": "Welded organic silhouettes, applied petal/leaf thickness and material grouping",
       "materials": 3,
-      "blenderVersion": "4.3.2"
+      "blenderVersion": "4.3.2",
+      "meshes": 3
     }
   ],
   "placements": [

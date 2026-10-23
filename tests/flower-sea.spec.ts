@@ -19,6 +19,8 @@ test('flower map loads its real published assets and responds to camera and weat
   const initial = await page.evaluate(snapshot);
   expect(new Set(initial.loaded)).toEqual(new Set(expectedReady));
   expect(initial.pending).toHaveLength(expectedPending); expect(initial.failed).toEqual([]);
+  expect(initial.environment.ready).toBe(true);expect(initial.environment.failed).toEqual([]);
+  expect(initial.environment.clouds).toBe(7);expect(initial.environment.trees).toBeGreaterThan(30);expect(initial.environment.butterflies).toBe(8);
   expect(modelRequests).toHaveLength(expectedReady.length);
   await expect.poll(async () => (await page.evaluate(snapshot)).triangles).toBeGreaterThan(10000);
   const canvas = page.locator('#flower-canvas canvas');
@@ -45,6 +47,19 @@ test('flower map loads its real published assets and responds to camera and weat
   await page.screenshot({ path: 'artifacts/flower-review/desktop.png' });
   await page.locator('#flower-reference-close').click();
   await page.locator('#flower-models-close').click();
+  await page.locator('[data-garden-place="pink-flower"]').click();
+  const pink=original.placements.find((p:any)=>p.assetId==='pink-portal');
+  const target=(await page.evaluate(snapshot)).target;
+  expect(target[0]).toBeCloseTo(pink.position[0]);expect(target[2]).toBeCloseTo(pink.position[2]);
+  expect(errors).toEqual([]);
+});
+
+test('walking explores one garden and the original music actually plays',async({page})=>{
+  test.setTimeout(150000);
+  await page.setViewportSize({width:1280,height:850});
+  const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.goto('/flower-sea.html');
+  await page.waitForFunction(()=>(window as any).__flowerSea?.ready);
   await page.locator('#garden-walk').click();
   await expect.poll(async () => (await page.evaluate(snapshot)).walking).toBe(true);
   const beforeWalk=(await page.evaluate(snapshot)).player;
