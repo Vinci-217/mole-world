@@ -64,6 +64,7 @@ function updateAssetState(stats: FlowerSceneStats) {
     ? `${sceneLabel} · 地标模型 ${stats.loaded.length}/${total} 就绪${awaitingDownload ? ` · ${awaitingDownload} 项已生成待下载` : ''}${stats.failed.length ? ` · ${stats.failed.length} 项加载失败` : ''}`
     : `3D 场景 · ${stats.loaded.length} 项地标模型已就绪`;
   if(stats.ready&&stats.environment.failed.length)element('flower-progress').textContent+=' · 部分环境未载入，请刷新';
+  element('flower-progress').hidden=stats.ready&&missing===0&&stats.failed.length===0&&stats.environment.ready;
   const list = element('flower-model-list'); list.replaceChildren();
   for (const asset of currentManifest.assets) {
     const loaded = stats.loaded.includes(asset.id), failure = stats.failed.find(f => f.id === asset.id);
@@ -149,6 +150,7 @@ async function start() {
       walking:world?.walk.active,player:world?.walk.position.toArray(),flowerCount:world?.flowerCount,
       music:audio.snapshot,
       environment:world?{...world.stats.environment,failed:[...world.stats.environment.failed]}:undefined,
+      rendering:world?{...world.rendering}:undefined,
     }) });
   } catch (error) {
     if (disposed) return;

@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "assets": [
     {
       "id": "cloud-formation",
@@ -67,6 +67,18 @@
       "sourceSha256": "64e7a2ff3d9da6ca14a95d37c79bad2d3c4602d5d0388c3b3d1f0fed0f08547d",
       "geometryPolicy": "alpha-cutout-foliage",
       "blenderVersion": "4.3.2"
+    },
+    {
+      "id": "wild-sorrel",
+      "state": "ready",
+      "path": "./assets/flower-garden/wild-sorrel.glb",
+      "sha256": "67e22008b0d722a2988f85eac54ae05665c57b436b81296316265a10d49078f6",
+      "triangles": 3818,
+      "source": "Poly Haven sorrel by Rico Cilliers (CC0), from Khronos GlassVaseFlowers; vase removed and scale grounded in Blender",
+      "sourceSha256": "faa2e19329961652b585cc62132ef50b1d95dca8a6a2fd63409158e680563761",
+      "geometryPolicy": "alpha-cutout-foliage",
+      "blenderVersion": "4.3.2",
+      "license": "CC0-1.0"
     }
   ]
 }

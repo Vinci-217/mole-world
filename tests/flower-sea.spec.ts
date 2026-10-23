@@ -32,6 +32,7 @@ test('flower map loads its real published assets and responds to camera and weat
   await page.setViewportSize({width:1280,height:850});
   const errors: string[] = [], modelRequests: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
+  page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
   page.on('request', request => { if (request.url().includes('/assets/flower-sea/') && request.url().endsWith('.glb')) modelRequests.push(request.url()); });
   await page.goto('/flower-sea.html');
   await page.waitForFunction(() => (window as any).__flowerSea?.ready);
@@ -43,6 +44,7 @@ test('flower map loads its real published assets and responds to camera and weat
   expect(initial.pending).toHaveLength(expectedPending); expect(initial.failed).toEqual([]);
   expect(initial.environment.ready).toBe(true);expect(initial.environment.failed).toEqual([]);
   expect(initial.environment.skyTexture).toBe(true);expect(initial.environment.trees).toBeGreaterThan(30);expect(initial.environment.butterflies).toBe(8);
+  expect(initial.environment.reusedFlowerClumps).toBe(60);expect(initial.rendering.environmentMap).toBe(true);
   expect(modelRequests).toHaveLength(expectedReady.length);
   await expect.poll(async () => (await page.evaluate(snapshot)).triangles).toBeGreaterThan(10000);
   const canvas = page.locator('#flower-canvas canvas');
@@ -99,6 +101,19 @@ test('walking explores one garden and the original music actually plays',async({
   expect((await page.evaluate(snapshot)).music.track).toBe('BGM_131');
   expect((await page.evaluate(snapshot)).flowerCount).toBeGreaterThan(1000);
   expect(errors).toEqual([]);
+});
+
+test('missing HDR lighting reports a degraded environment while keeping the garden usable',async({page})=>{
+  test.setTimeout(150000);
+  await page.route('**/lighting/rooitou-park-1k.hdr',route=>route.abort());
+  await page.goto('/flower-sea.html');
+  await page.waitForFunction(()=>(window as any).__flowerSea?.ready);
+  const state=await page.evaluate(snapshot);
+  expect(state.failed).toEqual([]);expect(state.loaded).toHaveLength(original.assets.filter((a:any)=>a.state==='ready').length);
+  expect(state.environment.ready).toBe(false);expect(state.environment.failed).toEqual(['环境照明']);
+  expect(state.rendering.environmentMap).toBe(false);
+  await expect(page.locator('#flower-progress')).toContainText('部分环境未载入');
+  await page.selectOption('#flower-weather','night');expect((await page.evaluate(snapshot)).weather).toBe('night');
 });
 
 test('ready status requires parsing a real matching GLB', async ({ page }) => {

@@ -1,0 +1,13 @@
+Rooitou Park HDR environment
+Greg Zaal / HDRI Haven (now Poly Haven). CC0 1.0.
+Original: https://polyhaven.com/a/rooitou_park
+License: https://polyhaven.com/license
+CC0: https://creativecommons.org/publicdomain/zero/1.0/
+Retrieved from the pmndrs/drei-assets mirror, attribution in its root README:
+https://github.com/pmndrs/drei-assets/blob/456060a26bbeb8fdf79326f224b6d99b8bcce736/README.md
+Pinned source and checksum in source.json. Used as environment lighting, not a pasted scenery background.
+
+N8AO 2.0.1: Nathan / N8programs, https://github.com/N8python/n8ao
+Package metadata says ISC; the distributed LICENSE is CC0 1.0, copied alongside this file.
+Three.js 0.180.0 and pmndrs/postprocessing 6.38.3: MIT.
+Their distributed license texts are also included.

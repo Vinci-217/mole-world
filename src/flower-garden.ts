@@ -3,8 +3,9 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { brookX, flowerGroundHeight as h, flowerLayout, insideCottage, gardenRoutes, routeDistance } from './flower-terrain';
 import { flowerParticleMaterial } from './flower-particles';
+import { finishGardenMaterial } from './flower-materials';
 
-const rnd = (()=>{let n=918362;return()=>{n=(Math.imul(n,1664525)+1013904223)|0;return(n>>>0)/4294967296;};})();
+const seededRandom=(n:number)=>()=>{n=(Math.imul(n,1664525)+1013904223)|0;return(n>>>0)/4294967296;};
 const leafGeometry=(length=1,width=.22)=>{
   const g=new T.BufferGeometry();
   g.setAttribute('position',new T.Float32BufferAttribute([0,0,0,-width,.3*length,.025*length,-width*.8,.7*length,.10*length,0,length,.17*length,width*.8,.7*length,.10*length,width,.3*length,.025*length,0,.48*length,.14*length],3));
@@ -49,7 +50,8 @@ function fernGeometry(){
 }
 
 export function createFlowerGarden(scene:T.Scene){
-  const stats={trees:0,butterflies:0};
+  const rnd=seededRandom(918362);
+  const stats={trees:0,butterflies:0,reusedFlowerClumps:0};
   const root=new T.Group();root.name='layered-garden-environment';scene.add(root);
   const dummy=new T.Object3D(),color=new T.Color();
   const groundGeometry=new T.PlaneGeometry(flowerLayout.terrain.width,flowerLayout.terrain.depth,220,260);groundGeometry.rotateX(-Math.PI/2);groundGeometry.translate(0,0,flowerLayout.terrain.centerZ);
@@ -57,9 +59,9 @@ export function createFlowerGarden(scene:T.Scene){
   for(let i=0;i<p.count;i++){
     const x=p.getX(i),z=p.getZ(i),y=h(x,z);p.setY(i,y);
     const mottling=.38+.22*Math.sin(x*.38+z*.3)+.13*Math.cos(x*.87-z*.61);
-    color.set('#287f67').lerp(new T.Color('#94c75c'),T.MathUtils.clamp(mottling+y*.025,0,1));
-    color.lerp(new T.Color('#b1cf61'),.42*Math.exp(-((x-12)**2/100+(z-2)**2/60)));
-    color.lerp(new T.Color('#438f9b'),T.MathUtils.clamp((Math.hypot(x,z*.9)-42)/36,0,1)*.8);
+    color.set('#528456').lerp(new T.Color('#b1c76b'),T.MathUtils.clamp(mottling+y*.025,0,1));
+    color.lerp(new T.Color('#c1d77b'),.35*Math.exp(-((x-12)**2/100+(z-2)**2/60)));
+    color.lerp(new T.Color('#639c92'),T.MathUtils.clamp((Math.hypot(x,z*.9)-42)/36,0,1)*.65);
     if(routeDistance(x,z)<1.2)color.lerp(new T.Color('#a6a17a'),.35);
     colors.push(color.r,color.g,color.b);
   }
@@ -72,7 +74,10 @@ export function createFlowerGarden(scene:T.Scene){
     shader.fragmentShader='uniform sampler2D meadowMap;uniform float meadowReady;\n'+shader.fragmentShader;
     shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
       vec3 paintedGrass=texture2D(meadowMap,gardenSurface.xz*.22).rgb;
-      diffuseColor.rgb=mix(diffuseColor.rgb,paintedGrass,.53*meadowReady);`);
+      float paintedLuma=dot(paintedGrass,vec3(.2126,.7152,.0722));
+      // Texture supplies fine meadow detail; broad vertex colors keep the
+      // light/shade palette readable instead of tiling a flat yellow carpet.
+      diffuseColor.rgb*=mix(1.,.80+paintedLuma*.8,.52*meadowReady);`);
   };
   const meadowLoaded=new T.TextureLoader().loadAsync('./assets/flower-garden/painted-meadow.png').then(texture=>{
     texture.colorSpace=T.SRGBColorSpace;texture.wrapS=texture.wrapT=T.RepeatWrapping;texture.anisotropy=8;
@@ -82,7 +87,7 @@ export function createFlowerGarden(scene:T.Scene){
   });
   const terrain=new T.Mesh(groundGeometry,earth);terrain.receiveShadow=true;root.add(terrain);
 
-  const pathMaterial=new T.MeshStandardMaterial({color:'#b4a787',roughness:1,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1});
+  const pathMaterial=new T.MeshStandardMaterial({color:'#b5aa82',roughness:.95,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1});
   pathMaterial.onBeforeCompile=shader=>{
     shader.vertexShader='varying vec2 pathUv;\n'+shader.vertexShader;
     shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\npathUv=uv;');
@@ -106,7 +111,7 @@ export function createFlowerGarden(scene:T.Scene){
     const ribbon=new T.Mesh(g,pathMaterial);ribbon.receiveShadow=true;root.add(ribbon);
   }
 
-  const stoneMaterial=new T.MeshStandardMaterial({color:'#b5b6a1',roughness:.97});
+  const stoneMaterial=new T.MeshStandardMaterial({color:'#c6bb9f',roughness:.83});
   const stoneGeo=new T.DodecahedronGeometry(.65,1);stoneGeo.scale(1,.16,.68);
   surfaceGrain(stoneMaterial,'stone');
   const stones=new T.InstancedMesh(stoneGeo,stoneMaterial,140);
@@ -161,7 +166,7 @@ export function createFlowerGarden(scene:T.Scene){
       row.mesh.count=count;row.mesh.instanceMatrix.needsUpdate=true;row.mesh.computeBoundingSphere();
     }
   }
-  function plantingPoint(kind:number){
+  function plantingPoint(kind:number,rnd:()=>number){
     const preferred=drifts.filter(d=>d.kind===kind);
     const pool=rnd()<.77?preferred:drifts,d=pool[Math.floor(rnd()*pool.length)];
     const a=rnd()*Math.PI*2,r=Math.sqrt(rnd()),u=Math.cos(a)*r*d.rx,v=Math.sin(a)*r*d.rz;
@@ -176,8 +181,8 @@ export function createFlowerGarden(scene:T.Scene){
     model.traverse(o=>{
       if(!(o instanceof T.Mesh))return;
       for(const mat of Array.isArray(o.material)?o.material:[o.material]){
-        if(sway)mat.onBeforeCompile=vegetation.onBeforeCompile;
-        if(mat instanceof T.MeshStandardMaterial){mat.roughness=.78;mat.envMapIntensity=.4;}
+        if(sway&&!mat.userData.gardenFinish)mat.onBeforeCompile=vegetation.onBeforeCompile;
+        finishGardenMaterial(mat,mat.name.includes('petal')?'petal':'leaf');
       }
       const mesh=new T.InstancedMesh(o.geometry,o.material,matrices.length);
       if(lod){mesh.count=0;botanicalLods.push({mesh,local:o.matrixWorld.clone(),matrices,near:lod==='near'});}
@@ -186,13 +191,14 @@ export function createFlowerGarden(scene:T.Scene){
     });
   }
   const flowersReady=(async()=>{
+    const rnd=seededRandom(47281);
     const model=await new GLTFLoader().loadAsync('./assets/flower-garden/sculpted-flowers.glb');
     const names=['coral-cosmos','ivory-anemone','lilac-spires','meadow-cups'];
     for(const [kind,name] of names.entries()){
       const source=model.scene.getObjectByName(name);if(!source)throw new Error(`Missing sculpted species: ${name}`);
       const matrices:T.Matrix4[]=[],count=[330,500,170,600][kind];
       for(let attempt=0;attempt<count*12&&matrices.length<count;attempt++){
-        const point=plantingPoint(kind);if(!point)continue;
+        const point=plantingPoint(kind,rnd);if(!point)continue;
         dummy.position.copy(point);dummy.rotation.set((rnd()-.5)*.18,rnd()*Math.PI*2,(rnd()-.5)*.20);
         dummy.scale.setScalar((kind===0?1.05:.85)+rnd()*.65);dummy.updateMatrix();matrices.push(dummy.matrix.clone());
       }
@@ -201,11 +207,24 @@ export function createFlowerGarden(scene:T.Scene){
     }
     const cover=await new GLTFLoader().loadAsync('./assets/flower-garden/groundcover-rosette.glb'),matrices:T.Matrix4[]=[];
     for(let attempt=0;attempt<2500&&matrices.length<300;attempt++){
-      const point=plantingPoint(attempt%4);if(!point)continue;
+      const point=plantingPoint(attempt%4,rnd);if(!point)continue;
       dummy.position.copy(point);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.9+rnd()*.6);dummy.updateMatrix();matrices.push(dummy.matrix.clone());
     }
     installPlants(cover.scene,matrices);
     lastPlantEye.set(Infinity,Infinity,Infinity);updatePlants(new T.Vector3(1.8,8.5,29));
+  })();
+  // Original CC0 Poly Haven sorrel, adapted from Khronos' sample in Blender.
+  // Reuse its authored leaf/petal albedo, normals, roughness and alpha cutouts.
+  const sorrelReady=(async()=>{
+    const rnd=seededRandom(19354);
+    const model=await new GLTFLoader().loadAsync('./assets/flower-garden/wild-sorrel.glb');
+    const matrices:T.Matrix4[]=[];
+    for(let attempt=0;attempt<1000&&matrices.length<60;attempt++){
+      const point=plantingPoint(attempt%4,rnd);if(!point)continue;
+      dummy.position.copy(point);dummy.rotation.set(0,rnd()*Math.PI*2,0);
+      dummy.scale.setScalar(.85+rnd()*.55);dummy.updateMatrix();matrices.push(dummy.matrix.clone());
+    }
+    installPlants(model.scene,matrices);stats.reusedFlowerClumps=matrices.length;
   })();
   const shrubs=new T.InstancedMesh(fernGeometry(),vegetation,180);let shrubCount=0;
   for(let i=0;i<3500&&shrubCount<180;i++){
@@ -215,15 +234,23 @@ export function createFlowerGarden(scene:T.Scene){
     dummy.position.set(x,h(x,z),z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.65+rnd()*.55);dummy.updateMatrix();shrubs.setMatrixAt(shrubCount++,dummy.matrix);
   }shrubs.count=shrubCount;shrubs.castShadow=shrubs.receiveShadow=true;root.add(shrubs);
 
-  const waterTime={value:0},waterNight={value:0};
-  const waterMat=new T.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{time:waterTime,night:waterNight},vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`varying vec2 vUv;uniform float time;uniform float night;void main(){float ripple=sin(vUv.y*160.-time*2.+sin(vUv.x*18.))*sin(vUv.x*35.+time)*.5+.5;float edge=smoothstep(.34,.49,abs(vUv.x-.5));vec3 c=mix(vec3(.19,.48,.47),vec3(.48,.72,.62),ripple*.30+edge*.46);float sparkle=pow(max(0.,sin(vUv.y*225.-time*3.)*sin(vUv.x*64.+time*.4)),22.);c+=sparkle*.24;c*=mix(1.,.32,night);gl_FragColor=vec4(c,.91);}`});
+  const waterTime={value:0};
+  const waterMat=new T.MeshPhysicalMaterial({color:'#4babad',roughness:.21,metalness:.05,
+    clearcoat:.6,clearcoatRoughness:.18,transparent:true,opacity:.92,depthWrite:false,envMapIntensity:1.2});
+  waterMat.onBeforeCompile=shader=>{
+    shader.uniforms.waterTime=waterTime;shader.vertexShader='uniform float waterTime;\n'+shader.vertexShader;
+    shader.vertexShader=shader.vertexShader.replace('#include <beginnormal_vertex>',`#include <beginnormal_vertex>
+      objectNormal=normalize(objectNormal+vec3(-.075*cos(position.x*5.5+position.z*1.3+waterTime),0.,-.045*cos(position.z*4.-waterTime*1.6)));`);
+    shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
+      transformed.y+=.012*sin(position.x*5.5+position.z*1.3+waterTime)+.011*sin(position.z*4.-waterTime*1.6);`);
+  };
   const waterVertices=[],waterUV=[],waterIndices=[];
   for(let i=0;i<=180;i++){
     const z=-130+i*165/180,x=brookX(z),y=h(x,z)+.4;
     waterVertices.push(x-.92,y,z,x+.92,y,z);waterUV.push(0,i/180,1,i/180);
     if(i<180){const a=i*2;waterIndices.push(a,a+2,a+1,a+1,a+2,a+3);}
   }
-  const waterGeometry=new T.BufferGeometry();waterGeometry.setAttribute('position',new T.Float32BufferAttribute(waterVertices,3));waterGeometry.setAttribute('uv',new T.Float32BufferAttribute(waterUV,2));waterGeometry.setIndex(waterIndices);
+  const waterGeometry=new T.BufferGeometry();waterGeometry.setAttribute('position',new T.Float32BufferAttribute(waterVertices,3));waterGeometry.setAttribute('uv',new T.Float32BufferAttribute(waterUV,2));waterGeometry.setIndex(waterIndices);waterGeometry.computeVertexNormals();
   root.add(new T.Mesh(waterGeometry,waterMat));
 
   const wood=new T.MeshStandardMaterial({color:'#846145',roughness:.9}),iron=new T.MeshStandardMaterial({color:'#384b42',roughness:.6,metalness:.25});
@@ -294,6 +321,7 @@ export function createFlowerGarden(scene:T.Scene){
   }
   // Blender-sculpted crowns with painted color transitions; two actual GLB LODs.
   const forestReady=(async()=>{
+    const rnd=seededRandom(71926);
     const loader=new GLTFLoader();
     const models=await Promise.all(['near','far'].map(lod=>loader.loadAsync(`./assets/flower-garden/garden-tree-${lod}.glb`)));
     for(let i=0;i<46;i++){
@@ -325,11 +353,10 @@ export function createFlowerGarden(scene:T.Scene){
       for(const mat of Array.isArray(object.material)?object.material:[object.material]){
         if(mat instanceof T.MeshStandardMaterial&&mat.name.includes('Foliage')){
           mat.alphaTest=.36;mat.transparent=false;mat.depthWrite=true;mat.side=T.DoubleSide;
-          mat.onBeforeCompile=shader=>{
-            shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
-              diffuseColor.rgb*=vec3(.90,1.25,1.12);`);
-          };
-          mat.emissiveMap=mat.map;mat.emissive.set('#ffffff');mat.emissiveIntensity=.035;
+          finishGardenMaterial(mat,'leaf');
+          mat.emissive.set('#000000');mat.emissiveIntensity=0;
+        }else if(mat instanceof T.MeshStandardMaterial){
+          finishGardenMaterial(mat,'bark');
         }
       }
       const instances=new T.InstancedMesh(object.geometry,object.material,placements.length);
@@ -341,6 +368,7 @@ export function createFlowerGarden(scene:T.Scene){
 
   const wings=new T.Group();root.add(wings);const butterflies:{group:T.Group;left:T.Object3D;right:T.Object3D;origin:T.Vector3;phase:number}[]=[];
   const butterflyReady=(async()=>{
+  const rnd=seededRandom(81193);
   const model=await new GLTFLoader().loadAsync('./assets/flower-garden/garden-butterfly.glb');
   for(let i=0;i<8;i++){
     const g=new T.Group(),copy=model.scene.clone(true);g.add(copy);wings.add(g);
@@ -356,7 +384,10 @@ export function createFlowerGarden(scene:T.Scene){
     model.scene.traverse(o=>{
       if(!(o instanceof T.Mesh))return;
       const mesh=new T.InstancedMesh(o.geometry,o.material,spots.length);
-      for(const m of Array.isArray(o.material)?o.material:[o.material])m.onBeforeCompile=vegetation.onBeforeCompile;
+      for(const m of Array.isArray(o.material)?o.material:[o.material]){
+        if(!m.userData.gardenFinish)m.onBeforeCompile=vegetation.onBeforeCompile;
+        finishGardenMaterial(m,m.name.includes('petal')?'petal':'leaf');
+      }
       for(const [i,[x,z]] of spots.entries()){
         dummy.position.set(x,h(x,z),z);dummy.rotation.set(0,i*2.4,0);dummy.scale.setScalar(1.15+i%3*.12);dummy.updateMatrix();mesh.setMatrixAt(i,new T.Matrix4().multiplyMatrices(dummy.matrix,o.matrixWorld));
       }
@@ -378,9 +409,9 @@ export function createFlowerGarden(scene:T.Scene){
     points.position.copy(origin);root.add(points);portals.push({origin,points,positions,phases});
   }
   addPortal(new T.Vector3(1,h(1,17)+.13,17),.6);
-  return {ready:Promise.all([forestReady,butterflyReady,bellflowersReady,flowersReady,meadowLoaded]),stats,get flowerTotal(){return flowerTotal;},addPortal,treeSource:'Licensed broadleaf meshes refined in Blender; see flower-garden/SOURCE.txt',update(time:number,night:number,eye:T.Vector3){
+  return {ready:Promise.all([forestReady,butterflyReady,bellflowersReady,flowersReady,sorrelReady,meadowLoaded]),stats,get flowerTotal(){return flowerTotal;},addPortal,treeSource:'Licensed broadleaf meshes refined in Blender; see flower-garden/SOURCE.txt',update(time:number,night:number,eye:T.Vector3){
     updateForest(eye);updatePlants(eye);
-    breeze.value=waterTime.value=time;waterNight.value=night;wings.visible=night<.7;
+    breeze.value=waterTime.value=time;wings.visible=night<.7;
     lightMaterial.emissiveIntensity=.2+night*2.5;for(const lamp of lanterns)lamp.intensity=night*12;
     for(const b of butterflies){
       b.group.position.copy(b.origin).add(new T.Vector3(Math.sin(time*.31+b.phase)*1.2,Math.sin(time*.8+b.phase)*.3,Math.cos(time*.26+b.phase)*.9));
@@ -412,6 +443,11 @@ function surfaceGrain(material:T.MeshStandardMaterial,kind:'earth'|'wood'|'stone
       float gardenNoise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
         return mix(mix(mix(gardenHash(i),gardenHash(i+vec3(1,0,0)),f.x),mix(gardenHash(i+vec3(0,1,0)),gardenHash(i+vec3(1,1,0)),f.x),f.y),
         mix(mix(gardenHash(i+vec3(0,0,1)),gardenHash(i+vec3(1,0,1)),f.x),mix(gardenHash(i+vec3(0,1,1)),gardenHash(i+vec3(1,1,1)),f.x),f.y),f.z);}
+      vec3 gardenSurfaceNormal(vec3 n,float height,vec3 viewPosition){
+        vec3 q0=dFdx(viewPosition),q1=dFdy(viewPosition);
+        vec3 r0=cross(q1,n),r1=cross(n,q0);float det=dot(q0,r0);
+        return normalize(abs(det)*n-sign(det)*(dFdx(height)*r0+dFdy(height)*r1));
+      }
       `+shader.fragmentShader;
     const grain=kind==='wood'
       ? `float grain=.5+.5*sin(gardenSurface.x*5.+gardenNoise(gardenSurface*vec3(.5,8.,9.))*8.);diffuseColor.rgb*=.72+grain*.35;`
@@ -419,5 +455,10 @@ function surfaceGrain(material:T.MeshStandardMaterial,kind:'earth'|'wood'|'stone
       ? `float grain=gardenNoise(gardenSurface*16.);float patches=gardenNoise(gardenSurface*.9);diffuseColor.rgb*=.85+.19*grain+.14*patches;`
       : `float grain=gardenNoise(gardenSurface*24.);diffuseColor.rgb*=.86+.22*grain;`;
     shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>\n${grain}`);
+    const relief=kind==='wood'
+      ? '.006*sin(gardenSurface.x*5.+gardenNoise(gardenSurface*vec3(.5,8.,9.))*8.)'
+      :kind==='earth'?'.012*gardenNoise(gardenSurface*18.)':'.018*gardenNoise(gardenSurface*22.)';
+    shader.fragmentShader=shader.fragmentShader.replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
+      normal=gardenSurfaceNormal(normal,${relief},-vViewPosition);`);
   };
 }
