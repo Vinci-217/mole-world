@@ -1,0 +1,12 @@
+神秘花海（地图362）参考与资产来源
+
+reference.png 是原SWF中 RES_Map362 下原生 bg_mc（character 7）背景的观察舞台截图，非完整客户端实机运行，未重绘原图。未叠加 type_mc 技术蒙版和控制层传送圈。
+原资源存档：https://github.com/Miigon/RecMoleRes
+固定版本：7a6d6b3c7037a85afb28ad6abd4d7f4adfddb5ff
+文件：root/resource/map/Map_10362.swf
+SHA256：888e35139f42a295fd8e73d0d35b938b032096418c3ab98ee9fc1d91fdf1ca26
+原游戏美术权利归原权利方；此处用于用户要求的场景重构参考，未另行宣称素材许可。
+
+输入单体图为AI根据原图转译的建模参考，非官方单体素材、非3D模型。
+真实3D地标只有在模型生成、Blender整理并校验后才在manifest中标记ready。
+环境地形/小花/粒子为程序生成；既有环境树木使用BabylonJS Assets，详见 ../nature/SOURCE.txt。
