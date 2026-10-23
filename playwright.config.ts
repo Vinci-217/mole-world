@@ -9,12 +9,12 @@ export default defineConfig({
   reporter: 'list',
   outputDir: 'artifacts/test-results',
   use: {
-    baseURL: 'http://127.0.0.1:5173',
+    baseURL: process.env.FLOWER_TEST_BASE_URL || 'http://127.0.0.1:5173',
     viewport: {width: 1440, height: 1000},
     launchOptions: {
       executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium',
       args: ['--no-sandbox', '--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--disable-dev-shm-usage'],
     },
   },
-  webServer: {command: 'npm run dev', url: 'http://127.0.0.1:5173', reuseExistingServer: true, timeout: 15000},
+  webServer: process.env.FLOWER_TEST_BASE_URL ? undefined : {command: 'npm run dev', url: 'http://127.0.0.1:5173', reuseExistingServer: true, timeout: 15000},
 });

@@ -17,6 +17,9 @@ export function createFlowerSky(scene:T.Scene){
         vec2 uv=vec2(fract(atan(d.z,d.x)/6.2831853+.80),asin(clamp(d.y,-1.,1.))/3.14159265+.5);
         vec3 gradient=mix(horizon,zenith,smoothstep(0.,.8,d.y));
         vec3 painted=texture2D(paintedSky,uv).rgb;
+        float seam=1.-smoothstep(0.,.035,min(uv.x,1.-uv.x));
+        vec3 seamColor=(texture2D(paintedSky,vec2(.01,uv.y)).rgb+texture2D(paintedSky,vec2(.99,uv.y)).rgb)*.5;
+        painted=mix(painted,seamColor,seam);
         vec3 c=mix(gradient,painted,paintedReady);
         vec3 sunset=c*vec3(1.08,.73,.76)+vec3(.095,.035,.035);
         c=mix(c,sunset,dusk*.72);
@@ -31,7 +34,7 @@ export function createFlowerSky(scene:T.Scene){
         #include <colorspace_fragment>
       }`,
   });
-  const dome=new T.Mesh(new T.SphereGeometry(160,48,24),material);
+  const dome=new T.Mesh(new T.SphereGeometry(300,48,24),material);
   dome.name='painted-garden-sky';dome.frustumCulled=false;dome.renderOrder=-100;scene.add(dome);
   const stats={skyTexture:false};
   const ready=new T.TextureLoader().loadAsync('./assets/flower-garden/painted-sky.png').then(texture=>{

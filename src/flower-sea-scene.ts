@@ -6,7 +6,7 @@ import { createFlowerGarden } from './flower-garden';
 import { createGardenWalk } from './flower-walk';
 import { createFlowerSky } from './flower-sky';
 import { flowerParticleMaterial } from './flower-particles';
-import { flowerGroundHeight, type GardenView } from './flower-terrain';
+import { flowerGroundHeight, gardenSceneViews, type GardenSceneView, type GardenView } from './flower-terrain';
 export { flowerGroundHeight } from './flower-terrain';
 
 export interface FlowerAsset {
@@ -25,6 +25,7 @@ export type FlowerWeather = 'day' | 'dusk' | 'rain' | 'night';
 export interface FlowerSceneStats {
   ready: boolean; loaded: string[]; pending: string[]; failed: { id: string; message: string }[];
   draws: number; triangles: number; environmentSource: string; weather: FlowerWeather;
+  landmarks:{id:string;position:number[];height:number;width:number;depth:number}[];
   environment:{ready:boolean;failed:string[];skyTexture:boolean;trees:number;butterflies:number};
 }
 
@@ -35,7 +36,7 @@ export async function createFlowerSeaScene(
 ) {
   const stats: FlowerSceneStats = {
     ready: false, loaded: [], pending: manifest.assets.filter(a => a.state !== 'ready').map(a => a.id),
-    failed: [], draws: 0, triangles: 0, environmentSource: '原创环境底座；地标由独立GLB加载', weather: 'day',
+    failed: [], draws: 0, triangles: 0, environmentSource: '多视角布局与完整尺度后方建筑', weather: 'day',landmarks:[],
     environment:{ready:false,failed:[],skyTexture:false,trees:0,butterflies:0},
   };
   let seed = 362;
@@ -51,32 +52,35 @@ export async function createFlowerSeaScene(
   // The shadow casters are static. Rebuild only after loading or moving the sun.
   renderer.shadowMap.autoUpdate = false;
   host.appendChild(renderer.domElement);
-  const camera = new T.PerspectiveCamera(45, 1, .1, 220);
+  const camera = new T.PerspectiveCamera(45, 1, .1, 420);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true; controls.dampingFactor = .065;
-  controls.minDistance = 8; controls.maxDistance = 65;
+  controls.minDistance = 8; controls.maxDistance = 220;
   controls.maxPolarAngle = Math.PI * .485;
-  controls.minPolarAngle = .22;
+  controls.minPolarAngle = .005;
   controls.enablePan = true;
   controls.screenSpacePanning = false;
   controls.target.set(0, 1, 0);
-  function resetView() {
+  let viewId:GardenSceneView|'custom'='front';
+  function applyView(id:GardenSceneView) {
     // Clear a drag's residual damping before restoring the composition.
     const damping = controls.enableDamping; controls.enableDamping = false; controls.update();
-    camera.position.set(1.8, 8.5, 29); controls.target.set(0, 3.1, -4); controls.update();
+    const view=gardenSceneViews[id];camera.position.fromArray(view.eye);controls.target.fromArray(view.target);controls.update();viewId=id;
     controls.enableDamping = damping;
   }
-  resetView();
+  const resetView=()=>applyView('front');resetView();
+  controls.addEventListener('start',()=>{viewId='custom';});
 
   const hemi = new T.HemisphereLight(0xbcdce9, 0x456b54, .9); scene.add(hemi);
   const sun = new T.DirectionalLight(0xffe6bd, 2.8);
-  sun.position.set(-14, 25, 13); sun.castShadow = true;
+  sun.target.position.set(0,0,-25);sun.position.set(-28,50,1); sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
-  Object.assign(sun.shadow.camera, { left: -25, right: 25, top: 25, bottom: -25, near: 1, far: 75 });
+  Object.assign(sun.shadow.camera, { left: -55, right: 55, top: 75, bottom: -65, near: 1, far: 220 });
   sun.shadow.bias = -.0003; sun.shadow.normalBias = .055;
   sun.shadow.radius = 3.5; scene.add(sun); scene.add(sun.target);
   const fill = new T.DirectionalLight(0xbcdcc3, .5); fill.position.set(20, 6, -18); scene.add(fill);
-  scene.background = new T.Color('#b6e5da'); scene.fog = new T.FogExp2('#b6e5da', .009);
+  scene.background = new T.Color('#b6e5da'); scene.fog = new T.FogExp2('#b6e5da', .0055);
+  let fogDensity=.0055;
 
   const garden = createFlowerGarden(scene);
   const sky = createFlowerSky(scene);
@@ -127,6 +131,8 @@ export async function createFlowerSeaScene(
         copy.scale.multiplyScalar(placement.scale ?? 1);
         copy.name = `landmark-${asset.id}`;
         scene.add(copy); placed = true;
+        const actualSize=new T.Box3().setFromObject(copy).getSize(new T.Vector3());
+        stats.landmarks.push({id:asset.id,position:copy.position.toArray(),height:actualSize.y,width:actualSize.x,depth:actualSize.z});
         if(asset.id==='pink-portal'&&asset.portalHeight!==undefined){
           garden.addPortal(new T.Vector3(x,flowerGroundHeight(x,z)+y+asset.portalHeight*height/size.y,z),.57);
         }
@@ -146,24 +152,25 @@ export async function createFlowerSeaScene(
     renderer.shadowMap.needsUpdate = true;
     rain.visible = value === 'rain'; particles.visible = value !== 'rain';
     if (value === 'night') {
-      sun.color.set('#a6c6ed'); sun.intensity=.48;sun.position.set(-16,22,10);
+      sun.color.set('#a6c6ed'); sun.intensity=.48;sun.position.set(-32,44,-5);
       hemi.color.set('#5d7fa4');hemi.intensity=.48;hemi.groundColor.set('#243e39');
-      scene.background=new T.Color('#142d42');scene.fog=new T.FogExp2('#142d42',.011);renderer.toneMappingExposure=1.1;particleMaterial.opacity=.9;
+      scene.background=new T.Color('#142d42');scene.fog=new T.FogExp2('#142d42',.006);renderer.toneMappingExposure=1.1;particleMaterial.opacity=.9;
     } else if (value === 'dusk') {
-      sun.color.set('#ffd1a3'); sun.intensity = 2.3; sun.position.set(-22, 9, 12);
+      sun.color.set('#ffd1a3'); sun.intensity = 2.3; sun.position.set(-44,18,-1);
       hemi.color.set('#b5c8d3'); hemi.intensity = 1.35; hemi.groundColor.set('#665340');
-      scene.background = new T.Color('#c8b8b0'); scene.fog = new T.FogExp2('#c8b8b0', .012); renderer.toneMappingExposure = 1.06;
+      scene.background = new T.Color('#c8b8b0'); scene.fog = new T.FogExp2('#c8b8b0', .0065); renderer.toneMappingExposure = 1.06;
       particleMaterial.opacity = .7;
     } else if (value === 'rain') {
-      sun.color.set('#d5e1dd'); sun.intensity = 1.2; sun.position.set(-14, 25, 13);
+      sun.color.set('#d5e1dd'); sun.intensity = 1.2; sun.position.set(-28,50,1);
       hemi.color.set('#ccd9df'); hemi.intensity = 1.65; hemi.groundColor.set('#536c50');
-      scene.background = new T.Color('#afc4bc'); scene.fog = new T.FogExp2('#afc4bc', .018); renderer.toneMappingExposure = 1.03;
+      scene.background = new T.Color('#afc4bc'); scene.fog = new T.FogExp2('#afc4bc', .012); renderer.toneMappingExposure = 1.03;
     } else {
-      sun.color.set('#ffe6bd'); sun.intensity = 2.8; sun.position.set(-14, 25, 13);
+      sun.color.set('#ffe6bd'); sun.intensity = 2.8; sun.position.set(-28,50,1);
       hemi.color.set('#bcdce9'); hemi.intensity = .9; hemi.groundColor.set('#456b54');
-      scene.background = new T.Color('#b6e5da'); scene.fog = new T.FogExp2('#b6e5da', .009); renderer.toneMappingExposure = 1.05;
+      scene.background = new T.Color('#b6e5da'); scene.fog = new T.FogExp2('#b6e5da', .0055); renderer.toneMappingExposure = 1.05;
       particleMaterial.opacity = .54;
     }
+    fogDensity=(scene.fog as T.FogExp2).density;
   }
   const resize = () => { const { width, height } = host.getBoundingClientRect(); renderer.setSize(width, height, false); camera.aspect = width / Math.max(height, 1); camera.updateProjectionMatrix(); };
   const observer = new ResizeObserver(resize); observer.observe(host); resize();
@@ -176,6 +183,8 @@ export async function createFlowerSeaScene(
     frame = requestAnimationFrame(draw);
     const dt = clock.getDelta(); const elapsed = clock.elapsedTime;
     walk.update(dt);garden.update(elapsed,stats.weather==='night'?1:stats.weather==='dusk'?.35:0,camera.position);
+    if(walk.active){const ground=flowerGroundHeight(camera.position.x,camera.position.z);particles.position.set(camera.position.x,ground,camera.position.z-5);rain.position.copy(particles.position);}
+    else{particles.position.set(0,0,0);rain.position.set(0,0,0);}
     if (!reducedMotion) {
       for (let i = 0; i < particleCount; i++) {
         particlePositions[i * 3] = particleOffsets[i * 3] + Math.sin(elapsed * .16 + i) * .35;
@@ -190,7 +199,10 @@ export async function createFlowerSeaScene(
         rainGeometry.attributes.position.needsUpdate = true;
       }
     }
-    if(!walk.active)controls.update(); sky.update(camera,elapsed); renderer.render(scene, camera);
+    if(!walk.active)controls.update();
+    // Inspection cameras above the garden should not be submerged in ground haze.
+    (scene.fog as T.FogExp2).density=fogDensity*T.MathUtils.clamp(1-(camera.position.y-30)/150,.24,1);
+    sky.update(camera,elapsed); renderer.render(scene, camera);
     stats.draws = renderer.info.render.calls; stats.triangles = renderer.info.render.triangles;
     for (const subscriber of subscribers) subscriber();
   };
@@ -204,6 +216,7 @@ export async function createFlowerSeaScene(
   stats.ready = true; onProgress(stats);
   return {
     renderer, scene, camera, controls, stats, walk, resetView: () => {walk.stop();resetView();}, setWeather,
+    setView(id:GardenSceneView){walk.stop();applyView(id);},get viewId(){return viewId;},
     flowerCount: garden.flowerTotal,
     onFrame(callback: () => void) { subscribers.add(callback); return () => subscribers.delete(callback); },
     focus(position: [number, number, number],view?:GardenView) {
@@ -220,6 +233,7 @@ export async function createFlowerSeaScene(
         return;
       }
       const damping=controls.enableDamping;controls.enableDamping=false;controls.update();
+      viewId='custom';
       const eye=view?.eye??[x+2,y+7,z+12],target=view?.target??[x,y+1,z];
       camera.position.set(eye[0],flowerGroundHeight(eye[0],eye[2])+eye[1],eye[2]);
       controls.target.set(target[0],flowerGroundHeight(target[0],target[2])+target[1],target[2]);controls.update();controls.enableDamping=damping;

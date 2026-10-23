@@ -115,3 +115,21 @@ if all((botanicals/(name+'.blend')).is_file() for name in blend_names):
         archive.write(ROOT/'public/assets/flower-garden/SOURCE.txt','制作说明.txt')
         archive.write(ROOT/'public/assets/nature/SOURCE.txt','树木原始来源.txt')
         archive.write(ROOT/'public/assets/nature/LICENSE-BabylonJS.txt','LICENSE-BabylonJS.txt')
+
+views=ROOT/'public/assets/flower-sea/views'
+if all((views/(name+'.png')).is_file() for name in ['front','left','back','top']):
+    with zipfile.ZipFile(OUT/'FlowerSea-FourViews.zip','w',zipfile.ZIP_DEFLATED,compresslevel=9) as archive:
+        for name in ['front','left','back','top']:archive.write(views/(name+'.png'),name+'.png')
+        archive.write(views/'source.json','source.json')
+        archive.write(ROOT/'public/assets/flower-sea/spatial-layout.json','spatial-layout.json')
+        archive.write(ROOT/'art-direction/flower-sea/multiple-views.md','多视角与尺度说明.md')
+layout_project=ROOT/'artifacts/flower-layout/FlowerSea-SpatialLayout.blend'
+if layout_project.is_file():
+    with zipfile.ZipFile(OUT/'FlowerSea-SpatialLayout.zip','w',zipfile.ZIP_DEFLATED,compresslevel=9) as archive:
+        archive.write(layout_project,layout_project.name)
+        archive.write(ROOT/'scripts/assemble_flower_layout.py','assemble_flower_layout.py')
+        archive.write(ROOT/'scripts/export_flower_layout.mjs','export_flower_layout.mjs')
+        archive.write(ROOT/'scripts/refine_cottage_rear.py','refine_cottage_rear.py')
+        archive.write(ROOT/'art-direction/flower-sea/multiple-views.md','空间布局说明.md')
+        archive.write(ROOT/'artifacts/flower-layout/measurements.json','measurements.json')
+        archive.write(ROOT/'artifacts/flower-layout/cottage-rear-report.json','cottage-rear-report.json')

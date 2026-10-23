@@ -1,0 +1,31 @@
+{
+  "type": "AI-generated multi-view scene concepts",
+  "notRuntimeScreenshots": true,
+  "backViewExtrapolated": true,
+  "views": [
+    {
+      "view": "front",
+      "label": "前视：南向北",
+      "file": "front.png",
+      "sha256": "6d44e69b6659f01c9d1d15ca1c67fd8b6461916bdfa982aadaba09085fc4416a"
+    },
+    {
+      "view": "left",
+      "label": "左视：西向东",
+      "file": "left.png",
+      "sha256": "56b91154e9516a476fccb93ea657597139865247d903399579ba19e270e873fc"
+    },
+    {
+      "view": "back",
+      "label": "后视：北向南",
+      "file": "back.png",
+      "sha256": "15b3ae31cc074e0c83166c6277d4566a0249fd447748b69f7b317e91eb2846b5"
+    },
+    {
+      "view": "top",
+      "label": "俯视：北在上",
+      "file": "top.png",
+      "sha256": "7bfb7fb4aaf5aef5141ed16fd50a33d396f766fa08a067d3b5041d11003f5fee"
+    }
+  ]
+}

@@ -37,19 +37,19 @@
     },
     {
       "id": "cottage",
-      "label": "红顶小屋",
+      "label": "后方花屋",
       "path": "./assets/flower-sea/cottage.glb",
-      "height": 5.0,
+      "height": 10.5,
       "state": "ready",
       "generationState": "downloaded",
-      "sha256": "178ee04f23bc2629f744bf467eb1d3c3fc39ea9df630a086085becd407434ade",
+      "sha256": "55a8b4cf9165a1b9410cec8d30a717a6bf7c03b34c6d5d7b1bae97b08ca1508b",
       "rawSha256": "abc21b78b5f799b91683b5385f604907e16b88eef4fa23554f7eefa5296e9e40",
       "source": "TencentCloud Hunyuan Pro 3.1 → Blender",
-      "triangles": 43992,
-      "materials": 3,
+      "triangles": 46292,
+      "materials": 6,
       "blenderVersion": "4.3.2",
-      "artPass": "Welded organic silhouettes, applied petal/leaf thickness and material grouping",
-      "meshes": 3
+      "artPass": "Original facade and ivy retained; Blender raycast rear arched windows, rounded timber frames and beveled stone sills",
+      "meshes": 6
     },
     {
       "id": "ancient-tree",
@@ -105,9 +105,9 @@
     {
       "assetId": "cottage",
       "position": [
-        9,
+        20,
         0,
-        -10
+        -62
       ],
       "rotation": -0.3
     },
@@ -165,5 +165,6 @@
       ],
       "implemented": false
     }
-  ]
+  ],
+  "spatialLayout": "./assets/flower-sea/spatial-layout.json"
 }

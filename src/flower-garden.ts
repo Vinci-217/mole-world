@@ -1,7 +1,7 @@
 import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { brookX, flowerGroundHeight as h, gardenRoutes, routeDistance } from './flower-terrain';
+import { brookX, flowerGroundHeight as h, flowerLayout, insideCottage, gardenRoutes, routeDistance } from './flower-terrain';
 import { flowerParticleMaterial } from './flower-particles';
 
 const rnd = (()=>{let n=918362;return()=>{n=(Math.imul(n,1664525)+1013904223)|0;return(n>>>0)/4294967296;};})();
@@ -52,7 +52,7 @@ export function createFlowerGarden(scene:T.Scene){
   const stats={trees:0,butterflies:0};
   const root=new T.Group();root.name='layered-garden-environment';scene.add(root);
   const dummy=new T.Object3D(),color=new T.Color();
-  const groundGeometry=new T.PlaneGeometry(150,170,220,230);groundGeometry.rotateX(-Math.PI/2);
+  const groundGeometry=new T.PlaneGeometry(flowerLayout.terrain.width,flowerLayout.terrain.depth,220,260);groundGeometry.rotateX(-Math.PI/2);groundGeometry.translate(0,0,flowerLayout.terrain.centerZ);
   const p=groundGeometry.attributes.position,colors=[];
   for(let i=0;i<p.count;i++){
     const x=p.getX(i),z=p.getZ(i),y=h(x,z);p.setY(i,y);
@@ -109,12 +109,14 @@ export function createFlowerGarden(scene:T.Scene){
   const stoneMaterial=new T.MeshStandardMaterial({color:'#b5b6a1',roughness:.97});
   const stoneGeo=new T.DodecahedronGeometry(.65,1);stoneGeo.scale(1,.16,.68);
   surfaceGrain(stoneMaterial,'stone');
-  const stones=new T.InstancedMesh(stoneGeo,stoneMaterial,76);
+  const stones=new T.InstancedMesh(stoneGeo,stoneMaterial,140);
   const main=new T.CatmullRomCurve3([[1,20],[1,11],[2,6],[0,3],[-4,-1],[-7,-4]].map(([x,z])=>new T.Vector3(x,0,z)));
-  for(let i=0;i<76;i++){
+  const northPath=new T.CatmullRomCurve3([[6,-1],[8,-12],[5,-23],[10,-35],[17,-47],[20,-53]].map(([x,z])=>new T.Vector3(x,0,z)));
+  for(let i=0;i<140;i++){
     let x,z,scale;
     if(i<28){const pt=main.getPoint(i/27);x=pt.x+(i%2?.22:-.22);z=pt.z;scale=.8+rnd()*.4;}
-    else{z=-25+rnd()*47;x=brookX(z)+(i%2?1:-1)*(1.05+rnd()*.8);scale=.5+rnd();}
+    else if(i<92){const pt=northPath.getPoint((i-28)/63);x=pt.x+(rnd()-.5)*.28;z=pt.z;scale=.7+rnd()*.35;}
+    else{z=-94+rnd()*116;x=brookX(z)+(i%2?1:-1)*(1.05+rnd()*.8);scale=.5+rnd();}
     dummy.position.set(x,h(x,z)+.10,z);dummy.rotation.set(rnd()*.1,rnd()*Math.PI,rnd()*.1);dummy.scale.set(scale,1+rnd(),scale);dummy.updateMatrix();stones.setMatrixAt(i,dummy.matrix);
   }stones.castShadow=stones.receiveShadow=true;root.add(stones);
 
@@ -134,15 +136,15 @@ export function createFlowerGarden(scene:T.Scene){
   }))!;
   const grass=new T.InstancedMesh(foliage,vegetation,3200);let grassCount=0;
   for(let i=0;i<30000&&grassCount<3200;i++){
-    const x=(rnd()-.5)*70,z=(rnd()-.5)*62;
-    if(routeDistance(x,z)<.95||Math.abs(x-brookX(z))<1.1||Math.hypot(x-13,z-6)<4.6||(x>4&&x<14&&z<-7&&z>-13))continue;
+    const x=(rnd()-.5)*76,z=(rnd()-.5)*114-24;
+    if(routeDistance(x,z)<.95||Math.abs(x-brookX(z))<1.1||Math.hypot(x-13,z-6)<4.6||insideCottage(x,z,1))continue;
     const patch=.5+.5*Math.sin(x*.45+Math.cos(z*.5)*2);if(rnd()>.3+patch*.65)continue;
     dummy.position.set(x,h(x,z)-.02,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.55+rnd()*.85);dummy.updateMatrix();grass.setMatrixAt(grassCount++,dummy.matrix);
   }
   grass.count=grassCount;grass.receiveShadow=true;root.add(grass);
 
   // Long, irregular drifts follow the paths; each has a dominant flower color.
-  const beds=[[-8,8,5.0],[-5,2,3.6],[6,11,4.5],[7,-3,3.2],[12,-6,2.1],[17,12,4.0],[-23,-8,4.5],[-27,-1,3.5],[24,-14,4.8],[24,4,3.8],[-3,-11,4.8],[-11,16,4.0]];
+  const beds=[[-8,8,5.0],[-5,2,3.6],[6,11,4.5],[7,-3,3.2],[12,-6,2.1],[17,12,4.0],[-23,-8,4.5],[-27,-1,3.5],[24,-14,4.8],[24,4,3.8],[-3,-11,4.8],[-11,16,4.0],[1,-25,4],[13,-29,4.5],[6,-41,4.2],[23,-43,4],[13,-51,3],[29,-53,3.2],[11,-72,3.6],[31,-70,3.4]];
   const drifts=beds.map(([x,z,r],i)=>({x,z,rx:r,rz:r*(i%2?1.65:.66),angle:i*.83,kind:i%4}));
   let flowerTotal=0;
   const botanicalLods:{mesh:T.InstancedMesh;local:T.Matrix4;matrices:T.Matrix4[];near:boolean}[]=[];
@@ -164,7 +166,7 @@ export function createFlowerGarden(scene:T.Scene){
     const pool=rnd()<.77?preferred:drifts,d=pool[Math.floor(rnd()*pool.length)];
     const a=rnd()*Math.PI*2,r=Math.sqrt(rnd()),u=Math.cos(a)*r*d.rx,v=Math.sin(a)*r*d.rz;
     const x=d.x+u*Math.cos(d.angle)-v*Math.sin(d.angle),z=d.z+u*Math.sin(d.angle)+v*Math.cos(d.angle);
-    if(routeDistance(x,z)<1.0||Math.abs(x-brookX(z))<1.25||Math.hypot(x-13,z-6)<4.1||(x>5&&x<13&&z<-7&&z>-13))return null;
+    if(routeDistance(x,z)<1.0||Math.abs(x-brookX(z))<1.25||Math.hypot(x-13,z-6)<4.1||insideCottage(x,z,.7))return null;
     // The edge is broken into little lobes rather than an obvious oval boundary.
     if(r>.77&&rnd()>.5+.4*Math.sin(x*2.1+z*1.7))return null;
     return new T.Vector3(x,h(x,z)-.015,z);
@@ -188,7 +190,7 @@ export function createFlowerGarden(scene:T.Scene){
     const names=['coral-cosmos','ivory-anemone','lilac-spires','meadow-cups'];
     for(const [kind,name] of names.entries()){
       const source=model.scene.getObjectByName(name);if(!source)throw new Error(`Missing sculpted species: ${name}`);
-      const matrices:T.Matrix4[]=[],count=[250,380,140,460][kind];
+      const matrices:T.Matrix4[]=[],count=[330,500,170,600][kind];
       for(let attempt=0;attempt<count*12&&matrices.length<count;attempt++){
         const point=plantingPoint(kind);if(!point)continue;
         dummy.position.copy(point);dummy.rotation.set((rnd()-.5)*.18,rnd()*Math.PI*2,(rnd()-.5)*.20);
@@ -217,7 +219,7 @@ export function createFlowerGarden(scene:T.Scene){
   const waterMat=new T.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{time:waterTime,night:waterNight},vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`varying vec2 vUv;uniform float time;uniform float night;void main(){float ripple=sin(vUv.y*160.-time*2.+sin(vUv.x*18.))*sin(vUv.x*35.+time)*.5+.5;float edge=smoothstep(.34,.49,abs(vUv.x-.5));vec3 c=mix(vec3(.19,.48,.47),vec3(.48,.72,.62),ripple*.30+edge*.46);float sparkle=pow(max(0.,sin(vUv.y*225.-time*3.)*sin(vUv.x*64.+time*.4)),22.);c+=sparkle*.24;c*=mix(1.,.32,night);gl_FragColor=vec4(c,.91);}`});
   const waterVertices=[],waterUV=[],waterIndices=[];
   for(let i=0;i<=180;i++){
-    const z=-40+i*75/180,x=brookX(z),y=h(x,z)+.4;
+    const z=-130+i*165/180,x=brookX(z),y=h(x,z)+.4;
     waterVertices.push(x-.92,y,z,x+.92,y,z);waterUV.push(0,i/180,1,i/180);
     if(i<180){const a=i*2;waterIndices.push(a,a+2,a+1,a+1,a+2,a+3);}
   }
@@ -234,7 +236,7 @@ export function createFlowerGarden(scene:T.Scene){
     part(new T.BoxGeometry(7.1,.14,.13),wood,bx,by+1.05,1+side*1.05);
     for(let i=0;i<5;i++)part(new T.BoxGeometry(.14,1.05,.14),wood,bx-3.1+i*1.55,by+.5,1+side*1.05);
   }
-  for(const [x,z,rotation] of [[-25,-10,.8],[24,-17,-1.2],[11,-6,Math.PI]]){
+  for(const [x,z,rotation] of [[-25,-10,.8],[24,-17,-1.2],[29,-50,Math.PI]]){
     const y=h(x,z);
     for(let i=0;i<5;i++){
       const a=(i-2)*.16;
@@ -247,12 +249,29 @@ export function createFlowerGarden(scene:T.Scene){
       part(new T.BoxGeometry(.11,.65,.65),iron,x+offset.x,y+.3,z+offset.z,rotation);
     }
   }
+  // A human-scale red garden fence surrounds the full-size rear house.
+  const fence=new T.MeshStandardMaterial({color:'#b65a49',roughness:.86});surfaceGrain(fence,'wood');
+  const [cx,,cz]=flowerLayout.cottage.position;
+  function fenceEdge(ax:number,az:number,bx:number,bz:number){
+    const count=Math.ceil(Math.hypot(bx-ax,bz-az)/2.7),angle=Math.atan2(bx-ax,bz-az);
+    for(let i=0;i<=count;i++){
+      const t=i/count,x=cx+ax+(bx-ax)*t,z=cz+az+(bz-az)*t,y=h(x,z);
+      part(new T.CylinderGeometry(.08,.1,1.25,8),fence,x,y+.625,z);
+      part(new T.ConeGeometry(.14,.18,8),fence,x,y+1.34,z);
+      if(i<count){
+        const nt=(i+.5)/count,px=cx+ax+(bx-ax)*nt,pz=cz+az+(bz-az)*nt;
+        const length=Math.hypot(bx-ax,bz-az)/count+.04;
+        for(const level of [.47,.93])part(new T.BoxGeometry(.1,.12,length),fence,px,h(px,pz)+level,pz,angle);
+      }
+    }
+  }
+  fenceEdge(-12,11,-2,11);fenceEdge(2,11,12,11);fenceEdge(-12,11,-12,-12);fenceEdge(12,11,12,-12);fenceEdge(-12,-12,12,-12);
   for(const [mat,parts] of propParts){
     const mesh=new T.Mesh(mergeGeometries(parts)!,mat);mesh.castShadow=mesh.receiveShadow=true;root.add(mesh);parts.forEach(g=>g.dispose());
   }
   const bulbs:T.Mesh[]=[];const lanterns:T.PointLight[]=[];
   const lightMaterial=new T.MeshStandardMaterial({color:'#ffe0a0',emissive:'#ffb44e',emissiveIntensity:.2,roughness:.6});
-  for(const [x,z] of [[-6,2],[8,-6],[-24,-9],[23,-16],[17,12],[-20,2]]){
+  for(const [x,z] of [[-6,2],[18,-52],[-24,-9],[23,-16],[17,12],[-20,2],[22,-52],[20,-75]]){
     const y=h(x,z);
     const post=new T.Mesh(new T.CylinderGeometry(.045,.065,1.3,7),iron);post.position.set(x,y+.65,z);post.castShadow=true;root.add(post);
     const bulb=new T.Mesh(new T.SphereGeometry(.15,8,6),lightMaterial);bulb.scale.y=1.4;bulb.position.set(x,y+1.4,z);root.add(bulb);bulbs.push(bulb);
@@ -281,11 +300,16 @@ export function createFlowerGarden(scene:T.Scene){
       const a=i/46*Math.PI*2;
       let x=Math.cos(a)*(31+rnd()*7),z=Math.sin(a)*(27+rnd()*6)-5;
       if(z>17&&Math.abs(x)<24)continue;
+      if(z<-22&&Math.abs(x-20*(20-z)/82)<10)continue;
       dummy.position.set(x,h(x,z)-.08,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.75+rnd()*.5);dummy.updateMatrix();placements.push({matrix:dummy.matrix.clone(),position:dummy.position.clone()});
     }
     for(let i=0;i<25;i++){
-      const x=-53+rnd()*106,z=-38-rnd()*18;
+      const x=-54+rnd()*108,z=-94-rnd()*21;
       dummy.position.set(x,h(x,z)-.05,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.8+rnd()*.55);dummy.updateMatrix();placements.push({matrix:dummy.matrix.clone(),position:dummy.position.clone()});
+    }
+    for(let i=0;i<22;i++){
+      const z=-34-rnd()*53,x=(i%2?1:-1)*(35+rnd()*8);
+      dummy.position.set(x,h(x,z)-.05,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.65+rnd()*.65);dummy.updateMatrix();placements.push({matrix:dummy.matrix.clone(),position:dummy.position.clone()});
     }
     for(let i=0;i<18;i++){
       const a=.12+i/18*Math.PI*1.83,x=Math.cos(a)*(30+rnd()*5),z=Math.sin(a)*(23+rnd()*5)-6;

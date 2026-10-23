@@ -11,7 +11,10 @@ SHA256：888e35139f42a295fd8e73d0d35b938b032096418c3ab98ee9fc1d91fdf1ca26
 真实3D地标只有在模型生成、Blender整理并校验后才在manifest中标记ready。
 当前 pink-portal.glb、vine-arch.glb、cottage.glb、ancient-tree.glb 是用户授权调用腾讯云 TokenHub hy-3d-3.1 图生3D后下载的实际结果，由 Blender 4.3.2 居中落地、统一尺度，将4096贴图缩到2048并嵌入导出。它们是AI依据原图单体参考转译的模型，不是提取的官方3D模型。
 多轮 Blender 精修保留UV与三类PBR贴图。先焊接重合网格顶点、保留面角UV，再平滑和细分粉花与拱门，避免接缝收缩开裂；补建花蕊花药、700片曲面树叶、小屋沿墙藤叶。叶片与顶棚花瓣的厚度修改器实际应用后再导出，曲线补齐端面，同材质细节合并。
-当前导出三角面：粉花152412、拱门179700、小屋43992、古树107200。各项输出哈希见 manifest.json；精修脚本 scripts/refine_flower_models.py 可复查。原始GLB、私有任务回执和可编辑blend未随网站发布。
+当前导出三角面：粉花152412、拱门179700、花屋46292、古树107200。各项输出哈希见 manifest.json；精修脚本 scripts/refine_flower_models.py 可复查。原始GLB和私有任务回执未随网站发布；单体精修工程保存在 artifacts/flower-art-pass/，本轮空间布局工程另行打包提供。
 canopy-vine-crafted.glb 为 Blender 新建的曲线花藤、钟形黄花与卷叶，29908三角，不是混元生成结果。原空中花藤及新变体提交均有未取得JobId的待核对记录，不自动重提，也未将它们标为成功结果。
-环境地形、花草、木桥、长椅、灯具、溪水、天空与粒子为程序生成；花海环境树林、云团和蝴蝶为Blender构建，来源见 ../flower-garden/SOURCE.txt；旧世界保留 BabylonJS Assets 树木，许可见 ../nature/SOURCE.txt。路径与溪畔树林为扩展探索区域，不声称逐点复刻原地图。
+环境地形、路径、木桥、长椅、灯具、溪水与粒子为程序生成；曲面花卉、地被和蝴蝶在Blender构建，树林为授权素材经Blender调整，天空与草地使用AI绘制材质，详见 ../flower-garden/SOURCE.txt。树木许可见 ../nature/SOURCE.txt。路径与溪畔树林为扩展探索区域，不声称逐点复刻原地图。
+多视角设计图见 views/，均为AI效果参考，非实机截图或严格正交测绘；后视对原图未展示的背面进行风格补全。共享米制空间配置见 spatial-layout.json：房屋为10.5米高的正常尺度建筑，位于北侧(20,-62)，与前景拱门沿南北相隔58米；四个实景视角使用同一个场景。scripts/export_flower_layout.mjs 导出浏览器实际地形与路径，scripts/assemble_flower_layout.py 在Blender组装地标与四台摄像机并回读真实世界高度。
 原版 BGM_131 的配置依据、文件哈希及来源见 audio/SOURCE.txt。音乐与原图权利归原游戏权利方，没有标为原创或额外授予许可。
+
+依据后视设计，Blender通过真实背墙表面射线定位新增5扇拱形窗，包含封闭玻璃面板、圆角木窗框、窗棂与倒角石窗台。脚本 scripts/refine_cottage_rear.py；这部分为本项目补建，并非从原游戏提取的隐藏背面。

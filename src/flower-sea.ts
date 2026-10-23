@@ -1,7 +1,7 @@
 import './flower-sea.css';
 import * as T from 'three';
 import { FlowerMusic } from './flower-music';
-import { gardenPlaces } from './flower-terrain';
+import { gardenPlaces, gardenSceneViews, type GardenSceneView } from './flower-terrain';
 import { createFlowerSeaScene, flowerGroundHeight, type FlowerManifest, type FlowerSceneStats, type FlowerWeather } from './flower-sea-scene';
 
 const element = <E extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id)! as E;
@@ -12,6 +12,11 @@ let disposed = false;
 let currentManifest: FlowerManifest | undefined;
 const markerNodes: { element: HTMLElement; position: T.Vector3; assetId: string }[] = [];
 const projection = new T.Vector3();
+for(const [id,view] of Object.entries(gardenSceneViews)){
+  const button=document.createElement('button');button.textContent=view.label;button.dataset.gardenView=id;
+  button.addEventListener('click',()=>{world?.setView(id as GardenSceneView);element('garden-location').textContent=`${view.label} · 全景`;},{signal:events.signal});
+  element('garden-views').append(button);
+}
 for(const [index,place] of gardenPlaces.entries()){
   const button=document.createElement('button');button.textContent=`0${index+1}  ${place.label}`;button.dataset.gardenPlace=place.id;
   button.addEventListener('click',()=>{world?.focus(place.position,place.view);element('garden-location').textContent=place.label;},{signal:events.signal});
@@ -20,7 +25,7 @@ for(const [index,place] of gardenPlaces.entries()){
 const modelingInputs = [
   ['巨型粉花', new URL('../art-direction/flower-sea/inputs/pink-portal.png', import.meta.url).href],
   ['藤蔓拱门', new URL('../art-direction/flower-sea/inputs/vine-arch.png', import.meta.url).href],
-  ['红顶小屋', new URL('../art-direction/flower-sea/inputs/cottage.png', import.meta.url).href],
+  ['远方花屋', new URL('../art-direction/flower-sea/inputs/cottage.png', import.meta.url).href],
   ['框景古树', new URL('../art-direction/flower-sea/inputs/ancient-tree.png', import.meta.url).href],
   ['空中花藤', new URL('../art-direction/flower-sea/inputs/flowering-vine.png', import.meta.url).href],
 ];
@@ -139,6 +144,7 @@ async function start() {
       triangles: world?.stats.triangles ?? 0, draws: world?.stats.draws ?? 0,
       weather: world?.stats.weather ?? 'day',
       camera: world?.camera.position.toArray(), target: world?.controls.target.toArray(),
+      view:world?.viewId,landmarks:world?.stats.landmarks.map(v=>({...v,position:[...v.position]})),
       assetCount: manifest.assets.length,
       walking:world?.walk.active,player:world?.walk.position.toArray(),flowerCount:world?.flowerCount,
       music:audio.snapshot,

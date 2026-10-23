@@ -56,6 +56,8 @@ def stage() -> None:
         shutil.copy2(RELEASE / name, downloads / name)
     if (RELEASE/'FlowerSea-Blender-Botanicals.zip').is_file():
         shutil.copy2(RELEASE/'FlowerSea-Blender-Botanicals.zip',downloads/'FlowerSea-Blender-Botanicals.zip')
+    for name in ['FlowerSea-FourViews.zip','FlowerSea-SpatialLayout.zip']:
+        if (RELEASE/name).is_file():shutil.copy2(RELEASE/name,downloads/name)
     for filename, target in [('manor-desktop.png', 'preview.png'), ('manor-night.png', 'preview-night.png'),
                              ('manor-mobile.png', 'preview-mobile.png')]:
         screenshot = ROOT / 'artifacts' / filename
@@ -76,7 +78,7 @@ def stage() -> None:
     atlas = source / 'atlas.png'
     if atlas.is_file():
         shutil.copy2(atlas, previews / 'atlas.png')
-    for filename,label in [('production-day.png','神秘花海 · 花园全景'),('production-walk.png','神秘花海 · 行走视角'),('production-night.png','神秘花海 · 月夜')]:
+    for filename,label in [('production-day.png','神秘花海 · 花园全景'),('production-walk.png','神秘花海 · 行走视角'),('production-night.png','神秘花海 · 月夜'),('production-front.png','神秘花海 · 前视'),('production-left.png','神秘花海 · 左视'),('production-back.png','神秘花海 · 后视'),('production-top.png','神秘花海 · 俯视')]:
         screenshot=ROOT/'artifacts/flower-review'/filename
         if screenshot.is_file():
             target='flower-garden-'+filename.removeprefix('production-')

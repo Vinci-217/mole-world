@@ -5,6 +5,27 @@ import { createHash } from 'node:crypto';
 const original = JSON.parse(readFileSync('public/assets/flower-sea/manifest.json', 'utf8'));
 const snapshot = () => (window as any).__flowerSea;
 
+test('four view directions inspect the same real-size distant house',async({page})=>{
+  test.setTimeout(180000);
+  await page.setViewportSize({width:1280,height:850});
+  await page.goto('/flower-sea.html');await page.waitForFunction(()=>(window as any).__flowerSea?.ready);
+  const initial=await page.evaluate(snapshot),house=initial.landmarks.find((x:any)=>x.id==='cottage'),arch=initial.landmarks.find((x:any)=>x.id==='vine-arch');
+  expect(house.height).toBeCloseTo(10.5,2);expect(house.height).toBeGreaterThan(arch.height);
+  expect(arch.position[2]-house.position[2]).toBeGreaterThan(50);
+  for(const id of ['front','left','back','top']){
+    await page.locator(`[data-garden-view="${id}"]`).click();
+    const state=await page.evaluate(snapshot);expect(state.view).toBe(id);expect(state.loaded).toEqual(initial.loaded);
+    const [x,y,z]=state.camera,[tx,ty,tz]=state.target;
+    if(id==='front')expect(z).toBeGreaterThan(tz);
+    if(id==='left')expect(x).toBeLessThan(tx-70);
+    if(id==='back')expect(z).toBeLessThan(tz-70);
+    if(id==='top'){expect(y-ty).toBeGreaterThan(140);expect(Math.hypot(x-tx,z-tz)).toBeLessThan(1);}
+  }
+  await page.locator('#garden-walk').click();
+  await page.locator('[data-garden-place="cottage-garden"]').click();
+  const nearHouse=(await page.evaluate(snapshot)).player;expect(nearHouse[2]).toBeLessThan(-45);
+});
+
 test('flower map loads its real published assets and responds to camera and weather controls', async ({ page }) => {
   // Software-rendered cloud Chromium needs time for the complete UI sequence.
   test.setTimeout(210000);
