@@ -384,7 +384,7 @@ export function createBlackForest(container:HTMLElement,onFrame:()=>void){
   });
   function animate(now:number){
     if(disposed)return;frame=requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.25);last=now;time.value+=dt;
-    if(walk.active)walk.update(dt);else controls.update();updateTrees();
+    if(walk.active)walk.update(dt);else controls.update();sky.position.copy(camera.position);updateTrees();
     heart.rotation.y+=dt*.2;heart.position.y=heartLight.position.y+Math.sin(time.value*.8)*.12;
     if(rain.visible){rain.position.set(camera.position.x,0,camera.position.z);for(let i=0;i<750;i++){const k=i*6;rainArray[k+1]-=dt*9;if(rainArray[k+1]<0)rainArray[k+1]+=24;rainArray[k+4]=rainArray[k+1]+.48;}rainGeo.attributes.position.needsUpdate=true;}
     rendering.render();stats.draws=renderer.info.render.calls;stats.triangles=renderer.info.render.triangles;onFrame();
