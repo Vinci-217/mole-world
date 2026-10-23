@@ -76,9 +76,11 @@ export async function createFlowerSeaScene(
 
   const hemi = new T.HemisphereLight(0xc7e8ff, 0x66753d, .5); scene.add(hemi);
   const sun = new T.DirectionalLight(0xffedc9, 3.1);
-  sun.target.position.set(0,0,-25);sun.position.set(-28,50,1); sun.castShadow = true;
+  sun.target.position.set(0,0,-25);sun.position.set(-84,150,53); sun.castShadow = true;
   sun.shadow.mapSize.set(innerWidth<760?2048:4096,innerWidth<760?2048:4096);
-  Object.assign(sun.shadow.camera, { left: -55, right: 55, top: 75, bottom: -65, near: 1, far: 220 });
+  // Include the surrounding woodland, so distant casters cannot end in a
+  // visible rectangular shadow-map boundary in the side/top inspection views.
+  Object.assign(sun.shadow.camera, { left: -155, right: 155, top: 175, bottom: -175, near: 1, far: 600 });
   sun.shadow.bias = -.00012; sun.shadow.normalBias = .035;
   sun.shadow.radius = 5; scene.add(sun); scene.add(sun.target);
   const fill = new T.DirectionalLight(0xb1dbed, .38); fill.position.set(20, 12, 25); scene.add(fill);
@@ -161,20 +163,20 @@ export async function createFlowerSeaScene(
     renderer.shadowMap.needsUpdate = true;
     rain.visible = value === 'rain'; particles.visible = value !== 'rain';
     if (value === 'night') {
-      sun.color.set('#b5d1ff'); sun.intensity=.52;sun.position.set(-32,44,-5);fill.intensity=.12;
+      sun.color.set('#b5d1ff'); sun.intensity=.52;sun.position.set(-96,132,35);fill.intensity=.12;
       hemi.color.set('#6c95c4');hemi.intensity=.38;hemi.groundColor.set('#233d48');
       scene.background=new T.Color('#142d42');scene.fog=new T.FogExp2('#142d42',.006);renderer.toneMappingExposure=1.05;particleMaterial.opacity=.9;
     } else if (value === 'dusk') {
-      sun.color.set('#ffbf87'); sun.intensity = 3; sun.position.set(-44,18,-1);fill.intensity=.5;
+      sun.color.set('#ffbf87'); sun.intensity = 3; sun.position.set(-132,54,47);fill.intensity=.5;
       hemi.color.set('#bbc9ee'); hemi.intensity = .65; hemi.groundColor.set('#705e48');
       scene.background = new T.Color('#dcc9c1'); scene.fog = new T.FogExp2('#dcc9c1', .0048); renderer.toneMappingExposure = .98;
       particleMaterial.opacity = .7;
     } else if (value === 'rain') {
-      sun.color.set('#d5e1ed'); sun.intensity = 1.2; sun.position.set(-28,50,1);fill.intensity=.35;
+      sun.color.set('#d5e1ed'); sun.intensity = 1.2; sun.position.set(-84,150,53);fill.intensity=.35;
       hemi.color.set('#ccd9df'); hemi.intensity = .85; hemi.groundColor.set('#536c50');
       scene.background = new T.Color('#afc4ca'); scene.fog = new T.FogExp2('#afc4ca', .01); renderer.toneMappingExposure = .98;
     } else {
-      sun.color.set('#ffedc9'); sun.intensity = 3.1; sun.position.set(-28,50,1);fill.intensity=.38;
+      sun.color.set('#ffedc9'); sun.intensity = 3.1; sun.position.set(-84,150,53);fill.intensity=.38;
       hemi.color.set('#c7e8ff'); hemi.intensity = .5; hemi.groundColor.set('#66753d');
       scene.background = new T.Color('#b1dce7'); scene.fog = new T.FogExp2('#b1dce7', .0042); renderer.toneMappingExposure = .98;
       particleMaterial.opacity = .54;

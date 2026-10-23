@@ -9,7 +9,9 @@
 - 复用 Rico Cilliers 的 CC0 酢浆草（Khronos GlassVaseFlowers 固定版本），在 Blender 去掉花瓶并整理尺寸，实例化 60 簇。没有重新手工制作相同植物。
 - 花卉、树林、复用植物分别使用固定随机序列，避免网络加载顺序改变布景。
 - 复用已有树木的远景模型，在场地外围增加两层错落林带，补足侧后方的环境包围感。
+- 太阳阴影覆盖整片花园和外围树林，避免高处观察时地面出现阴影贴图的矩形边界。四种天气保持原光照方向，并将光源后移以容纳完整范围。
 
 运行 `npm run build` 后，使用 `scripts/capture_flower_views.mjs` 检查实际生产构建的四向镜头、步行、月夜。浏览器软件渲染的通过不能代表独立显卡帧率，也不能代替美术验收。
+截图工具仅在测试页加载后暂停 RAF 队列，切换镜头时执行真实的动画与渲染帧，再读取浏览器画面，以减少软件 GPU 的重复绘制；产品代码仍正常连续运行动画。截图未拼接或替换游戏画面。
 
 素材许可、作者与校验在 `public/assets/flower-garden/credits.html`、`lighting/source.json` 与 `manifest.json`。新植物源文件下载至 `artifacts/reusable-assets/glass-vase-flowers.glb` 后，可运行 `blender -b --python-exit-code 1 --python scripts/prepare_reusable_sorrel.py`；脚本先校验固定源文件哈希。
