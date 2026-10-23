@@ -14,14 +14,14 @@
     "halfDepth": 6.5
   },
   "walkBounds": {
-    "minX": -36,
-    "maxX": 41,
-    "minZ": -88,
-    "maxZ": 25
+    "minX": -66,
+    "maxX": 73,
+    "minZ": -115,
+    "maxZ": 54
   },
   "terrain": {
-    "width": 240,
-    "depth": 260,
+    "width": 300,
+    "depth": 300,
     "centerZ": -35
   },
   "views": {
@@ -67,14 +67,14 @@
     "top": {
       "label": "俯视",
       "eye": [
-        0,
-        155,
-        -29.9
+        3,
+        225,
+        -30.9
       ],
       "target": [
+        3,
         0,
-        0,
-        -30
+        -31
       ]
     }
   },

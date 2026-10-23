@@ -79,6 +79,16 @@
       "geometryPolicy": "alpha-cutout-foliage",
       "blenderVersion": "4.3.2",
       "license": "CC0-1.0"
+    },
+    {
+      "id": "meadow-flower-lods",
+      "state": "ready",
+      "path": "./assets/flower-garden/meadow-flower-lods.glb",
+      "sha256": "f3f0e35753b6b5c14332bfdf1e5d44e57dd51cd4c831451ea5df135598b8e87a",
+      "triangles": 1264,
+      "source": "Project sculpted flowers; welded and decimated in Blender, original UVs and material names retained; textures rebound at runtime",
+      "sourceSha256": "c748d166edfb6339508113e7688d98be57e0b6d74e16a73d5465fc3588f1b1df",
+      "blenderVersion": "4.3.2"
     }
   ]
 }

@@ -27,3 +27,5 @@ wild-sorrel.glb：Rico Cilliers 的酢浆草与花朵，CC0；来自 Khronos glT
 固定源 https://github.com/KhronosGroup/glTF-Sample-Assets/tree/15cd02d304e54cb42a4db4eefe719f76190f4b68/Models/GlassVaseFlowers
 来源的授权声明见 lighting/LICENSE-Sorrel.md，原始资源 CC0；来源元文档为 CC BY 4.0。
 N8AO 2.0.1 用于深度缓冲接触阴影；Three.js 与 pmndrs/postprocessing 用于渲染。附带发行包中的许可证，详见 lighting/。
+
+连片花田 LOD（2026-10-24）：meadow-flower-lods.glb 由 scripts/prepare_meadow_lods.py 在 Blender 整理本项目原花卉模型，保留 UV 和原材质名称，运行时复用原图集，不重复打包纹理。中景 7.5–30m、远景 30m 外分级，近处继续使用原始精细曲面花卉。
