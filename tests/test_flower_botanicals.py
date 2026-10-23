@@ -6,6 +6,32 @@ from pathlib import Path
 
 
 class BotanicalExportTests(unittest.TestCase):
+    def test_meadow_lods_rebind_real_materials_and_keep_painted_uvs(self):
+        folder=Path(__file__).parents[1]/'public/assets/flower-garden'
+        def read(name):
+            raw=(folder/name).read_bytes();length=struct.unpack_from('<I',raw,12)[0]
+            return raw,json.loads(raw[20:20+length]),28+length
+        _,source,_=read('sculpted-flowers.glb')
+        raw,document,binary_start=read('meadow-flower-lods.glb')
+        originals={m['name'] for m in source['materials']}
+        self.assertFalse(document.get('images'))
+        self.assertTrue(document['materials'])
+        self.assertTrue(all(m['name'] in originals for m in document['materials']))
+        nodes={n['name']:n for n in document['nodes']}
+        for species in ['coral-cosmos','ivory-anemone','lilac-spires','meadow-cups']:
+            counts=[]
+            for suffix in ['meadow','distant']:
+                primitives=document['meshes'][nodes[species+'-'+suffix]['mesh']]['primitives']
+                counts.append(sum(document['accessors'][p['indices']]['count']//3 for p in primitives))
+                for p in primitives:
+                    mat=document['materials'][p['material']]['name']
+                    if mat!='Painted petal silk and leaf veins':continue
+                    a=document['accessors'][p['attributes']['TEXCOORD_0']];view=document['bufferViews'][a['bufferView']]
+                    start=binary_start+view.get('byteOffset',0)+a.get('byteOffset',0);stride=view.get('byteStride',8)
+                    uv=[struct.unpack_from('<2f',raw,start+i*stride) for i in range(a['count'])]
+                    for axis in [0,1]:self.assertGreater(max(p[axis] for p in uv)-min(p[axis] for p in uv),.2)
+            self.assertGreater(counts[0],counts[1]);self.assertGreater(counts[1],30)
+
     def test_petals_keep_uvs_and_each_species_has_a_cheaper_distance_model(self):
         path = Path(__file__).parents[1] / 'public/assets/flower-garden/sculpted-flowers.glb'
         raw = path.read_bytes()

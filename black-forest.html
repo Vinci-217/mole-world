@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#102e34"><meta name="description" content="受摩尔庄园启发的可探索黑森林：苔桥、古树、荧光蘑菇与月光林隙。Three.js 实时三维场景。"><title>黑森林 · 摩尔庄园</title><link rel="icon" href="./crest.svg" type="image/svg+xml"></head>
+<body><main id="forest-app">
+  <div id="forest-canvas" aria-label="黑森林三维场景，拖动环绕、滚轮缩放"></div><div class="forest-vignette" aria-hidden="true"></div>
+  <header class="forest-heading"><nav class="world-switch" aria-label="场景切换"><a href="./flower-sea.html">✿ 神秘花海</a><a href="./black-forest.html" aria-current="page">♧ 黑森林</a></nav><p class="forest-eyebrow">MOLE MANOR · THE ENCHANTED WOODS</p><h1>黑森林</h1><p class="forest-subtitle">沿着萤火，走进古树的呼吸里。</p><p id="forest-status" role="status">正在唤醒森林…</p></header>
+  <nav class="forest-guide" aria-label="黑森林导览"><span>林间足迹</span><div id="forest-places"></div><p id="forest-location">南侧林径</p></nav>
+  <div class="forest-error" id="forest-error" role="alert" hidden></div>
+  <footer class="forest-bottom"><div class="forest-controls" aria-label="场景控制"><button id="forest-walk" aria-pressed="false">♧ 走入森林</button><button id="forest-reset">↺ 林径入口</button><label><span class="sr-only">森林氛围</span><select id="forest-atmosphere"><option value="moon">月夜</option><option value="mist">林雾</option><option value="rain">细雨</option></select></label><button id="forest-audio" aria-pressed="false">♪ 林间音景</button><a href="./assets/black-forest/credits.html" target="_blank" rel="noopener">素材鸣谢 ↗</a></div><p id="forest-help">拖动环绕 · 滚轮缩放 · 走入森林可沿路探索</p></footer>
+  <div id="forest-touch" class="forest-touch" hidden><button data-garden-move="KeyW" aria-label="向前走">↑</button><button data-garden-move="KeyA" aria-label="向左走">←</button><button data-garden-move="KeyS" aria-label="向后走">↓</button><button data-garden-move="KeyD" aria-label="向右走">→</button></div>
+  <a class="forest-exit" id="forest-exit" href="./flower-sea.html" hidden>穿过林径，返回神秘花海 →</a>
+</main><script type="module" src="./src/black-forest.ts"></script></body></html>

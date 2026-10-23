@@ -85,6 +85,16 @@ def stage() -> None:
             shutil.copy2(screenshot,previews/target)
             cards.append(f'<figure><a href="flower-sea.html"><img src="previews/{target}" loading="lazy" alt="{html.escape(label)}实时3D截图"></a><figcaption>{html.escape(label)} <small>独立花园场景</small></figcaption></figure>')
     before=ROOT/'artifacts/flower-review/before-render-day.png'
+    for name,label in [('entrance','黑森林 · 林径入口'),('bridge','黑森林 · 苔桥遗迹'),('mushrooms','黑森林 · 荧光蘑菇谷'),('hollow','黑森林 · 古树之心'),('moon','黑森林 · 月光林隙'),('mist','黑森林 · 林雾'),('rain','黑森林 · 细雨')]:
+        screenshot=ROOT/'artifacts/forest-review'/f'{name}.png'
+        if screenshot.is_file():
+            target=f'black-forest-{name}.png';shutil.copy2(screenshot,previews/target)
+            cards.append(f'<figure><a href="black-forest.html"><img src="previews/{target}" loading="lazy" alt="{html.escape(label)}实时3D截图"></a><figcaption>{html.escape(label)} <small>可探索森林场景</small></figcaption></figure>')
+    for name,label in [('south-meadow','南风花海'),('east-meadow','东侧花浪坡'),('west-meadow','溪西花谷'),('north-lookout','花丘远眺')]:
+        screenshot=ROOT/'artifacts/flower-review'/f'production-{name}.png'
+        if screenshot.is_file():
+            target=f'flower-garden-{name}.png';shutil.copy2(screenshot,previews/target)
+            cards.append(f'<figure><a href="flower-sea.html"><img src="previews/{target}" loading="lazy" alt="{html.escape(label)}实时3D截图"></a><figcaption>神秘花海 · {html.escape(label)} <small>新增花田</small></figcaption></figure>')
     if before.is_file() and (previews/'flower-garden-day.png').is_file():
         shutil.copy2(before,previews/'flower-garden-before-render.png')
         (STAGE/'render-comparison.html').write_text('''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -115,7 +125,8 @@ grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}figure{margin:
 border-radius:8px;overflow:hidden}img{width:100%;display:block}figcaption{padding:14px}small{float:right;color:#a7b49d;font-size:11px}
 @media(max-width:600px){body{padding:20px}.grid{grid-template-columns:1fr}}</style><main><h1>摩尔庄园 · 实机图集</h1>
 <p>以下均为当前程序的实时 3D 截图。12 个地区已由道路连接在同一个世界中，另有 8 处户外子地点初版；布局尚未按某个年代一比一还原；室内和独立子地图未完成，画质未达到 3A 标准。</p>
-<p><a href="index.html">进入世界 →</a>　<a href="downloads/MoleManor-Offline.zip">下载离线版</a></p><div class="grid">'''
+<p><a href="flower-sea.html">神秘花海 →</a>　<a href="black-forest.html">黑森林 →</a>　<a href="index.html">庄园全图 →</a>　<a href="downloads/MoleManor-Offline.zip">下载旧世界离线版</a></p><div class="grid">'''
+    cards.sort(key=lambda card:0 if 'href="black-forest.html"' in card else 1 if 'href="flower-sea.html"' in card else 2)
     (STAGE / 'gallery.html').write_text(gallery + ''.join(cards) + '</div>' + art_link + '</main></html>')
     for path in STAGE.rglob('*'):
         if path.is_file() and any(part.startswith('.env') or part == '.asset-tasks' for part in path.parts):

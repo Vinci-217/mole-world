@@ -38,6 +38,9 @@ try{
     views[id]=await page.evaluate(()=>window.__flowerSea);
   }
   await click('[data-garden-view="front"]');await capture('day');
+  for(const id of ['south-meadow','east-meadow','west-meadow','north-lookout']){
+    await click(`[data-garden-place="${id}"]`);await capture(id);views[id]=await page.evaluate(()=>window.__flowerSea);
+  }
   await click('#garden-walk');await click('[data-garden-place="flower-path"]');await capture('walk');
   await page.keyboard.press('Escape');await click('#flower-reset');
   for(const value of ['night','dusk','rain']){await weather(value);await capture(value);}

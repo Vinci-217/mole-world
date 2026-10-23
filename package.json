@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "tsc --noEmit && vite build && vite build --config vite.flower.config.ts",
+    "build": "tsc --noEmit && vite build && vite build --config vite.flower.config.ts && vite build --config vite.forest.config.ts",
     "preview": "vite preview --host 0.0.0.0",
     "release": "npm run build && python3 scripts/package_release.py",
     "assets:plan": "python3 scripts/tripo_assets.py plan",

@@ -8,6 +8,7 @@ export function insideCottage(x:number,z:number,padding=0){
   return Math.abs(localX)<layout.cottage.halfWidth+padding&&Math.abs(localZ)<layout.cottage.halfDepth+padding;
 }
 export const brookX = (z: number) => -18 + Math.sin(z * .16) * 2.3;
+export const gardenBridges=[{id:'entry-bridge',z:1},{id:'valley-bridge',z:-64}];
 export function flowerGroundHeight(x: number, z: number) {
   const hill = (cx: number, cz: number, sx: number, sz: number, height: number) => height * Math.exp(-((x-cx)**2/sx + (z-cz)**2/sz));
   const core = -.6 + hill(-8,-2,75,45,1.25) + hill(12,1,70,55,1.55);
@@ -22,6 +23,10 @@ export const gardenRoutes: [number, number][][] = [
   [[2,22],[1,13],[2,7],[0,3],[-4,-1],[-7,-4],[-12,-8],[-14,-4],[-14,1],[-18,1],[-24,1],[-27,-4],[-26,-9],[-29,-2],[-24,6],[-18,1],[-11,7],[-5,14],[2,22]],
   [[0,3],[6,-1],[9,-5],[12,-12],[17,-15],[24,-19],[28,-13],[25,-5],[22,1],[21,9],[15,14],[7,13],[2,7]],
   [[6,-1],[8,-12],[5,-23],[10,-35],[17,-47],[20,-53],[29,-51],[34,-60],[31,-73],[17,-78],[7,-71],[7,-59],[6,-51],[10,-47],[17,-47]],
+  [[2,22],[-4,32],[-8,44],[7,50],[27,46],[40,33],[31,20],[21,9]],
+  [[24,-19],[39,-11],[55,-17],[64,-37],[61,-61],[50,-80],[35,-82],[31,-73]],
+  [[-24,1],[-37,5],[-51,-5],[-58,-25],[-53,-45],[-43,-62],[-29,-64],[brookX(-64),-64],[-8,-64],[7,-59]],
+  [[17,-78],[14,-91],[1,-102],[-7,-98],[-10,-84],[7,-71]],
 ];
 export function routeDistance(x: number, z: number) {
   let distance = Infinity;
@@ -34,6 +39,10 @@ export function routeDistance(x: number, z: number) {
 }
 export interface GardenView {eye:[number,number,number];target:[number,number,number]}
 export const gardenPlaces:{id:string;label:string;position:[number,number,number];view:GardenView}[] = [
+  { id:'south-meadow',label:'南风花海',position:[9,0,45],view:{eye:[4,4.8,51],target:[9,.8,29]} },
+  { id:'east-meadow',label:'东侧花浪坡',position:[61,0,-38],view:{eye:[67,5.5,-30],target:[44,1.2,-48]} },
+  { id:'west-meadow',label:'溪西花谷',position:[-53,0,-43],view:{eye:[-60,5,-35],target:[-39,1,-55]} },
+  { id:'north-lookout',label:'花丘远眺',position:[1,0,-102],view:{eye:[1,22,-110],target:[16,2,-77]} },
   { id:'flower-path',label:'藤蔓花径',position:[-2,0,5],view:{eye:[-.5,5.2,9],target:[-7,3,-4]} },
   { id:'brook-bridge',label:'溪畔木桥',position:[-17.6,0,1],view:{eye:[-12,4.4,9],target:[-18,.9,1]} },
   { id:'secret-grove',label:'林间小憩',position:[-25,0,-9],view:{eye:[-20,4,-1],target:[-25,1.7,-9]} },
@@ -41,16 +50,16 @@ export const gardenPlaces:{id:string;label:string;position:[number,number,number
   { id:'pink-flower',label:'粉花露台',position:[14,0,13],view:{eye:[4,4.8,16],target:[13,2.3,6]} },
 ];
 export function gardenWalkHeight(x:number,z:number) {
-  if(Math.abs(z-1)<1.15 && Math.abs(x-brookX(1))<3.4){
-    const t=Math.max(0,Math.min(1,(x-brookX(1)+3.25)/6.48));
-    return flowerGroundHeight(brookX(1)+3.4,1)+.385+.20*Math.sin(t*Math.PI);
+  for(const bridge of gardenBridges)if(Math.abs(z-bridge.z)<1.15 && Math.abs(x-brookX(bridge.z))<3.4){
+    const t=Math.max(0,Math.min(1,(x-brookX(bridge.z)+3.25)/6.48));
+    return flowerGroundHeight(brookX(bridge.z)+3.4,bridge.z)+.385+.20*Math.sin(t*Math.PI);
   }
   return flowerGroundHeight(x,z);
 }
 export function gardenCanWalk(x:number,z:number) {
   const b=layout.walkBounds;
   if(x < b.minX || x > b.maxX || z < b.minZ || z > b.maxZ) return false;
-  if(Math.abs(x-brookX(z))<1 && Math.abs(z-1)>1.05) return false;
+  if(Math.abs(x-brookX(z))<1 && !gardenBridges.some(bridge=>Math.abs(z-bridge.z)<1.05)) return false;
   if(insideCottage(x,z,.4)) return false;
   if(Math.hypot(x-13,z-6)<4.5) return false;
   if(Math.hypot(x+15,z-5)<1.25 || Math.hypot(x-17,z+2)<1.4) return false;
@@ -58,11 +67,11 @@ export function gardenCanWalk(x:number,z:number) {
 }
 
 /** Substeps preserve wall/river collisions when one rendered frame takes longer. */
-export function advanceGardenPosition(x:number,z:number,dx:number,dz:number):[number,number]{
+export function advanceGardenPosition(x:number,z:number,dx:number,dz:number,canWalk=gardenCanWalk):[number,number]{
   const steps=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.1));
   for(let i=0;i<steps;i++){
-    if(gardenCanWalk(x+dx/steps,z))x+=dx/steps;
-    if(gardenCanWalk(x,z+dz/steps))z+=dz/steps;
+    if(canWalk(x+dx/steps,z))x+=dx/steps;
+    if(canWalk(x,z+dz/steps))z+=dz/steps;
   }
   return [x,z];
 }

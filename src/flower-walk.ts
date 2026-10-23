@@ -2,9 +2,11 @@ import * as T from 'three';
 import type { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { gardenCanWalk, gardenWalkHeight, advanceGardenPosition } from './flower-terrain';
 
-export function createGardenWalk(camera:T.PerspectiveCamera,controls:OrbitControls,canvas:HTMLCanvasElement){
+export interface WorldNavigation{canWalk:(x:number,z:number)=>boolean;height:(x:number,z:number)=>number;spawn:[number,number]}
+export function createGardenWalk(camera:T.PerspectiveCamera,controls:OrbitControls,canvas:HTMLCanvasElement,navigation:WorldNavigation={canWalk:gardenCanWalk,height:gardenWalkHeight,spawn:[1,17]}){
+  const canWalk=navigation.canWalk,height=navigation.height;
   const events=new AbortController(),keys=new Set<string>();
-  const position=new T.Vector3(1,gardenWalkHeight(1,17)+1.62,17);
+  const position=new T.Vector3(navigation.spawn[0],height(...navigation.spawn)+1.62,navigation.spawn[1]);
   const oldPosition=new T.Vector3(),oldTarget=new T.Vector3();
   let active=false,yaw=0,pitch=-.04,drag=false,lastX=0,lastY=0;
   const look=()=>camera.quaternion.setFromEuler(new T.Euler(pitch,yaw,0,'YXZ'));
@@ -35,7 +37,7 @@ export function createGardenWalk(camera:T.PerspectiveCamera,controls:OrbitContro
   }
   return {
     get active(){return active;},get position(){return position;},start,stop,
-    moveTo(x:number,z:number){if(!gardenCanWalk(x,z))return false;position.set(x,gardenWalkHeight(x,z)+1.62,z);if(active)camera.position.copy(position);return true;},
+    moveTo(x:number,z:number){if(!canWalk(x,z))return false;position.set(x,height(x,z)+1.62,z);if(active)camera.position.copy(position);return true;},
     lookAt(target:T.Vector3){
       const direction=target.clone().sub(position).normalize();
       yaw=Math.atan2(-direction.x,-direction.z);pitch=T.MathUtils.clamp(Math.asin(direction.y),-1.22,1.22);
@@ -48,8 +50,8 @@ export function createGardenWalk(camera:T.PerspectiveCamera,controls:OrbitContro
       const length=Math.hypot(forward,side)||1;forward/=length;side/=length;
       const speed=(keys.has('ShiftLeft')?5.2:2.8)*Math.min(dt,.25);
       const dx=(-Math.sin(yaw)*forward+Math.cos(yaw)*side)*speed,dz=(-Math.cos(yaw)*forward-Math.sin(yaw)*side)*speed;
-      [position.x,position.z]=advanceGardenPosition(position.x,position.z,dx,dz);
-      position.y=gardenWalkHeight(position.x,position.z)+1.62;camera.position.copy(position);look();
+      [position.x,position.z]=advanceGardenPosition(position.x,position.z,dx,dz,canWalk);
+      position.y=height(position.x,position.z)+1.62;camera.position.copy(position);look();
     },
     dispose(){events.abort();keys.clear();controls.enabled=true;},
   };

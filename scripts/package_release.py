@@ -20,8 +20,10 @@ def encoded(path):
     return base64.b64encode(path.read_bytes()).decode('ascii')
 
 html = (DIST / 'index.html').read_text()
-html = html.replace('<a class="nav-item" href="./flower-sea.html">神秘花海 · 制作中</a>',
+html = html.replace('<a class="nav-item" href="./flower-sea.html">神秘花海</a>',
                     '<span class="nav-item" title="神秘花海请使用网站版本查看">神秘花海 · 网站版</span>')
+html = html.replace('<a class="nav-item" href="./black-forest.html">黑森林</a>',
+                    '<span class="nav-item" title="黑森林请使用网站版本查看">黑森林 · 网站版</span>')
 manifest = copy.deepcopy(json.loads((DIST / 'assets/manifest.json').read_text()))
 for asset in manifest['assets']:
     local = (DIST / asset['path'].lstrip('/')).resolve()
@@ -73,7 +75,8 @@ guide = '''摩尔庄园 · 经典世界 · 打开说明
 顶部「时间·天气」可展开环境控制，点击扬声器开启音乐。
 按 M 或点击「世界地图」，选择地区或子地点设置步行路线。「沿路漫游」可自动前进，WASD 随时接管。也可快速前往；所有地点保留在同一个世界里。「俯瞰全境」可查看全世界。
 手机文件预览器通常不支持完整 WebGL，请使用网站版本或电脑浏览器。
-神秘花海专页位于网站版 flower-sea.html，未包含在旧世界离线单文件中；专页含四项混元模型的Blender精修结果、顶棚花藤、花圃与树林、溪流木桥和步行导览；点击原版BGM可播放存档配置对应的BGM_131。原图与音乐来源说明在assets/flower-sea/下。
+神秘花海专页位于网站版 flower-sea.html，可探索连片花田、溪流双桥和远方花屋；点击原版BGM可播放存档配置对应的BGM_131。原图与音乐来源说明在assets/flower-sea/下。
+黑森林专页位于 black-forest.html，包含代码制作的古树、树洞、石桥、遗迹和荧光蘑菇，支持月夜、林雾、细雨及林间合成音景。两个场景通过顶部入口切换，均未包含在旧世界离线单文件中。
 
 二、发布为网站
 MoleManor-Website.zip 内是完整的静态网站，没有服务端或密钥。
@@ -115,6 +118,11 @@ if all((botanicals/(name+'.blend')).is_file() for name in blend_names):
         archive.write(ROOT/'public/assets/flower-garden/SOURCE.txt','制作说明.txt')
         archive.write(ROOT/'public/assets/nature/SOURCE.txt','树木原始来源.txt')
         archive.write(ROOT/'public/assets/nature/LICENSE-BabylonJS.txt','LICENSE-BabylonJS.txt')
+        meadow=ROOT/'artifacts/flower-meadow/Meadow-Flower-LODs.blend'
+        if meadow.is_file():
+            archive.write(meadow,meadow.name)
+            archive.write(ROOT/'scripts/prepare_meadow_lods.py','prepare_meadow_lods.py')
+            archive.write(ROOT/'artifacts/flower-meadow/lod-report.json','meadow-lod-report.json')
 
 views=ROOT/'public/assets/flower-sea/views'
 if all((views/(name+'.png')).is_file() for name in ['front','left','back','top']):

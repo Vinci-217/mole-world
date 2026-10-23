@@ -58,9 +58,9 @@ export async function createFlowerSeaScene(
   const camera = new T.PerspectiveCamera(45, 1, .1, 420);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true; controls.dampingFactor = .065;
-  controls.minDistance = 8; controls.maxDistance = 220;
+  controls.minDistance = 8; controls.maxDistance = 260;
   controls.maxPolarAngle = Math.PI * .485;
-  controls.minPolarAngle = .005;
+  controls.minPolarAngle = .0001;
   controls.enablePan = true;
   controls.screenSpacePanning = false;
   controls.target.set(0, 1, 0);

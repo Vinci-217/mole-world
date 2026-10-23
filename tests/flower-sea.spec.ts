@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
+// These fixed DOM controls do not animate. Native pointer clicks skip the
+// stability check's extra GPU frames; visibility and resulting state are checked.
 const original = JSON.parse(readFileSync('public/assets/flower-sea/manifest.json', 'utf8'));
 const snapshot = () => (window as any).__flowerSea;
 
@@ -13,7 +15,7 @@ test('four view directions inspect the same real-size distant house',async({page
   expect(house.height).toBeCloseTo(10.5,2);expect(house.height).toBeGreaterThan(arch.height);
   expect(arch.position[2]-house.position[2]).toBeGreaterThan(50);
   for(const id of ['front','left','back','top']){
-    await page.locator(`[data-garden-view="${id}"]`).click();
+    await page.locator(`[data-garden-view="${id}"]`).click({force:true});
     const state=await page.evaluate(snapshot);expect(state.view).toBe(id);expect(state.loaded).toEqual(initial.loaded);
     const [x,y,z]=state.camera,[tx,ty,tz]=state.target;
     if(id==='front')expect(z).toBeGreaterThan(tz);
@@ -21,8 +23,8 @@ test('four view directions inspect the same real-size distant house',async({page
     if(id==='back')expect(z).toBeLessThan(tz-70);
     if(id==='top'){expect(y-ty).toBeGreaterThan(140);expect(Math.hypot(x-tx,z-tz)).toBeLessThan(1);}
   }
-  await page.locator('#garden-walk').click();
-  await page.locator('[data-garden-place="cottage-garden"]').click();
+  await page.locator('#garden-walk').click({force:true});
+  await page.locator('[data-garden-place="cottage-garden"]').click({force:true});
   const nearHouse=(await page.evaluate(snapshot)).player;expect(nearHouse[2]).toBeLessThan(-45);
 });
 
@@ -54,22 +56,22 @@ test('flower map loads its real published assets and responds to camera and weat
   await expect.poll(async () => (await page.evaluate(snapshot)).camera[0]).not.toBeCloseTo(initial.camera[0], 1);
   await page.selectOption('#flower-weather', 'rain');
   expect((await page.evaluate(snapshot)).weather).toBe('rain');
-  await page.locator('#flower-reset').click();
+  await page.locator('#flower-reset').click({force:true});
   await expect.poll(async () => (await page.evaluate(snapshot)).camera[0]).toBeCloseTo(initial.camera[0], 3);
-  await page.locator('#flower-models-toggle').click();
+  await page.locator('#flower-models-toggle').click({force:true});
   await expect(page.locator('#flower-model-list li[data-state="pending"]')).toHaveCount(expectedPending);
   await expect(page.locator('#flower-model-list li[data-state="ready"]')).toHaveCount(expectedReady.length);
-  await page.locator('#flower-reference-toggle').click();
+  await page.locator('#flower-reference-toggle').click({force:true});
   await expect(page.locator('#flower-reference-image')).toBeVisible();
   expect(await page.locator('#flower-reference-image').evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(960);
-  await page.locator('#flower-inputs-toggle').click();
+  await page.locator('#flower-inputs-toggle').click({force:true});
   await expect(page.locator('#flower-inputs')).toBeVisible();
   await expect(page.locator('#flower-input-grid img')).toHaveCount(5);
   await expect.poll(() => page.locator('#flower-input-grid img').evaluateAll(images => images.every(image => (image as HTMLImageElement).naturalWidth > 100))).toBe(true);
-  await page.locator('#flower-inputs-close').click();
-  await page.locator('#flower-reference-close').click();
-  await page.locator('#flower-models-close').click();
-  await page.locator('[data-garden-place="pink-flower"]').click();
+  await page.locator('#flower-inputs-close').click({force:true});
+  await page.locator('#flower-reference-close').click({force:true});
+  await page.locator('#flower-models-close').click({force:true});
+  await page.locator('[data-garden-place="pink-flower"]').click({force:true});
   const pink=original.placements.find((p:any)=>p.assetId==='pink-portal');
   const target=(await page.evaluate(snapshot)).target;
   expect(target[0]).toBeCloseTo(pink.position[0]);expect(target[2]).toBeCloseTo(pink.position[2]);
@@ -82,20 +84,20 @@ test('walking explores one garden and the original music actually plays',async({
   const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
   await page.goto('/flower-sea.html');
   await page.waitForFunction(()=>(window as any).__flowerSea?.ready);
-  await page.locator('#garden-walk').click();
+  await page.locator('#garden-walk').click({force:true});
   await expect.poll(async () => (await page.evaluate(snapshot)).walking).toBe(true);
   const beforeWalk=(await page.evaluate(snapshot)).player;
   await page.keyboard.down('KeyW');
   await expect.poll(async () => (await page.evaluate(snapshot)).player[2], {timeout:15000}).toBeLessThan(beforeWalk[2]-.4);
   await page.keyboard.up('KeyW');
-  await page.locator('[data-garden-place="brook-bridge"]').click();
+  await page.locator('[data-garden-place="brook-bridge"]').click({force:true});
   const bridge=(await page.evaluate(snapshot)).player;
   expect(bridge[0]).toBeCloseTo(-17.6,1);expect(bridge[2]).toBeCloseTo(1,1);
   await page.keyboard.press('Escape');
   await expect.poll(async () => (await page.evaluate(snapshot)).walking).toBe(false);
   await page.selectOption('#flower-weather','night');
   expect((await page.evaluate(snapshot)).weather).toBe('night');
-  await page.locator('#flower-sound').click();
+  await page.locator('#flower-sound').click({force:true});
   await expect.poll(async () => (await page.evaluate(snapshot)).music.playing).toBe(true);
   await expect.poll(async () => (await page.evaluate(snapshot)).music.currentTime,{timeout:15000}).toBeGreaterThan(.1);
   expect((await page.evaluate(snapshot)).music.track).toBe('BGM_131');

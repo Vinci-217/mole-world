@@ -1,6 +1,8 @@
 # 摩尔庄园 · 经典世界
 
-当前集中制作 **神秘花海（362）**：[专页预览](https://raw.githack.com/Vinci-217/mole-world/gh-pages/flower-sea.html)。四个真实混元模型经过多轮 Blender 精修，另有 Blender 制作的顶棚花藤；场景加入圆润树冠、湖蓝天空与实体云团、珊瑚色钟形花、曲面花圃、溪流木桥、长椅和路灯，配合带翅缘细节的蝴蝶与柔和花粉。可切换鸟瞰与步行，在同一个花园内探索五个导览地点，并选择晴日、黄昏、月夜或细雨。音乐使用存档配置中地图 362 对应的原版 **BGM_131**，点击开启。
+当前集中制作两个独立可探索场景：[神秘花海](https://raw.githack.com/Vinci-217/mole-world/gh-pages/flower-sea.html) 与 [黑森林](https://raw.githack.com/Vinci-217/mole-world/gh-pages/black-forest.html)，由页面顶部切换。
+
+花海保留四项混元地标及 Blender 制作的花藤与花卉，增加四片可步行花田、花径和第二座木桥；近处精细花瓣与中远景模型分级显示。可切换晴日、黄昏、月夜、细雨；原版 **BGM_131** 点击开启。黑森林用 Three.js 制作扭曲古树、树洞、苔桥、遗迹和荧光蘑菇，复用授权树林与树皮纹理，配有月光、林雾、萤火、浮尘、细雨和原创合成林间音景。渲染使用 HDR 环境照明、N8AO 接触阴影、克制辉光与 FXAA。制作细节见 [花海流程](docs/flower-sea.md) 和 [黑森林说明](docs/black-forest.md)。
 
 这是一张以原图核心地标为依据、向四周扩展探索空间的花园，尚未连接十二地区世界，也未实现虫虫谷和神秘花蕊。不是原版完整复刻或 3A 成品。制作、原图和音乐来源、模型实际面数及鉴权方式见 [花海流程](docs/flower-sea.md)。
 
@@ -15,7 +17,7 @@
 ## 直接体验
 
 - [美术画册](https://raw.githack.com/Vinci-217/mole-world/gh-pages/art/index.html)：AI 场景效果图与透明背景单体参考，可按地区筛选、放大查看和下载原图。这些图片尚未转成 3D 模型，原版布局也未逐图核对，不能当作实机截图。
-- [在线预览](https://raw.githack.com/Vinci-217/mole-world/gh-pages/index.html)：第三方静态预览入口，当前云环境无法直接验证该域名的外网可达性。
+- [在线预览](https://raw.githack.com/Vinci-217/mole-world/gh-pages/index.html)：第三方静态预览入口；发布时使用固定提交链接，并校验线上文件与构建文件的 SHA256。
 - [下载离线版](https://github.com/Vinci-217/mole-world/raw/refs/heads/gh-pages/downloads/MoleManor-Offline.zip)：解压，用电脑 Chrome/Edge 打开 `MoleManor-Offline.html`。城堡、树木模型、贴图和脚本全部内嵌，无需 Node、服务器或模型 API。
 - [网站发布包](https://github.com/Vinci-217/mole-world/raw/refs/heads/gh-pages/downloads/MoleManor-Website.zip)：完整静态网站，可上传 Netlify Drop、Cloudflare Pages 等服务。
 
@@ -39,7 +41,7 @@ npm test
 npm run release
 ```
 
-构建输出为 `dist/`，含 `index.html` 和独立的 `flower-sea.html`。两页分别构建，以保留旧世界离线单文件的独立性。发布命令另生成 `artifacts/release/MoleManor-Offline.html`、离线 ZIP 和网站 ZIP。离线单文件包含旧世界；神秘花海在网站包内。包中不含环境变量、密钥或生成任务回执。
+构建输出为 `dist/`，含 `index.html`、`flower-sea.html` 和 `black-forest.html`，分别构建以保留旧世界离线单文件的独立性。发布命令另生成 `artifacts/release/MoleManor-Offline.html`、离线 ZIP 和网站 ZIP。离线单文件包含旧世界；神秘花海与黑森林在网站包内。包中不含环境变量、密钥或生成任务回执。
 
 发布前可生成各地区的真实高画质截图，同时验证自包含版本完全离线运行：
 

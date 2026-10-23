@@ -1,7 +1,8 @@
 import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { brookX, flowerGroundHeight as h, flowerLayout, insideCottage, gardenRoutes, routeDistance } from './flower-terrain';
+import { brookX, flowerGroundHeight as h, flowerLayout, insideCottage, gardenRoutes, gardenBridges, routeDistance } from './flower-terrain';
+import { createMeadowPlantings } from './flower-meadows';
 import { flowerParticleMaterial } from './flower-particles';
 import { finishGardenMaterial } from './flower-materials';
 
@@ -31,7 +32,7 @@ function tinted(g:T.BufferGeometry,color:T.ColorRepresentation){
   for(let i=0;i<geometry.attributes.position.count;i++)colors.push(c.r,c.g,c.b);
   geometry.setAttribute('color',new T.Float32BufferAttribute(colors,3));return geometry;
 }
-function fernGeometry(){
+export function fernGeometry(){
   const parts:T.BufferGeometry[]=[];
   for(let frond=0;frond<3;frond++){
     const angle=frond*Math.PI*2/3;
@@ -139,9 +140,9 @@ export function createFlowerGarden(scene:T.Scene){
   const foliage=mergeGeometries([0,1,2,3,4,5].map(i=>{
     const g=leafGeometry(.15+i*.018,.018);g.rotateZ((i%2?1:-1)*(.28+i*.08));g.rotateY(i*2.4);return tinted(g,i%2?'#99bd66':'#6d9c5e');
   }))!;
-  const grass=new T.InstancedMesh(foliage,vegetation,3200);let grassCount=0;
-  for(let i=0;i<30000&&grassCount<3200;i++){
-    const x=(rnd()-.5)*76,z=(rnd()-.5)*114-24;
+  const grass=new T.InstancedMesh(foliage,vegetation,6500);let grassCount=0;
+  for(let i=0;i<60000&&grassCount<6500;i++){
+    const b=flowerLayout.walkBounds,x=b.minX+rnd()*(b.maxX-b.minX),z=b.minZ+rnd()*(b.maxZ-b.minZ);
     if(routeDistance(x,z)<.95||Math.abs(x-brookX(z))<1.1||Math.hypot(x-13,z-6)<4.6||insideCottage(x,z,1))continue;
     const patch=.5+.5*Math.sin(x*.45+Math.cos(z*.5)*2);if(rnd()>.3+patch*.65)continue;
     dummy.position.set(x,h(x,z)-.02,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.55+rnd()*.85);dummy.updateMatrix();grass.setMatrixAt(grassCount++,dummy.matrix);
@@ -152,7 +153,8 @@ export function createFlowerGarden(scene:T.Scene){
   const beds=[[-8,8,5.0],[-5,2,3.6],[6,11,4.5],[7,-3,3.2],[12,-6,2.1],[17,12,4.0],[-23,-8,4.5],[-27,-1,3.5],[24,-14,4.8],[24,4,3.8],[-3,-11,4.8],[-11,16,4.0],[1,-25,4],[13,-29,4.5],[6,-41,4.2],[23,-43,4],[13,-51,3],[29,-53,3.2],[11,-72,3.6],[31,-70,3.4]];
   const drifts=beds.map(([x,z,r],i)=>({x,z,rx:r,rz:r*(i%2?1.65:.66),angle:i*.83,kind:i%4}));
   let flowerTotal=0;
-  const botanicalLods:{mesh:T.InstancedMesh;local:T.Matrix4;matrices:T.Matrix4[];near:boolean}[]=[];
+  const botanicalLods:{mesh:T.InstancedMesh;local:T.Matrix4;matrices:T.Matrix4[];min:number;max:number}[]=[];
+  const plantMatrix=new T.Matrix4();
   const lastPlantEye=new T.Vector3(Infinity,Infinity,Infinity);
   function updatePlants(eye:T.Vector3){
     if(!botanicalLods.length||lastPlantEye.distanceToSquared(eye)<2.25)return;
@@ -161,7 +163,7 @@ export function createFlowerGarden(scene:T.Scene){
       let count=0;
       for(const matrix of row.matrices){
         const e=matrix.elements,distance=(e[12]-eye.x)**2+(e[13]-eye.y)**2+(e[14]-eye.z)**2;
-        if((distance<18*18)===row.near)row.mesh.setMatrixAt(count++,new T.Matrix4().multiplyMatrices(matrix,row.local));
+        if(distance>=row.min&&distance<row.max)row.mesh.setMatrixAt(count++,plantMatrix.multiplyMatrices(matrix,row.local));
       }
       row.mesh.count=count;row.mesh.instanceMatrix.needsUpdate=true;row.mesh.computeBoundingSphere();
     }
@@ -176,7 +178,7 @@ export function createFlowerGarden(scene:T.Scene){
     if(r>.77&&rnd()>.5+.4*Math.sin(x*2.1+z*1.7))return null;
     return new T.Vector3(x,h(x,z)-.015,z);
   }
-  function installPlants(model:T.Object3D,matrices:T.Matrix4[],sway=true,lod?:'near'|'far'){
+  function installPlants(model:T.Object3D,matrices:T.Matrix4[],sway=true,lod?:'near'|'meadow'|'distant'){
     model.updateMatrixWorld(true);
     model.traverse(o=>{
       if(!(o instanceof T.Mesh))return;
@@ -185,14 +187,21 @@ export function createFlowerGarden(scene:T.Scene){
         finishGardenMaterial(mat,mat.name.includes('petal')?'petal':'leaf');
       }
       const mesh=new T.InstancedMesh(o.geometry,o.material,matrices.length);
-      if(lod){mesh.count=0;botanicalLods.push({mesh,local:o.matrixWorld.clone(),matrices,near:lod==='near'});}
+      if(lod){mesh.count=0;const ranges={near:[0,7.5**2],meadow:[7.5**2,30**2],distant:[30**2,Infinity]};
+        const [min,max]=ranges[lod];botanicalLods.push({mesh,local:o.matrixWorld.clone(),matrices,min,max});}
       else matrices.forEach((matrix,i)=>mesh.setMatrixAt(i,new T.Matrix4().multiplyMatrices(matrix,o.matrixWorld)));
-      mesh.castShadow=mesh.receiveShadow=true;root.add(mesh);
+      mesh.castShadow=lod!=='distant';mesh.receiveShadow=true;root.add(mesh);
     });
   }
   const flowersReady=(async()=>{
     const rnd=seededRandom(47281);
-    const model=await new GLTFLoader().loadAsync('./assets/flower-garden/sculpted-flowers.glb');
+    const loader=new GLTFLoader();
+    const [model,reduced]=await Promise.all([loader.loadAsync('./assets/flower-garden/sculpted-flowers.glb'),loader.loadAsync('./assets/flower-garden/meadow-flower-lods.glb')]);
+    const materials=new Map<string,T.Material>();
+    model.scene.traverse(o=>{if(o instanceof T.Mesh)for(const m of Array.isArray(o.material)?o.material:[o.material])materials.set(m.name,m);});
+    const originalMaterial=(m:T.Material)=>{const source=materials.get(m.name);if(!source)throw new Error(`Missing meadow material: ${m.name}`);return source;};
+    reduced.scene.traverse(o=>{if(o instanceof T.Mesh)o.material=Array.isArray(o.material)?o.material.map(originalMaterial):originalMaterial(o.material);});
+    const fields=createMeadowPlantings();
     const names=['coral-cosmos','ivory-anemone','lilac-spires','meadow-cups'];
     for(const [kind,name] of names.entries()){
       const source=model.scene.getObjectByName(name);if(!source)throw new Error(`Missing sculpted species: ${name}`);
@@ -202,8 +211,15 @@ export function createFlowerGarden(scene:T.Scene){
         dummy.position.copy(point);dummy.rotation.set((rnd()-.5)*.18,rnd()*Math.PI*2,(rnd()-.5)*.20);
         dummy.scale.setScalar((kind===0?1.05:.85)+rnd()*.65);dummy.updateMatrix();matrices.push(dummy.matrix.clone());
       }
-      const far=model.scene.getObjectByName(name+'-far');if(!far)throw new Error(`Missing botanical LOD: ${name}`);
-      installPlants(source,matrices,true,'near');installPlants(far,matrices,true,'far');flowerTotal+=matrices.length*(kind===2?7:1);
+      for(const plant of fields[kind]){
+        dummy.position.set(plant.x,plant.y,plant.z);dummy.rotation.set(plant.lean,plant.rotation,-plant.lean*.6);dummy.scale.setScalar(plant.scale);dummy.updateMatrix();matrices.push(dummy.matrix.clone());
+      }
+      installPlants(source,matrices,true,'near');
+      for(const lod of ['meadow','distant'] as const){
+        const simplified=reduced.scene.getObjectByName(name+'-'+lod);if(!simplified)throw new Error(`Missing meadow LOD: ${name}-${lod}`);
+        installPlants(simplified,matrices,true,lod);
+      }
+      flowerTotal+=matrices.length*(kind===2?7:1);
     }
     const cover=await new GLTFLoader().loadAsync('./assets/flower-garden/groundcover-rosette.glb'),matrices:T.Matrix4[]=[];
     for(let attempt=0;attempt<2500&&matrices.length<300;attempt++){
@@ -246,7 +262,7 @@ export function createFlowerGarden(scene:T.Scene){
   };
   const waterVertices=[],waterUV=[],waterIndices=[];
   for(let i=0;i<=180;i++){
-    const z=-130+i*165/180,x=brookX(z),y=h(x,z)+.4;
+    const z=-155+i*237/180,x=brookX(z),y=h(x,z)+.4;
     waterVertices.push(x-.92,y,z,x+.92,y,z);waterUV.push(0,i/180,1,i/180);
     if(i<180){const a=i*2;waterIndices.push(a,a+2,a+1,a+1,a+2,a+3);}
   }
@@ -257,11 +273,13 @@ export function createFlowerGarden(scene:T.Scene){
   surfaceGrain(wood,'wood');
   const propParts=new Map<T.Material,T.BufferGeometry[]>();
   function part(g:T.BufferGeometry,mat:T.Material,x:number,y:number,z:number,ry=0){g.rotateY(ry);g.translate(x,y,z);const list=propParts.get(mat)??[];list.push(g);propParts.set(mat,list);}
-  const bx=brookX(1),by=h(bx+3.4,1)+.32;
-  for(let i=0;i<25;i++)part(new T.BoxGeometry(.25,.13,2.05),wood,bx-3.25+i*.27,by+.20*Math.sin(i/24*Math.PI),1);
-  for(const side of [-1,1]){
-    part(new T.BoxGeometry(7.1,.14,.13),wood,bx,by+1.05,1+side*1.05);
-    for(let i=0;i<5;i++)part(new T.BoxGeometry(.14,1.05,.14),wood,bx-3.1+i*1.55,by+.5,1+side*1.05);
+  for(const bridge of gardenBridges){
+    const z=bridge.z,bx=brookX(z),by=h(bx+3.4,z)+.32;
+    for(let i=0;i<25;i++)part(new T.BoxGeometry(.25,.13,2.05),wood,bx-3.25+i*.27,by+.20*Math.sin(i/24*Math.PI),z);
+    for(const side of [-1,1]){
+      part(new T.BoxGeometry(7.1,.14,.13),wood,bx,by+1.05,z+side*1.05);
+      for(let i=0;i<5;i++)part(new T.BoxGeometry(.14,1.05,.14),wood,bx-3.1+i*1.55,by+.5,z+side*1.05);
+    }
   }
   for(const [x,z,rotation] of [[-25,-10,.8],[24,-17,-1.2],[29,-50,Math.PI]]){
     const y=h(x,z);
