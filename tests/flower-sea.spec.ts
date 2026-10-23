@@ -1,0 +1,81 @@
+import { test, expect } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+
+const original = JSON.parse(readFileSync('public/assets/flower-sea/manifest.json', 'utf8'));
+const snapshot = () => (window as any).__flowerSea;
+
+test('flower layout renders, preserves pending status, and responds to camera and weather controls', async ({ page }) => {
+  const errors: string[] = [], modelRequests: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('request', request => { if (request.url().endsWith('.glb')) modelRequests.push(request.url()); });
+  await page.goto('/flower-sea.html');
+  await page.waitForFunction(() => (window as any).__flowerSea?.ready);
+  await expect(page.locator('#flower-progress')).toContainText('布局预览');
+  const initial = await page.evaluate(snapshot);
+  expect(initial.loaded).toEqual([]); expect(initial.pending).toHaveLength(5);
+  expect(modelRequests).toEqual([]);
+  await expect.poll(async () => (await page.evaluate(snapshot)).triangles).toBeGreaterThan(10000);
+  const canvas = page.locator('#flower-canvas canvas');
+  await expect(canvas).toBeVisible();
+  await page.mouse.move(650, 500); await page.mouse.down();
+  await page.mouse.move(820, 540, { steps: 6 }); await page.mouse.up();
+  await expect.poll(async () => (await page.evaluate(snapshot)).camera[0]).not.toBeCloseTo(initial.camera[0], 1);
+  await page.selectOption('#flower-weather', 'rain');
+  expect((await page.evaluate(snapshot)).weather).toBe('rain');
+  await page.locator('#flower-reset').click();
+  await expect.poll(async () => (await page.evaluate(snapshot)).camera[0]).toBeCloseTo(initial.camera[0], 3);
+  await page.locator('#flower-models-toggle').click();
+  await expect(page.locator('#flower-model-list li[data-state="pending"]')).toHaveCount(5);
+  await expect(page.locator('#flower-reference-image')).toBeVisible();
+  expect(await page.locator('#flower-reference-image').evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(960);
+  await page.locator('#flower-inputs-toggle').click();
+  await expect(page.locator('#flower-inputs')).toBeVisible();
+  await expect(page.locator('#flower-input-grid img')).toHaveCount(5);
+  await expect.poll(() => page.locator('#flower-input-grid img').evaluateAll(images => images.every(image => (image as HTMLImageElement).naturalWidth > 100))).toBe(true);
+  await page.screenshot({ path: 'artifacts/flower-review/modeling-inputs.png' });
+  await page.locator('#flower-inputs-close').click();
+  await page.screenshot({ path: 'artifacts/flower-review/desktop.png' });
+  expect(errors).toEqual([]);
+});
+
+test('ready status requires parsing a real matching GLB', async ({ page }) => {
+  // A known local tree is a loader fixture only; never installed as a flower asset.
+  const bytes = readFileSync('public/assets/nature/oak.glb');
+  const manifest = structuredClone(original);
+  manifest.assets[0].state = 'ready';
+  manifest.assets[0].path = './assets/nature/oak.glb';
+  manifest.assets[0].sha256 = createHash('sha256').update(bytes).digest('hex');
+  await page.route('**/assets/flower-sea/manifest.json', route => route.fulfill({ json: manifest }));
+  await page.goto('/flower-sea.html');
+  await page.waitForFunction(() => (window as any).__flowerSea?.ready);
+  expect((await page.evaluate(snapshot)).loaded).toEqual(['pink-portal']);
+  expect((await page.evaluate(snapshot)).failed).toEqual([]);
+  await expect(page.locator('#flower-progress')).toContainText('1/5');
+});
+
+test('a corrupted ready asset remains a failure rather than becoming a substitute model', async ({ page }) => {
+  const manifest = structuredClone(original);
+  manifest.assets[0].state = 'ready';
+  manifest.assets[0].path = './assets/nature/oak.glb';
+  manifest.assets[0].sha256 = '0'.repeat(64);
+  await page.route('**/assets/flower-sea/manifest.json', route => route.fulfill({ json: manifest }));
+  await page.goto('/flower-sea.html');
+  await page.waitForFunction(() => (window as any).__flowerSea?.ready);
+  const state = await page.evaluate(snapshot);
+  expect(state.loaded).toEqual([]);
+  expect(state.failed).toEqual([{ id: 'pink-portal', message: '模型完整性校验失败' }]);
+  await expect(page.locator('#flower-progress')).toContainText('1 项加载失败');
+});
+
+test('flower controls remain accessible on a phone viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 393, height: 852 });
+  await page.goto('/flower-sea.html');
+  await page.waitForFunction(() => (window as any).__flowerSea?.ready);
+  await expect(page.locator('#flower-weather')).toBeInViewport();
+  await expect(page.locator('#flower-reset')).toBeInViewport();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(393);
+  await page.selectOption('#flower-weather', 'dusk');
+  expect((await page.evaluate(snapshot)).weather).toBe('dusk');
+  await page.screenshot({ path: 'artifacts/flower-review/mobile.png' });
+});

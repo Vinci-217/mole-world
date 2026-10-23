@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "mapId": 362,
+  "assets": [
+    {"id":"pink-portal","label":"巨型粉花","path":"./assets/flower-sea/pink-portal.glb","height":5.4,"state":"pending"},
+    {"id":"vine-arch","label":"藤蔓拱门","path":"./assets/flower-sea/vine-arch.glb","height":7.0,"state":"pending"},
+    {"id":"cottage","label":"红顶小屋","path":"./assets/flower-sea/cottage.glb","height":5.0,"state":"pending"},
+    {"id":"ancient-tree","label":"框景古树","path":"./assets/flower-sea/ancient-tree.glb","height":17.0,"state":"pending"},
+    {"id":"flowering-vine","label":"空中花藤","path":"./assets/flower-sea/flowering-vine.glb","height":4.0,"state":"pending"}
+  ],
+  "placements": [
+    {"assetId":"pink-portal","position":[13,0,6],"rotation":-0.28},
+    {"assetId":"vine-arch","position":[-7,0,-4],"rotation":0.06},
+    {"assetId":"cottage","position":[9,0,-10],"rotation":-0.3},
+    {"assetId":"ancient-tree","position":[-15,0,5],"rotation":0.15},
+    {"assetId":"ancient-tree","position":[17,0,-2],"rotation":2.8,"scale":1.1},
+    {"assetId":"flowering-vine","position":[0,10,-3],"rotation":0}
+  ],
+  "sourceReference": {"path":"./assets/flower-sea/reference.png","title":"神秘花海 · 原地图绘图参考"},
+  "exits": [
+    {"id":"go_112","label":"虫虫谷","mapId":112,"referencePosition":[499,534],"implemented":false},
+    {"id":"go_113","label":"神秘花蕊","mapId":113,"referencePosition":[866,441],"implemented":false}
+  ]
+}

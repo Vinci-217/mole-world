@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#e9f0df" />
+    <meta name="description" content="摩尔庄园神秘花海，按页游原图布局制作的可旋转3D场景。" />
+    <title>神秘花海 · 摩尔庄园</title>
+    <link rel="icon" type="image/svg+xml" href="./crest.svg" />
+  </head>
+  <body>
+    <main id="flower-app">
+      <div id="flower-canvas" aria-label="神秘花海三维布局，拖动旋转，滚轮缩放"></div>
+      <div class="flower-vignette" aria-hidden="true"></div>
+      <header class="flower-heading">
+        <a class="flower-back" href="./index.html">← 返回庄园</a>
+        <p class="flower-eyebrow">MOLE MANOR · MAP 362</p>
+        <h1>神秘花海</h1>
+        <p class="flower-subtitle">穿过花与藤蔓，回到记忆里的那片绿意。</p>
+        <p id="flower-progress" class="flower-progress" role="status">正在读取地图资产…</p>
+      </header>
+      <aside id="flower-reference" class="flower-reference">
+        <div class="flower-reference-heading"><span>页游原图 · 布局参照</span><button id="flower-reference-close" aria-label="收起原图">×</button></div>
+        <img id="flower-reference-image" alt="神秘花海原图：左侧藤蔓拱门，远处小屋，右下粉色巨花与两个入口" />
+        <p id="flower-reference-caption">原资源绘图观察图</p>
+      </aside>
+      <div id="flower-markers" class="flower-marker-layer" aria-hidden="true"></div>
+      <aside id="flower-models" class="flower-models" hidden>
+        <div class="flower-models-heading">地标资产 <button id="flower-models-close" aria-label="收起地标列表">×</button></div>
+        <ul id="flower-model-list"></ul>
+        <p>待生成的地标只显示位置标记，未以临时几何体替代。</p>
+      </aside>
+      <div id="flower-error" class="flower-error" role="alert" hidden></div>
+      <dialog id="flower-inputs" class="flower-inputs" aria-labelledby="flower-inputs-title">
+        <header><div><h2 id="flower-inputs-title">花海 · 单体参考</h2><p>根据原图转译的建模输入 · 非实机画面</p></div><button id="flower-inputs-close" aria-label="关闭单体参考">×</button></header>
+        <div id="flower-input-grid" class="flower-input-grid"></div>
+      </dialog>
+      <footer class="flower-bottom">
+        <div class="flower-controls" aria-label="场景控制">
+          <button id="flower-reset" title="回到原图构图">↺ <span>原图视角</span></button>
+          <button id="flower-reference-toggle" aria-pressed="true">▧ <span>原图对照</span></button>
+          <button id="flower-models-toggle" aria-pressed="false">◇ <span>地标</span></button>
+          <button id="flower-inputs-toggle">✿ <span>单体参考</span></button>
+          <span class="flower-divider"></span>
+          <label class="flower-weather"><span class="sr-only">天气</span><select id="flower-weather"><option value="day">晴日</option><option value="dusk">黄昏</option><option value="rain">细雨</option></select></label>
+          <button id="flower-sound" aria-pressed="false">♪ <span>开启音乐</span></button>
+        </div>
+        <p class="flower-help">拖动环绕 · 滚轮缩放 · 双指平移</p>
+      </footer>
+      <div id="flower-loading" class="flower-loading" role="status"><span></span>正在铺开花海…</div>
+    </main>
+    <script type="module" src="./src/flower-sea.ts"></script>
+  </body>
+</html>
