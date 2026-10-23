@@ -21,7 +21,10 @@ export function createBlackForest(container:HTMLElement,onFrame:()=>void){
   renderer.info.autoReset=false;container.append(renderer.domElement);
   const camera=new T.PerspectiveCamera(49,1,.12,380);camera.position.set(2,3.1,24);
   const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(-2.5,3.2,-23);
-  controls.enableDamping=true;controls.dampingFactor=.09;controls.maxPolarAngle=Math.PI*.495;controls.minDistance=2;controls.maxDistance=170;controls.update();
+  controls.enableDamping=true;controls.dampingFactor=.09;controls.maxPolarAngle=Math.PI*.495;controls.minDistance=2;
+  // Keep inspection views over the authored terrain. Movement through the
+  // woodland uses the walking camera, rather than panning into an empty border.
+  controls.maxDistance=80;controls.enablePan=false;controls.update();
   const walk=createGardenWalk(camera,controls,renderer.domElement,{canWalk:forestCanWalk,height:forestWalkHeight,spawn:[2,29]});
   const rendering=createGardenRendering(renderer,scene,camera,'woodland');rendering.weather('dusk');scene.environmentIntensity=.38;
   const sky=new Sky();sky.scale.setScalar(300);scene.add(sky);

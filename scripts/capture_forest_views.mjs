@@ -26,7 +26,8 @@ try{
   await click('#forest-walk');await click('[data-forest-place="mushrooms"]');await capture('walk');await page.keyboard.press('Escape');await click('#forest-reset');
   await page.mouse.move(640,430);await page.mouse.wheel(0,5000);await capture('wide');
   const wide=await page.evaluate(()=>window.__blackForest);
-  if(Math.hypot(...wide.camera.map((v,i)=>v-wide.target[i]))<165)throw Error('Wide-orbit inspection did not reach the camera limit');
+  const radius=Math.hypot(...wide.camera.map((v,i)=>v-wide.target[i]));
+  if(radius<78||radius>80.1)throw Error('Wide-orbit inspection escaped the authored terrain or did not reach the camera limit');
   await click('#forest-reset');
   for(const value of ['moon','mist','rain']){await page.evaluate(value=>{const s=document.querySelector('#forest-atmosphere');s.value=value;s.dispatchEvent(new Event('change'));},value);await capture(value==='moon'?'night':value);}
   if(errors.length)throw Error(errors.join('; '));
