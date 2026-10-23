@@ -48,8 +48,9 @@ function updateAssetState(stats: FlowerSceneStats) {
   const total = currentManifest.assets.length;
   const missing = total - stats.loaded.length;
   const awaitingDownload = currentManifest.assets.filter(asset => asset.generationState === 'generated' && !stats.loaded.includes(asset.id)).length;
+  const sceneLabel = stats.loaded.length ? '3D 场景' : '布局预览';
   element('flower-progress').textContent = missing > 0
-    ? `布局预览 · 地标模型 ${stats.loaded.length}/${total} 就绪${awaitingDownload ? ` · ${awaitingDownload} 项已生成待下载` : ''}${stats.failed.length ? ` · ${stats.failed.length} 项加载失败` : ''}`
+    ? `${sceneLabel} · 地标模型 ${stats.loaded.length}/${total} 就绪${awaitingDownload ? ` · ${awaitingDownload} 项已生成待下载` : ''}${stats.failed.length ? ` · ${stats.failed.length} 项加载失败` : ''}`
     : `3D 场景 · ${stats.loaded.length} 项地标模型已就绪`;
   const list = element('flower-model-list'); list.replaceChildren();
   for (const asset of currentManifest.assets) {

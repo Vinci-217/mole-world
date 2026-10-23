@@ -13,7 +13,7 @@ test('flower map loads its real published assets and responds to camera and weat
   await page.waitForFunction(() => (window as any).__flowerSea?.ready);
   const expectedReady = original.assets.filter((asset: any) => asset.state === 'ready').map((asset: any) => asset.id);
   const expectedPending = original.assets.length - expectedReady.length;
-  await expect(page.locator('#flower-progress')).toContainText(expectedPending ? '布局预览' : '3D 场景');
+  await expect(page.locator('#flower-progress')).toContainText(expectedReady.length ? '3D 场景' : '布局预览');
   const initial = await page.evaluate(snapshot);
   expect(new Set(initial.loaded)).toEqual(new Set(expectedReady));
   expect(initial.pending).toHaveLength(expectedPending); expect(initial.failed).toEqual([]);
