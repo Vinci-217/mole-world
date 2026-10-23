@@ -16,6 +16,7 @@ try{
     await page.locator(`[data-garden-view="${id}"]`).click();await frames();
     views[id]=await page.evaluate(()=>window.__flowerSea);
     await page.screenshot({path:`artifacts/flower-review/production-${id}.png`,timeout:60000});
+    console.log(`Captured ${id}`);
   }
   await page.locator('[data-garden-view="front"]').click();await frames();
   await page.screenshot({path:'artifacts/flower-review/production-day.png',timeout:60000});
@@ -23,9 +24,11 @@ try{
   await page.screenshot({path:'artifacts/flower-review/production-walk.png',timeout:60000});
   await page.keyboard.press('Escape');await page.locator('#flower-reset').click();await page.selectOption('#flower-weather','night');await frames();
   await page.screenshot({path:'artifacts/flower-review/production-night.png',timeout:60000});
+  console.log('Captured walk and night');
   for(const weather of ['dusk','rain']){
     await page.selectOption('#flower-weather',weather);await frames();
     await page.screenshot({path:`artifacts/flower-review/production-${weather}.png`,timeout:60000});
+    console.log(`Captured ${weather}`);
   }
   if(errors.length)throw Error(errors.join('; '));
   writeFileSync('artifacts/flower-review/production-views.json',JSON.stringify({initial,views,errors},null,2));

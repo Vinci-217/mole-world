@@ -344,6 +344,16 @@ export function createFlowerGarden(scene:T.Scene){
       if(z>15&&Math.abs(x)<24)continue;
       dummy.position.set(x,h(x,z)-1.45,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.40+rnd()*.17);dummy.updateMatrix();placements.push({matrix:dummy.matrix.clone(),position:dummy.position.clone()});
     }
+    // Reuse the authored low LOD to frame all sides of the garden. Two broken
+    // bands give the side/rear views a wooded horizon beyond the walkable glade.
+    for(let i=0;i<210;i++){
+      const angle=i/105*Math.PI*2,band=i<105?0:1;
+      const x=Math.cos(angle)*(72+band*25+(rnd()-.5)*13);
+      const z=-28+Math.sin(angle)*(79+band*29+(rnd()-.5)*12);
+      dummy.position.set(x,h(x,z)-.18,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);
+      dummy.scale.setScalar(.82+rnd()*.8);dummy.updateMatrix();
+      placements.push({matrix:dummy.matrix.clone(),position:dummy.position.clone()});
+    }
     stats.trees=placements.length;
     for(const [index,model] of models.entries()){
     const bounds=new T.Box3().setFromObject(model.scene),center=bounds.getCenter(new T.Vector3()),scale=9.5/bounds.getSize(new T.Vector3()).y;
