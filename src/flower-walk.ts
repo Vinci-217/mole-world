@@ -36,6 +36,11 @@ export function createGardenWalk(camera:T.PerspectiveCamera,controls:OrbitContro
   return {
     get active(){return active;},get position(){return position;},start,stop,
     moveTo(x:number,z:number){if(!gardenCanWalk(x,z))return false;position.set(x,gardenWalkHeight(x,z)+1.62,z);if(active)camera.position.copy(position);return true;},
+    lookAt(target:T.Vector3){
+      const direction=target.clone().sub(position).normalize();
+      yaw=Math.atan2(-direction.x,-direction.z);pitch=T.MathUtils.clamp(Math.asin(direction.y),-1.22,1.22);
+      if(active)look();
+    },
     update(dt:number){
       if(!active)return;
       let forward=Number(keys.has('KeyW')||keys.has('ArrowUp'))-Number(keys.has('KeyS')||keys.has('ArrowDown'));

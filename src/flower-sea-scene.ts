@@ -25,7 +25,7 @@ export type FlowerWeather = 'day' | 'dusk' | 'rain' | 'night';
 export interface FlowerSceneStats {
   ready: boolean; loaded: string[]; pending: string[]; failed: { id: string; message: string }[];
   draws: number; triangles: number; environmentSource: string; weather: FlowerWeather;
-  environment:{ready:boolean;failed:string[];clouds:number;trees:number;butterflies:number};
+  environment:{ready:boolean;failed:string[];skyTexture:boolean;trees:number;butterflies:number};
 }
 
 export async function createFlowerSeaScene(
@@ -36,7 +36,7 @@ export async function createFlowerSeaScene(
   const stats: FlowerSceneStats = {
     ready: false, loaded: [], pending: manifest.assets.filter(a => a.state !== 'ready').map(a => a.id),
     failed: [], draws: 0, triangles: 0, environmentSource: '原创环境底座；地标由独立GLB加载', weather: 'day',
-    environment:{ready:false,failed:[],clouds:0,trees:0,butterflies:0},
+    environment:{ready:false,failed:[],skyTexture:false,trees:0,butterflies:0},
   };
   let seed = 362;
   const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) | 0; return (seed >>> 0) / 4294967296; };
@@ -47,7 +47,7 @@ export async function createFlowerSeaScene(
   renderer.toneMapping = T.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = T.PCFSoftShadowMap;
+  renderer.shadowMap.type = T.PCFShadowMap;
   // The shadow casters are static. Rebuild only after loading or moving the sun.
   renderer.shadowMap.autoUpdate = false;
   host.appendChild(renderer.domElement);
@@ -63,20 +63,20 @@ export async function createFlowerSeaScene(
   function resetView() {
     // Clear a drag's residual damping before restoring the composition.
     const damping = controls.enableDamping; controls.enableDamping = false; controls.update();
-    camera.position.set(1.8, 11.8, 32.5); controls.target.set(0, 3.2, -3); controls.update();
+    camera.position.set(1.8, 8.5, 29); controls.target.set(0, 3.1, -4); controls.update();
     controls.enableDamping = damping;
   }
   resetView();
 
-  const hemi = new T.HemisphereLight(0xc7eaf2, 0x698d4c, 1.15); scene.add(hemi);
-  const sun = new T.DirectionalLight(0xfff2d3, 2.35);
+  const hemi = new T.HemisphereLight(0xbcdce9, 0x456b54, .9); scene.add(hemi);
+  const sun = new T.DirectionalLight(0xffe6bd, 2.8);
   sun.position.set(-14, 25, 13); sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
   Object.assign(sun.shadow.camera, { left: -25, right: 25, top: 25, bottom: -25, near: 1, far: 75 });
   sun.shadow.bias = -.0003; sun.shadow.normalBias = .055;
-  sun.shadow.radius = 3; scene.add(sun); scene.add(sun.target);
+  sun.shadow.radius = 3.5; scene.add(sun); scene.add(sun.target);
   const fill = new T.DirectionalLight(0xbcdcc3, .5); fill.position.set(20, 6, -18); scene.add(fill);
-  scene.background = new T.Color('#a6e6df'); scene.fog = new T.FogExp2('#a6e6df', .0045);
+  scene.background = new T.Color('#b6e5da'); scene.fog = new T.FogExp2('#b6e5da', .009);
 
   const garden = createFlowerGarden(scene);
   const sky = createFlowerSky(scene);
@@ -159,9 +159,9 @@ export async function createFlowerSeaScene(
       hemi.color.set('#ccd9df'); hemi.intensity = 1.65; hemi.groundColor.set('#536c50');
       scene.background = new T.Color('#afc4bc'); scene.fog = new T.FogExp2('#afc4bc', .018); renderer.toneMappingExposure = 1.03;
     } else {
-      sun.color.set('#fff2d3'); sun.intensity = 2.35; sun.position.set(-14, 25, 13);
-      hemi.color.set('#c7eaf2'); hemi.intensity = 1.15; hemi.groundColor.set('#698d4c');
-      scene.background = new T.Color('#a6e6df'); scene.fog = new T.FogExp2('#a6e6df', .0045); renderer.toneMappingExposure = 1.05;
+      sun.color.set('#ffe6bd'); sun.intensity = 2.8; sun.position.set(-14, 25, 13);
+      hemi.color.set('#bcdce9'); hemi.intensity = .9; hemi.groundColor.set('#456b54');
+      scene.background = new T.Color('#b6e5da'); scene.fog = new T.FogExp2('#b6e5da', .009); renderer.toneMappingExposure = 1.05;
       particleMaterial.opacity = .54;
     }
   }
@@ -199,7 +199,7 @@ export async function createFlowerSeaScene(
   const environmentResults=loadResults.slice(loadJobs.length);
   stats.environment={ready:environmentResults.every(r=>r.status==='fulfilled'),
     failed:environmentResults.flatMap((r,i)=>r.status==='rejected'?[i===0?'花园植被与蝴蝶':'天空云层']:[]),
-    clouds:sky.stats.clouds,trees:garden.stats.trees,butterflies:garden.stats.butterflies};
+    skyTexture:sky.stats.skyTexture,trees:garden.stats.trees,butterflies:garden.stats.butterflies};
   renderer.shadowMap.needsUpdate = true;
   stats.ready = true; onProgress(stats);
   return {
@@ -207,7 +207,18 @@ export async function createFlowerSeaScene(
     flowerCount: garden.flowerTotal,
     onFrame(callback: () => void) { subscribers.add(callback); return () => subscribers.delete(callback); },
     focus(position: [number, number, number],view?:GardenView) {
-      const [x,y,z]=position;if(walk.active){walk.moveTo(x,z);return;}
+      const [x,y,z]=position;if(walk.active){
+        if(walk.moveTo(x,z)&&view){
+          const [tx,ty,tz]=view.target,target=new T.Vector3(tx,flowerGroundHeight(tx,tz)+ty,tz);
+          if(Math.hypot(tx-x,tz-z)<2){
+            const [ex,ey,ez]=view.eye;
+            const direction=target.clone().sub(new T.Vector3(ex,flowerGroundHeight(ex,ez)+ey,ez)).normalize();
+            target.copy(walk.position).addScaledVector(direction,8);
+          }
+          walk.lookAt(target);
+        }
+        return;
+      }
       const damping=controls.enableDamping;controls.enableDamping=false;controls.update();
       const eye=view?.eye??[x+2,y+7,z+12],target=view?.target??[x,y+1,z];
       camera.position.set(eye[0],flowerGroundHeight(eye[0],eye[2])+eye[1],eye[2]);
@@ -223,6 +234,8 @@ export async function createFlowerSeaScene(
           for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
             materials.add(material);
             for (const value of Object.values(material)) if (value instanceof T.Texture) textures.add(value);
+            for (const value of Object.values(material.userData)) if(value instanceof T.Texture) textures.add(value);
+            if(material instanceof T.ShaderMaterial)for(const uniform of Object.values(material.uniforms))if(uniform.value instanceof T.Texture)textures.add(uniform.value);
           }
         }
       };

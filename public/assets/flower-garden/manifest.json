@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "assets": [
     {
       "id": "cloud-formation",
@@ -7,24 +7,6 @@
       "path": "./assets/flower-garden/cloud-formation.glb",
       "sha256": "6c6887a262f5b5368887136b4739508c99646adbbd8ebc63c4729b5c358a9139",
       "triangles": 2484,
-      "source": "Blender authored supporting garden asset",
-      "blenderVersion": "4.3.2"
-    },
-    {
-      "id": "garden-tree-near",
-      "state": "ready",
-      "path": "./assets/flower-garden/garden-tree-near.glb",
-      "sha256": "5110c54e3a62c4fd5c0dc3dafcdffa7d8d36539df89b901fb0a04d8317f04793",
-      "triangles": 9208,
-      "source": "Blender authored supporting garden asset",
-      "blenderVersion": "4.3.2"
-    },
-    {
-      "id": "garden-tree-far",
-      "state": "ready",
-      "path": "./assets/flower-garden/garden-tree-far.glb",
-      "sha256": "c56a6d13df100917903f73838e061c700386c53cc5d7991b8127e9113c01fddc",
-      "triangles": 2976,
       "source": "Blender authored supporting garden asset",
       "blenderVersion": "4.3.2"
     },
@@ -44,6 +26,46 @@
       "sha256": "bd3618b7c8ce506f22fe42f187fe8c15abbc50eac15d12141b868ab37d986fa4",
       "triangles": 6060,
       "source": "Blender authored supporting garden asset",
+      "blenderVersion": "4.3.2"
+    },
+    {
+      "id": "sculpted-flowers",
+      "state": "ready",
+      "path": "./assets/flower-garden/sculpted-flowers.glb",
+      "sha256": "c748d166edfb6339508113e7688d98be57e0b6d74e16a73d5465fc3588f1b1df",
+      "triangles": 13036,
+      "source": "Blender authored curved botanical meshes; AI-painted albedo atlas",
+      "blenderVersion": "4.3.2"
+    },
+    {
+      "id": "groundcover-rosette",
+      "state": "ready",
+      "path": "./assets/flower-garden/groundcover-rosette.glb",
+      "sha256": "6e705f64a47f6543fdae6fc90c59c80abf14f56365617664cc9b694c907e93e8",
+      "triangles": 972,
+      "source": "Blender authored curved botanical meshes; AI-painted albedo atlas",
+      "blenderVersion": "4.3.2"
+    },
+    {
+      "id": "garden-tree-near",
+      "state": "ready",
+      "path": "./assets/flower-garden/garden-tree-near.glb",
+      "sha256": "b242b538a220c884852110d853bca8d3885d020514f24d285af8c1bb937b6251",
+      "triangles": 4438,
+      "source": "BabylonJS Assets broadleaf tree, CC BY 4.0; crown proportions and normals refined in Blender",
+      "sourceSha256": "bf9d78aaa9c1fb6ec49bb553441f1f88c157384ef75db8c70bee371161de7bad",
+      "geometryPolicy": "alpha-cutout-foliage",
+      "blenderVersion": "4.3.2"
+    },
+    {
+      "id": "garden-tree-far",
+      "state": "ready",
+      "path": "./assets/flower-garden/garden-tree-far.glb",
+      "sha256": "9021cea2d9699b6c7a27a425eec22553c6afbb034cf4cee5da16538175234fee",
+      "triangles": 914,
+      "source": "BabylonJS Assets broadleaf tree, CC BY 4.0; crown proportions and normals refined in Blender",
+      "sourceSha256": "64e7a2ff3d9da6ca14a95d37c79bad2d3c4602d5d0388c3b3d1f0fed0f08547d",
+      "geometryPolicy": "alpha-cutout-foliage",
       "blenderVersion": "4.3.2"
     }
   ]

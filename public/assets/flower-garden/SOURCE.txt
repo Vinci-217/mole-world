@@ -1,14 +1,22 @@
-神秘花海的风格化辅助模型
+神秘花海的风格化辅助美术
 
-cloud-formation.glb、garden-tree-near.glb、garden-tree-far.glb、garden-butterfly.glb、garden-bellflowers.glb
-由本项目的 scripts/build_flower_atmosphere.py 在 Blender 4.3.2 中构建。
-这些是程序建模、曲面精修与顶点着色的结果，不是混元生成结果，也不是提取的官方3D模型。
+当前使用的花卉与地被：scripts/sculpt_flower_botanicals.py，在 Blender 4.3.2 中构建。
+这些为程序构建的曲面模型，使用本轮 AI 绘制的材质，不是混元生成模型，不是提取的官方3D资产。
 
-云团：融合的三维等值面、柔和轮廓与封闭体积。
-树木：弯曲树干、分枝与根部、融合的树冠、手绘风格顶点颜色，以及单独导出的近远两档网格。
-蝴蝶：封闭的曲面翅膀、翅缘和色斑、身体与触须，左右翅保留独立枢轴供运行时扇动。
-钟形花：弯曲下垂的花茎、有实体边缘的五瓣花冠、珊瑚粉至奶油色的顶点颜色、浅金花蕊与叶片。
+sculpted-flowers.glb：珊瑚色重瓣花、奶油白花、淡紫花穗、黄色小花；弯曲花茎、卷曲花瓣、实体薄边、花蕊、带叶脉UV的曲面叶片。每种有独立的近景和远景模型。
+groundcover-rosette.glb：沿路与花带中使用的弯曲阔叶地被。
+garden-tree-near.glb / garden-tree-far.glb：由已有的 BabylonJS Assets 阔叶树模型作底，在 Blender 中调整冠幅、高度比例、法线强度，并封闭木质结构边界；保留原资产的透明裁切叶面和贴图。树叶为常规游戏用透明裁切面片，不声明为封闭体积。
+原始来源：https://github.com/BabylonJS/Assets/tree/c81f5d744fe8d41acfebd89eaeb7008c6f9659e3/meshes/Trees
+作者：BabylonJS Assets contributors；许可：CC BY 4.0，https://creativecommons.org/licenses/by/4.0/
+本项目之前的格式转换说明及完整许可见 ../nature/SOURCE.txt 和 ../nature/LICENSE-BabylonJS.txt。
+本轮Blender调整脚本：scripts/refine_flower_forest.py。
+botanical-atlas.png：AI绘制的珊瑚粉、奶油白、淡紫花瓣与叶片材质图集。
+painted-meadow.png：AI绘制的草地漫反射材质。
+painted-sky.png：AI绘制的全景天空；运行时球面环境贴图，不是可行走的3D云模型。天气着色与星光由着色器驱动。
 
-各文件的SHA256与实际三角面数见同目录manifest.json。
-可编辑源文件保存在 artifacts/flower-atmosphere/，未随网站发布。
+garden-butterfly.glb、garden-bellflowers.glb 由 scripts/build_flower_atmosphere.py 构建：有封闭曲面、顶点颜色与花瓣厚度；蝴蝶左右翅保留独立枢轴。
+cloud-formation.glb 为上一版保留的辅助云团，当前场景不再加载。
+
+各GLB的SHA256与实际三角面数见manifest.json；纹理来源与校验见art-materials.json。
+本轮可编辑源文件在 artifacts/flower-botanical-sculpt/，纹理已打包进.blend文件。
 原地图、原BGM和四项实际混元地标的来源见 ../flower-sea/SOURCE.txt。

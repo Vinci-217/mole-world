@@ -41,10 +41,15 @@ for asset in manifest['assets'] + support['assets']:
         bmesh.ops.remove_doubles(bm, verts=list(bm.verts), dist=.000001)
         boundary = sum(edge.is_boundary for edge in bm.edges)
         nonmanifold = sum(not edge.is_manifold for edge in bm.edges)
+        # Licensed foliage intentionally uses alpha-cutout leaf surfaces, a
+        # standard game asset technique. Only this explicitly declared mesh
+        # policy permits open leaf edges; wood and our solid petals stay closed.
+        alpha_foliage=(asset.get('geometryPolicy')=='alpha-cutout-foliage'
+                       and all('Foliage' in m.name for m in obj.data.materials))
         meshes.append({'name': obj.name, 'boundaryEdges': boundary,
-                       'nonManifoldEdges': nonmanifold})
+                       'nonManifoldEdges': nonmanifold,'alphaCutoutSurface':alpha_foliage})
         bm.free()
-        if boundary or nonmanifold:
+        if (boundary or nonmanifold) and not alpha_foliage:
             failures.append(f"{asset['id']}/{obj.name}: open or nonmanifold geometry")
     if triangles != asset['triangles']:
         failures.append(asset['id'] + ': triangle count mismatch')

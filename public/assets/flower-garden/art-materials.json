@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "materials": [
+    {
+      "file": "botanical-atlas.png",
+      "role": "AI-painted UV petal and leaf albedo atlas",
+      "sha256": "39ddd98a86121ef2321d783b644dee142c292fee823be25f3140a7420a27e253",
+      "source": "OpenAI image generation tool; generated for this project",
+      "officialGameAsset": false
+    },
+    {
+      "file": "painted-meadow.png",
+      "role": "AI-painted meadow albedo",
+      "sha256": "62f70ed078df5c304c5784b82ad0a046c45dcd322987b05eb94abe37013e4d41",
+      "source": "OpenAI image generation tool; generated for this project",
+      "officialGameAsset": false
+    },
+    {
+      "file": "painted-sky.png",
+      "role": "AI-painted equirectangular sky background",
+      "sha256": "a8969541de327910f061dcf0878fd9082371c9154330aa685f066f7de0762b7a",
+      "source": "OpenAI image generation tool; generated for this project",
+      "officialGameAsset": false
+    }
+  ]
+}

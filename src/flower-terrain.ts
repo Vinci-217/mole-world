@@ -23,7 +23,7 @@ export function routeDistance(x: number, z: number) {
 }
 export interface GardenView {eye:[number,number,number];target:[number,number,number]}
 export const gardenPlaces:{id:string;label:string;position:[number,number,number];view:GardenView}[] = [
-  { id:'flower-path',label:'藤蔓花径',position:[-5,0,-1],view:{eye:[-.5,5.2,9],target:[-7,3,-4]} },
+  { id:'flower-path',label:'藤蔓花径',position:[-2,0,5],view:{eye:[-.5,5.2,9],target:[-7,3,-4]} },
   { id:'brook-bridge',label:'溪畔木桥',position:[-17.6,0,1],view:{eye:[-12,4.4,9],target:[-18,.9,1]} },
   { id:'secret-grove',label:'林间小憩',position:[-25,0,-9],view:{eye:[-20,4,-1],target:[-25,1.7,-9]} },
   { id:'cottage-garden',label:'花屋前庭',position:[9,0,-6],view:{eye:[3.4,4.3,3.3],target:[9,2,-10]} },

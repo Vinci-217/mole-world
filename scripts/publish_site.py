@@ -54,6 +54,8 @@ def stage() -> None:
     downloads.mkdir()
     for name in ['MoleManor-Offline.zip', 'MoleManor-Website.zip', '打开说明.txt']:
         shutil.copy2(RELEASE / name, downloads / name)
+    if (RELEASE/'FlowerSea-Blender-Botanicals.zip').is_file():
+        shutil.copy2(RELEASE/'FlowerSea-Blender-Botanicals.zip',downloads/'FlowerSea-Blender-Botanicals.zip')
     for filename, target in [('manor-desktop.png', 'preview.png'), ('manor-night.png', 'preview-night.png'),
                              ('manor-mobile.png', 'preview-mobile.png')]:
         screenshot = ROOT / 'artifacts' / filename

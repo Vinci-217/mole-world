@@ -6,7 +6,8 @@ const original = JSON.parse(readFileSync('public/assets/flower-sea/manifest.json
 const snapshot = () => (window as any).__flowerSea;
 
 test('flower map loads its real published assets and responds to camera and weather controls', async ({ page }) => {
-  test.setTimeout(150000);
+  // Software-rendered cloud Chromium needs time for the complete UI sequence.
+  test.setTimeout(210000);
   await page.setViewportSize({width:1280,height:850});
   const errors: string[] = [], modelRequests: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -20,7 +21,7 @@ test('flower map loads its real published assets and responds to camera and weat
   expect(new Set(initial.loaded)).toEqual(new Set(expectedReady));
   expect(initial.pending).toHaveLength(expectedPending); expect(initial.failed).toEqual([]);
   expect(initial.environment.ready).toBe(true);expect(initial.environment.failed).toEqual([]);
-  expect(initial.environment.clouds).toBe(7);expect(initial.environment.trees).toBeGreaterThan(30);expect(initial.environment.butterflies).toBe(8);
+  expect(initial.environment.skyTexture).toBe(true);expect(initial.environment.trees).toBeGreaterThan(30);expect(initial.environment.butterflies).toBe(8);
   expect(modelRequests).toHaveLength(expectedReady.length);
   await expect.poll(async () => (await page.evaluate(snapshot)).triangles).toBeGreaterThan(10000);
   const canvas = page.locator('#flower-canvas canvas');
@@ -42,9 +43,7 @@ test('flower map loads its real published assets and responds to camera and weat
   await expect(page.locator('#flower-inputs')).toBeVisible();
   await expect(page.locator('#flower-input-grid img')).toHaveCount(5);
   await expect.poll(() => page.locator('#flower-input-grid img').evaluateAll(images => images.every(image => (image as HTMLImageElement).naturalWidth > 100))).toBe(true);
-  await page.screenshot({ path: 'artifacts/flower-review/modeling-inputs.png' });
   await page.locator('#flower-inputs-close').click();
-  await page.screenshot({ path: 'artifacts/flower-review/desktop.png' });
   await page.locator('#flower-reference-close').click();
   await page.locator('#flower-models-close').click();
   await page.locator('[data-garden-place="pink-flower"]').click();

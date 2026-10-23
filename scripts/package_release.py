@@ -103,3 +103,15 @@ with zipfile.ZipFile(OUT / 'MoleManor-Offline.zip', 'w', zipfile.ZIP_DEFLATED, c
     archive.write(DIST / 'assets/nature/LICENSE-BabylonJS.txt', 'LICENSE-BabylonJS.txt')
 for path in [offline,OUT/'MoleManor-Offline.zip',OUT/'MoleManor-Website.zip',OUT/'打开说明.txt']:
     print(path.name, path.stat().st_size, 'bytes', hashlib.sha256(path.read_bytes()).hexdigest())
+
+# A separate, reviewable Blender delivery; do not nest it inside the website ZIP.
+botanicals=ROOT/'artifacts/flower-botanical-sculpt'
+blend_names=['sculpted-flowers','groundcover-rosette','garden-tree-near','garden-tree-far']
+if all((botanicals/(name+'.blend')).is_file() for name in blend_names):
+    with zipfile.ZipFile(OUT/'FlowerSea-Blender-Botanicals.zip','w',zipfile.ZIP_DEFLATED,compresslevel=9) as archive:
+        for name in blend_names:archive.write(botanicals/(name+'.blend'),name+'.blend')
+        archive.write(ROOT/'scripts/sculpt_flower_botanicals.py','sculpt_flower_botanicals.py')
+        archive.write(ROOT/'scripts/refine_flower_forest.py','refine_flower_forest.py')
+        archive.write(ROOT/'public/assets/flower-garden/SOURCE.txt','制作说明.txt')
+        archive.write(ROOT/'public/assets/nature/SOURCE.txt','树木原始来源.txt')
+        archive.write(ROOT/'public/assets/nature/LICENSE-BabylonJS.txt','LICENSE-BabylonJS.txt')
