@@ -1,0 +1,9 @@
+BGM_131.mp3：经典页游存档中神秘花海对应的原版背景音乐。
+依据：Miigon/RecMoleRes 固定版本 7a6d6b3c7037a85afb28ad6abd4d7f4adfddb5ff
+root/dll/ClientConfigDLL.swf 中原生配置：
+<map id="362" musicId="BGM_131" playType="1" /> <!--神秘花海-->
+音频原文件：root/resource/bgSounds/BGM_131.mp3
+https://github.com/Miigon/RecMoleRes/tree/7a6d6b3c7037a85afb28ad6abd4d7f4adfddb5ff
+SHA256: c1bd59defb6d5b507408f0126dab3ef8d281403992231c254e97167a17b9acd9
+原音乐权利归原游戏权利方所有，此处按用户明确要求用于经典场景重构；未将其标为原创、生成音乐或另行授予素材许可。映射对应此存档版本，不声称覆盖游戏全部历史版本。
+音频保持原文件，60.10775 秒；循环由浏览器播放器完成，需用户点击开启。
