@@ -1,6 +1,6 @@
 import * as T from 'three';
 import type { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { gardenCanWalk, gardenWalkHeight } from './flower-terrain';
+import { gardenCanWalk, gardenWalkHeight, advanceGardenPosition } from './flower-terrain';
 
 export function createGardenWalk(camera:T.PerspectiveCamera,controls:OrbitControls,canvas:HTMLCanvasElement){
   const events=new AbortController(),keys=new Set<string>();
@@ -46,10 +46,9 @@ export function createGardenWalk(camera:T.PerspectiveCamera,controls:OrbitContro
       let forward=Number(keys.has('KeyW')||keys.has('ArrowUp'))-Number(keys.has('KeyS')||keys.has('ArrowDown'));
       let side=Number(keys.has('KeyD')||keys.has('ArrowRight'))-Number(keys.has('KeyA')||keys.has('ArrowLeft'));
       const length=Math.hypot(forward,side)||1;forward/=length;side/=length;
-      const speed=(keys.has('ShiftLeft')?5.2:2.8)*Math.min(dt,.05);
+      const speed=(keys.has('ShiftLeft')?5.2:2.8)*Math.min(dt,.25);
       const dx=(-Math.sin(yaw)*forward+Math.cos(yaw)*side)*speed,dz=(-Math.cos(yaw)*forward-Math.sin(yaw)*side)*speed;
-      if(gardenCanWalk(position.x+dx,position.z))position.x+=dx;
-      if(gardenCanWalk(position.x,position.z+dz))position.z+=dz;
+      [position.x,position.z]=advanceGardenPosition(position.x,position.z,dx,dz);
       position.y=gardenWalkHeight(position.x,position.z)+1.62;camera.position.copy(position);look();
     },
     dispose(){events.abort();keys.clear();controls.enabled=true;},

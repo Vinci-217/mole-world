@@ -35,5 +35,22 @@ console.log(JSON.stringify({blocked,houseBlocked:!gardenCanWalk(20,-62),front: g
         self.assertTrue(result['front'])
         self.assertTrue(result['rear'])
 
+    def test_long_movement_steps_do_not_tunnel_through_the_house_or_river(self):
+        script="""
+import {advanceGardenPosition,brookX,gardenCanWalk} from './src/flower-terrain.ts';
+const wall=advanceGardenPosition(20,-51,0,-35),riverX=brookX(-20);
+const river=advanceGardenPosition(riverX-3,-20,8,0);
+let slow=[1,17],fast=[1,17];
+for(let i=0;i<4;i++)slow=advanceGardenPosition(...slow,0,-2.8*.25);
+for(let i=0;i<60;i++)fast=advanceGardenPosition(...fast,0,-2.8/60);
+console.log(JSON.stringify({wall,river,riverX,slow,fast,valid: gardenCanWalk(...wall)&&gardenCanWalk(...river)}));
+"""
+        output=subprocess.check_output(['node','--input-type=module','-e',script],cwd=ROOT,text=True)
+        result=json.loads(output)
+        self.assertTrue(result['valid'])
+        self.assertGreater(result['wall'][1],-60)
+        self.assertLess(result['river'][0],result['riverX']-1)
+        self.assertAlmostEqual(result['slow'][1],result['fast'][1],places=5)
+
 
 if __name__=='__main__':unittest.main()

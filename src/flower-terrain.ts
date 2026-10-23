@@ -56,3 +56,13 @@ export function gardenCanWalk(x:number,z:number) {
   if(Math.hypot(x+15,z-5)<1.25 || Math.hypot(x-17,z+2)<1.4) return false;
   return true;
 }
+
+/** Substeps preserve wall/river collisions when one rendered frame takes longer. */
+export function advanceGardenPosition(x:number,z:number,dx:number,dz:number):[number,number]{
+  const steps=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.1));
+  for(let i=0;i<steps;i++){
+    if(gardenCanWalk(x+dx/steps,z))x+=dx/steps;
+    if(gardenCanWalk(x,z+dz/steps))z+=dz/steps;
+  }
+  return [x,z];
+}
