@@ -1,0 +1,258 @@
+import * as T from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { brookX, flowerGroundHeight as h, gardenRoutes, routeDistance } from './flower-terrain';
+
+const rnd = (()=>{let n=918362;return()=>{n=(Math.imul(n,1664525)+1013904223)|0;return(n>>>0)/4294967296;};})();
+const leafGeometry=(length=1,width=.22)=>{
+  const g=new T.BufferGeometry();
+  g.setAttribute('position',new T.Float32BufferAttribute([0,0,0,-width,.3*length,.025,-width*.8,.7*length,.10,0,length,.17,width*.8,.7*length,.10,width,.3*length,.025,0,.48*length,.14],3));
+  g.setIndex([0,1,6,1,2,6,2,3,6,3,4,6,4,5,6,5,0,6]);g.computeVertexNormals();return g;
+};
+function tinted(g:T.BufferGeometry,color:T.ColorRepresentation){
+  let geometry=g.index?g.toNonIndexed():g;geometry.deleteAttribute('uv');
+  const c=new T.Color(color),colors=[];
+  for(let i=0;i<geometry.attributes.position.count;i++)colors.push(c.r,c.g,c.b);
+  geometry.setAttribute('color',new T.Float32BufferAttribute(colors,3));return geometry;
+}
+function flowerGeometry(petal:string,tall=false){
+  const parts:T.BufferGeometry[]=[];
+  const stem=new T.CylinderGeometry(.017,.026,tall?.8:.43,5);stem.translate(0,(tall?.8:.43)/2,0);parts.push(tinted(stem,'#426d39'));
+  for(let i=0;i<3;i++){
+    const leaf=leafGeometry(.25,.065);leaf.rotateZ((i%2?1:-1)*.75);leaf.rotateY(i*2.4);leaf.translate(0,.1+i*.1,0);parts.push(tinted(leaf,'#648d3b'));
+  }
+  const count=tall?10:7;
+  for(let i=0;i<count;i++){
+    const a=i*Math.PI*2/count;
+    const p=leafGeometry(tall?.11:.18,tall?.05:.065);p.rotateX(Math.PI/2-.27);p.rotateY(a);
+    p.translate(Math.sin(a)*.035,(tall?.62:.44)+(tall?i*.017:0),Math.cos(a)*.035);parts.push(tinted(p,petal));
+  }
+  const center=new T.SphereGeometry(tall?.045:.048,7,4);center.translate(0,tall?.83:.455,0);parts.push(tinted(center,tall?'#d6b2ed':'#d4a23e'));
+  const result=mergeGeometries(parts)!;parts.forEach(g=>g.dispose());return result;
+}
+
+export function createFlowerGarden(scene:T.Scene){
+  const root=new T.Group();root.name='layered-garden-environment';scene.add(root);
+  const dummy=new T.Object3D(),color=new T.Color();
+  const groundGeometry=new T.PlaneGeometry(90,80,180,160);groundGeometry.rotateX(-Math.PI/2);
+  const p=groundGeometry.attributes.position,colors=[];
+  for(let i=0;i<p.count;i++){
+    const x=p.getX(i),z=p.getZ(i),y=h(x,z);p.setY(i,y);
+    const mottling=.38+.22*Math.sin(x*.38+z*.3)+.13*Math.cos(x*.87-z*.61);
+    color.set('#427c39').lerp(new T.Color('#a7bd51'),T.MathUtils.clamp(mottling+y*.025,0,1));
+    if(routeDistance(x,z)<1.2)color.lerp(new T.Color('#a6a17a'),.35);
+    colors.push(color.r,color.g,color.b);
+  }
+  groundGeometry.setAttribute('color',new T.Float32BufferAttribute(colors,3));groundGeometry.computeVertexNormals();
+  const earth=new T.MeshStandardMaterial({vertexColors:true,roughness:1});
+  surfaceGrain(earth,'earth');
+  const terrain=new T.Mesh(groundGeometry,earth);terrain.receiveShadow=true;root.add(terrain);
+
+  const pathMaterial=new T.MeshStandardMaterial({color:'#b1a989',roughness:1,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1});
+  pathMaterial.onBeforeCompile=shader=>{
+    shader.vertexShader='varying vec2 pathUv;\n'+shader.vertexShader;
+    shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\npathUv=uv;');
+    shader.fragmentShader='varying vec2 pathUv;\n'+shader.fragmentShader;
+    shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+      diffuseColor.a*=smoothstep(0.,.16,pathUv.x)*smoothstep(0.,.16,1.-pathUv.x);
+      diffuseColor.rgb*=.96+.035*sin(pathUv.y*91.+sin(pathUv.x*18.));`);
+  };
+  for(const route of gardenRoutes){
+    const curve=new T.CatmullRomCurve3(route.map(([x,z])=>new T.Vector3(x,0,z)));const vertices=[],uv=[],indices=[];
+    for(let i=0;i<=150;i++){
+      const t=i/150,point=curve.getPoint(t),tangent=curve.getTangent(t),side=new T.Vector3(-tangent.z,0,tangent.x).normalize();
+      for(const s of [-1,1]){
+        const x=point.x+side.x*s*.65,z=point.z+side.z*s*.65;
+        vertices.push(x,h(x,z)+.027,z);uv.push(s*.5+.5,t*28);
+      }
+      if(i<150){const a=i*2;indices.push(a,a+1,a+2,a+1,a+3,a+2);}
+    }
+    const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(vertices,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(indices);g.computeVertexNormals();
+    const ribbon=new T.Mesh(g,pathMaterial);ribbon.receiveShadow=true;root.add(ribbon);
+  }
+
+  const stoneMaterial=new T.MeshStandardMaterial({color:'#b5b6a1',roughness:.97});
+  const stoneGeo=new T.DodecahedronGeometry(.65,1);stoneGeo.scale(1,.16,.68);
+  surfaceGrain(stoneMaterial,'stone');
+  const stones=new T.InstancedMesh(stoneGeo,stoneMaterial,76);
+  const main=new T.CatmullRomCurve3([[1,20],[1,11],[2,6],[0,3],[-4,-1],[-7,-4]].map(([x,z])=>new T.Vector3(x,0,z)));
+  for(let i=0;i<76;i++){
+    let x,z,scale;
+    if(i<28){const pt=main.getPoint(i/27);x=pt.x+(i%2?.22:-.22);z=pt.z;scale=.8+rnd()*.4;}
+    else{z=-25+rnd()*47;x=brookX(z)+(i%2?1:-1)*(1.05+rnd()*.8);scale=.5+rnd();}
+    dummy.position.set(x,h(x,z)+.10,z);dummy.rotation.set(rnd()*.1,rnd()*Math.PI,rnd()*.1);dummy.scale.set(scale,1+rnd(),scale);dummy.updateMatrix();stones.setMatrixAt(i,dummy.matrix);
+  }stones.castShadow=stones.receiveShadow=true;root.add(stones);
+
+  const breeze={value:0};
+  const vegetation=new T.MeshStandardMaterial({vertexColors:true,roughness:.86,side:T.DoubleSide});
+  vegetation.onBeforeCompile=shader=>{
+    shader.uniforms.gardenTime=breeze;
+    shader.vertexShader='uniform float gardenTime;\n'+shader.vertexShader;
+    shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
+      #ifdef USE_INSTANCING
+      float phase=instanceMatrix[3].x*.37+instanceMatrix[3].z*.28;
+      transformed.x+=sin(gardenTime*1.1+phase)*.045*pow(max(position.y,0.0),1.7);
+      #endif`);
+  };
+  const foliage=mergeGeometries([0,1,2,3,4,5].map(i=>{
+    const g=leafGeometry(.23+i*.022,.011);g.rotateZ((i%2?1:-1)*(.18+i*.06));g.rotateY(i*2.4);return tinted(g,i%2?'#91a857':'#718e4a');
+  }))!;
+  const grass=new T.InstancedMesh(foliage,vegetation,9500);let grassCount=0;
+  for(let i=0;i<30000&&grassCount<9500;i++){
+    const x=(rnd()-.5)*70,z=(rnd()-.5)*62;
+    if(routeDistance(x,z)<.95||Math.abs(x-brookX(z))<1.1||Math.hypot(x-13,z-6)<4.6||(x>4&&x<14&&z<-7&&z>-13))continue;
+    const patch=.5+.5*Math.sin(x*.45+Math.cos(z*.5)*2);if(rnd()>.3+patch*.65)continue;
+    dummy.position.set(x,h(x,z)-.02,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.55+rnd()*.85);dummy.updateMatrix();grass.setMatrixAt(grassCount++,dummy.matrix);
+  }
+  grass.count=grassCount;grass.receiveShadow=true;root.add(grass);
+
+  const beds=[[-10,3,3.4],[-5,6,2.7],[5,5,2.7],[7,-4,1.8],[12,-6,1.5],[16,12,3],[-22,-8,3],[-27,-3,2.4],[24,-14,3.8],[24,4,3.2],[-3,-11,4]];
+  const flowerPalettes=['#f4eac7','#e990a8','#c6b0e2','#ebca69'];let flowerTotal=0;
+  for(let species=0;species<4;species++){
+    const flowers=new T.InstancedMesh(flowerGeometry(flowerPalettes[species],species===2),vegetation,400);let count=0;
+    for(let i=0;i<1700&&count<400;i++){
+      const bed=beds[Math.floor(rnd()*beds.length)],a=rnd()*Math.PI*2,r=Math.sqrt(rnd())*bed[2];
+      const x=bed[0]+Math.cos(a)*r,z=bed[1]+Math.sin(a)*r;
+      if(routeDistance(x,z)<.95||Math.abs(x-brookX(z))<1.2)continue;
+      dummy.position.set(x,h(x,z),z);dummy.rotation.set((rnd()-.5)*.14,rnd()*Math.PI*2,(rnd()-.5)*.14);dummy.scale.setScalar(.65+rnd()*.75);dummy.updateMatrix();flowers.setMatrixAt(count++,dummy.matrix);
+    }
+    flowers.count=count;flowers.receiveShadow=true;root.add(flowers);flowerTotal+=count;
+  }
+  const fern=mergeGeometries([0,1,2,3,4].map(i=>{
+    const g=leafGeometry(.48,.10);g.rotateZ(1.04);g.rotateY(i*Math.PI*2/5);g.translate(0,.09,0);return tinted(g,i%2?'#689048':'#4f7d3e');
+  }))!;
+  const shrubs=new T.InstancedMesh(fern,vegetation,1300);let shrubCount=0;
+  for(let i=0;i<3500&&shrubCount<1300;i++){
+    const bed=beds[Math.floor(rnd()*beds.length)],a=rnd()*Math.PI*2,r=bed[2]*(.8+rnd()*.4);
+    const x=bed[0]+Math.cos(a)*r,z=bed[1]+Math.sin(a)*r;
+    if(routeDistance(x,z)<1||Math.abs(x-brookX(z))<1.1)continue;
+    dummy.position.set(x,h(x,z),z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.85+rnd()*.9);dummy.updateMatrix();shrubs.setMatrixAt(shrubCount++,dummy.matrix);
+  }shrubs.count=shrubCount;shrubs.receiveShadow=true;root.add(shrubs);
+
+  const waterTime={value:0},waterNight={value:0};
+  const waterMat=new T.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{time:waterTime,night:waterNight},vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`varying vec2 vUv;uniform float time;uniform float night;void main(){float ripple=sin(vUv.y*160.-time*2.+sin(vUv.x*18.))*sin(vUv.x*35.+time)*.5+.5;float edge=smoothstep(.34,.49,abs(vUv.x-.5));vec3 c=mix(vec3(.19,.48,.47),vec3(.48,.72,.62),ripple*.30+edge*.46);float sparkle=pow(max(0.,sin(vUv.y*225.-time*3.)*sin(vUv.x*64.+time*.4)),22.);c+=sparkle*.24;c*=mix(1.,.32,night);gl_FragColor=vec4(c,.91);}`});
+  const waterVertices=[],waterUV=[],waterIndices=[];
+  for(let i=0;i<=180;i++){
+    const z=-40+i*75/180,x=brookX(z),y=h(x,z)+.4;
+    waterVertices.push(x-.92,y,z,x+.92,y,z);waterUV.push(0,i/180,1,i/180);
+    if(i<180){const a=i*2;waterIndices.push(a,a+2,a+1,a+1,a+2,a+3);}
+  }
+  const waterGeometry=new T.BufferGeometry();waterGeometry.setAttribute('position',new T.Float32BufferAttribute(waterVertices,3));waterGeometry.setAttribute('uv',new T.Float32BufferAttribute(waterUV,2));waterGeometry.setIndex(waterIndices);
+  root.add(new T.Mesh(waterGeometry,waterMat));
+
+  const wood=new T.MeshStandardMaterial({color:'#846145',roughness:.9}),iron=new T.MeshStandardMaterial({color:'#384b42',roughness:.6,metalness:.25});
+  surfaceGrain(wood,'wood');
+  const propParts=new Map<T.Material,T.BufferGeometry[]>();
+  function part(g:T.BufferGeometry,mat:T.Material,x:number,y:number,z:number,ry=0){g.rotateY(ry);g.translate(x,y,z);const list=propParts.get(mat)??[];list.push(g);propParts.set(mat,list);}
+  const bx=brookX(1),by=h(bx+3.4,1)+.32;
+  for(let i=0;i<25;i++)part(new T.BoxGeometry(.25,.13,2.05),wood,bx-3.25+i*.27,by+.20*Math.sin(i/24*Math.PI),1);
+  for(const side of [-1,1]){
+    part(new T.BoxGeometry(7.1,.14,.13),wood,bx,by+1.05,1+side*1.05);
+    for(let i=0;i<5;i++)part(new T.BoxGeometry(.14,1.05,.14),wood,bx-3.1+i*1.55,by+.5,1+side*1.05);
+  }
+  for(const [x,z,rotation] of [[-25,-10,.8],[24,-17,-1.2],[11,-6,Math.PI]]){
+    const y=h(x,z);
+    for(let i=0;i<5;i++){
+      const a=(i-2)*.16;
+      const offset=new T.Vector3(0,0,a).applyAxisAngle(new T.Vector3(0,1,0),rotation);
+      part(new T.BoxGeometry(2.1,.09,.13),wood,x+offset.x,y+.53,z+offset.z,rotation);
+    }
+    for(let i=0;i<3;i++)part(new T.BoxGeometry(2.1,.12,.09),wood,x+Math.sin(rotation)*.39,y+.88+i*.17,z+Math.cos(rotation)*.39,rotation);
+    for(const side of [-1,1]){
+      const offset=new T.Vector3(side*.78,0,0).applyAxisAngle(new T.Vector3(0,1,0),rotation);
+      part(new T.BoxGeometry(.11,.65,.65),iron,x+offset.x,y+.3,z+offset.z,rotation);
+    }
+  }
+  for(const [mat,parts] of propParts){
+    const mesh=new T.Mesh(mergeGeometries(parts)!,mat);mesh.castShadow=mesh.receiveShadow=true;root.add(mesh);parts.forEach(g=>g.dispose());
+  }
+  const bulbs:T.Mesh[]=[];const lanterns:T.PointLight[]=[];
+  const lightMaterial=new T.MeshStandardMaterial({color:'#ffe0a0',emissive:'#ffb44e',emissiveIntensity:.2,roughness:.6});
+  for(const [x,z] of [[-6,2],[8,-6],[-24,-9],[23,-16],[17,12],[-20,2]]){
+    const y=h(x,z);
+    const post=new T.Mesh(new T.CylinderGeometry(.045,.065,1.3,7),iron);post.position.set(x,y+.65,z);post.castShadow=true;root.add(post);
+    const bulb=new T.Mesh(new T.SphereGeometry(.15,8,6),lightMaterial);bulb.scale.y=1.4;bulb.position.set(x,y+1.4,z);root.add(bulb);bulbs.push(bulb);
+    const cap=new T.Mesh(new T.ConeGeometry(.25,.16,8),iron);cap.position.set(x,y+1.7,z);root.add(cap);
+    const light=new T.PointLight('#ffd19a',0,7,2);light.position.copy(bulb.position);root.add(light);lanterns.push(light);
+  }
+
+  // Downloaded authored tree LODs, instanced around the playable glades.
+  const ready=(async()=>{
+    const model=await new GLTFLoader().loadAsync('./assets/nature/oak.glb');
+    const placements:T.Matrix4[]=[];
+    for(let i=0;i<46;i++){
+      const a=i/46*Math.PI*2;
+      let x=Math.cos(a)*(31+rnd()*7),z=Math.sin(a)*(27+rnd()*6)-5;
+      if(z>19&&Math.abs(x)<13)continue;
+      dummy.position.set(x,h(x,z)-.08,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.55+rnd()*.55);dummy.updateMatrix();placements.push(dummy.matrix.clone());
+    }
+    for(let i=0;i<13;i++){
+      const x=-30+rnd()*58,z=-24-rnd()*7;
+      dummy.position.set(x,h(x,z)-.05,z);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.scale.setScalar(.6+rnd()*.45);dummy.updateMatrix();placements.push(dummy.matrix.clone());
+    }
+    model.scene.updateMatrixWorld(true);
+    model.scene.traverse(object=>{
+      if(!(object instanceof T.Mesh))return;
+      const instances=new T.InstancedMesh(object.geometry,object.material,placements.length);
+      for(let i=0;i<placements.length;i++)instances.setMatrixAt(i,new T.Matrix4().multiplyMatrices(placements[i],object.matrixWorld));
+      instances.castShadow=instances.receiveShadow=true;root.add(instances);
+    });
+  })();
+
+  const wings=new T.Group();root.add(wings);const butterflies:{group:T.Group;left:T.Mesh;right:T.Mesh;origin:T.Vector3;phase:number}[]=[];
+  for(let i=0;i<8;i++){
+    const g=new T.Group(),mat=new T.MeshBasicMaterial({color:i%2?'#e8c781':'#cda4dc',side:T.DoubleSide});
+    const left=new T.Mesh(new T.CircleGeometry(.09,8),mat),right=new T.Mesh(new T.CircleGeometry(.09,8),mat);
+    left.position.x=-.055;right.position.x=.055;left.scale.set(1,1.5,1);right.scale.set(1,1.5,1);g.add(left,right);wings.add(g);
+    const bed=beds[i],origin=new T.Vector3(bed[0],h(bed[0],bed[1])+1.1,bed[1]);butterflies.push({group:g,left,right,origin,phase:rnd()*8});
+  }
+  const portals:{origin:T.Vector3;points:T.Points;positions:Float32Array;phases:Float32Array}[]=[];
+  function addPortal(origin:T.Vector3,radius:number){
+    const material=new T.ShaderMaterial({transparent:true,depthWrite:false,blending:T.AdditiveBlending,side:T.DoubleSide,
+      vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+      fragmentShader:'varying vec2 vUv;void main(){float r=length(vUv-.5)*2.;float ring=exp(-abs(r-.67)*70.);float glow=exp(-r*r*5.)*.13;gl_FragColor=vec4(1.,.85,.35,(ring*.8+glow)*(1.-smoothstep(.8,1.,r)));}'});
+    const ring=new T.Mesh(new T.PlaneGeometry(radius*3,radius*3),material);ring.rotation.x=-Math.PI/2;ring.position.copy(origin);root.add(ring);
+    const positions=new Float32Array(28*3),phases=new Float32Array(28);
+    for(let i=0;i<28;i++)phases[i]=rnd();
+    const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.BufferAttribute(positions,3));
+    const points=new T.Points(geometry,new T.PointsMaterial({color:'#ffe9a5',size:.04,transparent:true,opacity:.74,depthWrite:false}));
+    points.position.copy(origin);root.add(points);portals.push({origin,points,positions,phases});
+  }
+  addPortal(new T.Vector3(1,h(1,17)+.13,17),.6);
+  return {ready,flowerTotal,addPortal,treeSource:'BabylonJS Assets CC BY 4.0',update(time:number,night:number){
+    breeze.value=waterTime.value=time;waterNight.value=night;wings.visible=night<.7;
+    lightMaterial.emissiveIntensity=.2+night*2.5;for(const lamp of lanterns)lamp.intensity=night*12;
+    for(const b of butterflies){
+      b.group.position.copy(b.origin).add(new T.Vector3(Math.sin(time*.31+b.phase)*1.2,Math.sin(time*.8+b.phase)*.3,Math.cos(time*.26+b.phase)*.9));
+      b.group.rotation.y=time*.3+b.phase;b.left.rotation.y=Math.sin(time*10+b.phase)*1.1;b.right.rotation.y=-b.left.rotation.y;
+    }
+    for(const portal of portals){
+      for(let i=0;i<28;i++){
+        const t=(time*.21+portal.phases[i])%1,a=i*2.4+time*.14;
+        portal.positions.set([Math.cos(a)*(.26+t*.16),t*1.6,Math.sin(a)*(.26+t*.16)],i*3);
+      }
+      portal.points.geometry.attributes.position.needsUpdate=true;
+    }
+  }};
+}
+
+/** Object-space surface detail stays fixed while the camera moves. */
+function surfaceGrain(material:T.MeshStandardMaterial,kind:'earth'|'wood'|'stone'){
+  material.customProgramCacheKey=()=>`garden-surface-${kind}`;
+  material.onBeforeCompile=shader=>{
+    shader.vertexShader='varying vec3 gardenSurface;\n'+shader.vertexShader;
+    shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ngardenSurface=position;');
+    shader.fragmentShader=`varying vec3 gardenSurface;
+      float gardenHash(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}
+      float gardenNoise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+        return mix(mix(mix(gardenHash(i),gardenHash(i+vec3(1,0,0)),f.x),mix(gardenHash(i+vec3(0,1,0)),gardenHash(i+vec3(1,1,0)),f.x),f.y),
+        mix(mix(gardenHash(i+vec3(0,0,1)),gardenHash(i+vec3(1,0,1)),f.x),mix(gardenHash(i+vec3(0,1,1)),gardenHash(i+vec3(1,1,1)),f.x),f.y),f.z);}
+      `+shader.fragmentShader;
+    const grain=kind==='wood'
+      ? `float grain=.5+.5*sin(gardenSurface.x*5.+gardenNoise(gardenSurface*vec3(.5,8.,9.))*8.);diffuseColor.rgb*=.72+grain*.35;`
+      : kind==='earth'
+      ? `float grain=gardenNoise(gardenSurface*16.);float patches=gardenNoise(gardenSurface*.9);diffuseColor.rgb*=.85+.19*grain+.14*patches;`
+      : `float grain=gardenNoise(gardenSurface*24.);diffuseColor.rgb*=.86+.22*grain;`;
+    shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>\n${grain}`);
+  };
+}

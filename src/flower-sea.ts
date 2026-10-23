@@ -1,16 +1,22 @@
 import './flower-sea.css';
 import * as T from 'three';
-import { Soundscape } from './audio';
+import { FlowerMusic } from './flower-music';
+import { gardenPlaces } from './flower-terrain';
 import { createFlowerSeaScene, flowerGroundHeight, type FlowerManifest, type FlowerSceneStats, type FlowerWeather } from './flower-sea-scene';
 
 const element = <E extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id)! as E;
 const events = new AbortController();
-const audio = new Soundscape();
+const audio = new FlowerMusic();
 let world: Awaited<ReturnType<typeof createFlowerSeaScene>> | undefined;
 let disposed = false;
 let currentManifest: FlowerManifest | undefined;
 const markerNodes: { element: HTMLElement; position: T.Vector3; assetId: string }[] = [];
 const projection = new T.Vector3();
+for(const [index,place] of gardenPlaces.entries()){
+  const button=document.createElement('button');button.textContent=`0${index+1}  ${place.label}`;button.dataset.gardenPlace=place.id;
+  button.addEventListener('click',()=>{world?.focus(place.position);element('garden-location').textContent=place.label;},{signal:events.signal});
+  element('garden-places').append(button);
+}
 const modelingInputs = [
   ['巨型粉花', new URL('../art-direction/flower-sea/inputs/pink-portal.png', import.meta.url).href],
   ['藤蔓拱门', new URL('../art-direction/flower-sea/inputs/vine-arch.png', import.meta.url).href],
@@ -104,7 +110,15 @@ async function start() {
     element('flower-markers').hidden = true;
     world = await createFlowerSeaScene(element('flower-canvas'), manifest, updateAssetState);
     if (disposed) { world.dispose(); return; }
+    let lastWalking: boolean | undefined;
     world.onFrame(() => {
+      const walking=world!.walk.active;
+      if(walking!==lastWalking){lastWalking=walking;
+      element('garden-walk').setAttribute('aria-pressed',String(walking));
+      element('garden-walk').innerHTML=walking?'↗ <span>返回鸟瞰</span>':'♧ <span>走入花园</span>';
+      element('garden-help').textContent=walking?'W A S D 行走 · Shift 快走 · 拖动环顾 · Esc 返回':'拖动环绕 · 滚轮缩放 · 走入花园可自由探索';
+      element('garden-touch').hidden=!walking;
+      }
       const bounds = element('flower-canvas').getBoundingClientRect();
       for (const marker of markerNodes) {
         projection.copy(marker.position).project(world!.camera);
@@ -125,6 +139,8 @@ async function start() {
       weather: world?.stats.weather ?? 'day',
       camera: world?.camera.position.toArray(), target: world?.controls.target.toArray(),
       assetCount: manifest.assets.length,
+      walking:world?.walk.active,player:world?.walk.position.toArray(),flowerCount:world?.flowerCount,
+      music:audio.snapshot,
     }) });
   } catch (error) {
     if (disposed) return;
@@ -141,16 +157,17 @@ element('flower-reference-close').addEventListener('click', () => setReferenceVi
 element('flower-models-toggle').addEventListener('click', () => setModelsVisibility(element('flower-models').hidden), { signal: events.signal });
 element('flower-models-close').addEventListener('click', () => setModelsVisibility(false), { signal: events.signal });
 element('flower-reset').addEventListener('click', () => world?.resetView(), { signal: events.signal });
+element('garden-walk').addEventListener('click',()=>{if(!world)return;if(world.walk.active)world.walk.stop();else world.walk.start();},{signal:events.signal});
 element('flower-weather').addEventListener('change', event => {
   const value = (event.target as HTMLSelectElement).value as FlowerWeather;
-  if (!['day', 'dusk', 'rain'].includes(value)) return;
+  if (!['day', 'dusk', 'rain', 'night'].includes(value)) return;
   world?.setWeather(value); audio.setWeather(value === 'rain' ? 'rain' : 'clear');
 }, { signal: events.signal });
 element('flower-sound').addEventListener('click', async () => {
   const button = element<HTMLButtonElement>('flower-sound'); button.disabled = true;
   try {
     const playing = await audio.toggle();
-    button.setAttribute('aria-pressed', String(playing)); button.innerHTML = playing ? '♪ <span>音乐已开启</span>' : '♪ <span>开启音乐</span>';
+    button.setAttribute('aria-pressed', String(playing)); button.innerHTML = playing ? '♪ <span>原版 BGM 已开启</span>' : '♪ <span>原版 BGM</span>';
   } catch { button.textContent = '音乐暂不可用'; }
   finally { button.disabled = false; }
 }, { signal: events.signal });

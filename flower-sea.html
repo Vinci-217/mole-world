@@ -19,11 +19,12 @@
         <p class="flower-subtitle">穿过花与藤蔓，回到记忆里的那片绿意。</p>
         <p id="flower-progress" class="flower-progress" role="status">正在读取地图资产…</p>
       </header>
-      <aside id="flower-reference" class="flower-reference">
+      <aside id="flower-reference" class="flower-reference" hidden>
         <div class="flower-reference-heading"><span>页游原图 · 布局参照</span><button id="flower-reference-close" aria-label="收起原图">×</button></div>
         <img id="flower-reference-image" alt="神秘花海原图：左侧藤蔓拱门，远处小屋，右下粉色巨花与两个入口" />
         <p id="flower-reference-caption">原资源绘图观察图</p>
       </aside>
+      <nav class="garden-nav" aria-label="花园导览"><span>花园导览</span><div id="garden-places"></div><p id="garden-location">花径入口</p></nav>
       <div id="flower-markers" class="flower-marker-layer" aria-hidden="true"></div>
       <aside id="flower-models" class="flower-models" hidden>
         <div class="flower-models-heading">地标资产 <button id="flower-models-close" aria-label="收起地标列表">×</button></div>
@@ -37,16 +38,18 @@
       </dialog>
       <footer class="flower-bottom">
         <div class="flower-controls" aria-label="场景控制">
+          <button id="garden-walk" aria-pressed="false">♧ <span>走入花园</span></button>
           <button id="flower-reset" title="回到原图构图">↺ <span>原图视角</span></button>
-          <button id="flower-reference-toggle" aria-pressed="true">▧ <span>原图对照</span></button>
+          <button id="flower-reference-toggle" aria-pressed="false">▧ <span>原图对照</span></button>
           <button id="flower-models-toggle" aria-pressed="false">◇ <span>地标</span></button>
           <button id="flower-inputs-toggle">✿ <span>单体参考</span></button>
           <span class="flower-divider"></span>
-          <label class="flower-weather"><span class="sr-only">天气</span><select id="flower-weather"><option value="day">晴日</option><option value="dusk">黄昏</option><option value="rain">细雨</option></select></label>
-          <button id="flower-sound" aria-pressed="false">♪ <span>开启音乐</span></button>
+          <label class="flower-weather"><span class="sr-only">天气</span><select id="flower-weather"><option value="day">晴日</option><option value="dusk">黄昏</option><option value="night">月夜</option><option value="rain">细雨</option></select></label>
+          <button id="flower-sound" aria-pressed="false" title="BGM_131 · 页游存档中神秘花海对应曲目">♪ <span>原版 BGM</span></button>
         </div>
-        <p class="flower-help">拖动环绕 · 滚轮缩放 · 双指平移</p>
+        <p class="flower-help" id="garden-help">拖动环绕 · 滚轮缩放 · 走入花园可自由探索</p>
       </footer>
+      <div id="garden-touch" class="garden-touch" hidden><button data-garden-move="KeyW" aria-label="向前走">↑</button><button data-garden-move="KeyA" aria-label="向左走">←</button><button data-garden-move="KeyS" aria-label="向后走">↓</button><button data-garden-move="KeyD" aria-label="向右走">→</button></div>
       <div id="flower-loading" class="flower-loading" role="status"><span></span>正在铺开花海…</div>
     </main>
     <script type="module" src="./src/flower-sea.ts"></script>

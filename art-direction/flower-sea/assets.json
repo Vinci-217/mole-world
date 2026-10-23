@@ -16,6 +16,7 @@
     {"id":"vine-arch","label":"藤蔓拱门","imagePath":"art-direction/flower-sea/inputs/vine-arch.png","faceCount":30000,"worldHeight":7.0,"outputPath":"public/assets/flower-sea/vine-arch.glb"},
     {"id":"cottage","label":"红顶小屋","imagePath":"art-direction/flower-sea/inputs/cottage.png","faceCount":24000,"worldHeight":5.0,"outputPath":"public/assets/flower-sea/cottage.glb"},
     {"id":"ancient-tree","label":"框景古树","imagePath":"art-direction/flower-sea/inputs/ancient-tree.png","faceCount":40000,"worldHeight":17.0,"outputPath":"public/assets/flower-sea/ancient-tree.glb"},
-    {"id":"flowering-vine","label":"空中花藤","imagePath":"art-direction/flower-sea/inputs/flowering-vine.png","faceCount":22000,"worldHeight":4.0,"outputPath":"public/assets/flower-sea/flowering-vine.glb"}
+    {"id":"flowering-vine","label":"空中花藤","imagePath":"art-direction/flower-sea/inputs/flowering-vine.png","faceCount":22000,"worldHeight":4.0,"outputPath":"public/assets/flower-sea/flowering-vine.glb"},
+    {"id":"canopy-vine-refined","label":"顶棚花藤精修版","imagePath":"art-direction/flower-sea/inputs/flowering-vine.png","faceCount":45000,"worldHeight":4.0,"outputPath":"public/assets/flower-sea/canopy-vine-refined.glb"}
   ]
 }

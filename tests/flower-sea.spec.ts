@@ -6,9 +6,11 @@ const original = JSON.parse(readFileSync('public/assets/flower-sea/manifest.json
 const snapshot = () => (window as any).__flowerSea;
 
 test('flower map loads its real published assets and responds to camera and weather controls', async ({ page }) => {
+  test.setTimeout(150000);
+  await page.setViewportSize({width:1280,height:850});
   const errors: string[] = [], modelRequests: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
-  page.on('request', request => { if (request.url().endsWith('.glb')) modelRequests.push(request.url()); });
+  page.on('request', request => { if (request.url().includes('/assets/flower-sea/') && request.url().endsWith('.glb')) modelRequests.push(request.url()); });
   await page.goto('/flower-sea.html');
   await page.waitForFunction(() => (window as any).__flowerSea?.ready);
   const expectedReady = original.assets.filter((asset: any) => asset.state === 'ready').map((asset: any) => asset.id);
@@ -31,6 +33,7 @@ test('flower map loads its real published assets and responds to camera and weat
   await page.locator('#flower-models-toggle').click();
   await expect(page.locator('#flower-model-list li[data-state="pending"]')).toHaveCount(expectedPending);
   await expect(page.locator('#flower-model-list li[data-state="ready"]')).toHaveCount(expectedReady.length);
+  await page.locator('#flower-reference-toggle').click();
   await expect(page.locator('#flower-reference-image')).toBeVisible();
   expect(await page.locator('#flower-reference-image').evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(960);
   await page.locator('#flower-inputs-toggle').click();
@@ -40,6 +43,26 @@ test('flower map loads its real published assets and responds to camera and weat
   await page.screenshot({ path: 'artifacts/flower-review/modeling-inputs.png' });
   await page.locator('#flower-inputs-close').click();
   await page.screenshot({ path: 'artifacts/flower-review/desktop.png' });
+  await page.locator('#flower-reference-close').click();
+  await page.locator('#flower-models-close').click();
+  await page.locator('#garden-walk').click();
+  await expect.poll(async () => (await page.evaluate(snapshot)).walking).toBe(true);
+  const beforeWalk=(await page.evaluate(snapshot)).player;
+  await page.keyboard.down('KeyW');
+  await expect.poll(async () => (await page.evaluate(snapshot)).player[2], {timeout:15000}).toBeLessThan(beforeWalk[2]-.4);
+  await page.keyboard.up('KeyW');
+  await page.locator('[data-garden-place="brook-bridge"]').click();
+  const bridge=(await page.evaluate(snapshot)).player;
+  expect(bridge[0]).toBeCloseTo(-17.6,1);expect(bridge[2]).toBeCloseTo(1,1);
+  await page.keyboard.press('Escape');
+  await expect.poll(async () => (await page.evaluate(snapshot)).walking).toBe(false);
+  await page.selectOption('#flower-weather','night');
+  expect((await page.evaluate(snapshot)).weather).toBe('night');
+  await page.locator('#flower-sound').click();
+  await expect.poll(async () => (await page.evaluate(snapshot)).music.playing).toBe(true);
+  await expect.poll(async () => (await page.evaluate(snapshot)).music.currentTime,{timeout:15000}).toBeGreaterThan(.1);
+  expect((await page.evaluate(snapshot)).music.track).toBe('BGM_131');
+  expect((await page.evaluate(snapshot)).flowerCount).toBeGreaterThan(1000);
   expect(errors).toEqual([]);
 });
 
@@ -56,7 +79,7 @@ test('ready status requires parsing a real matching GLB', async ({ page }) => {
   await page.waitForFunction(() => (window as any).__flowerSea?.ready);
   expect((await page.evaluate(snapshot)).loaded).toEqual(['pink-portal']);
   expect((await page.evaluate(snapshot)).failed).toEqual([]);
-  await expect(page.locator('#flower-progress')).toContainText('1/5');
+  await expect(page.locator('#flower-progress')).toContainText(`1/${original.assets.length}`);
 });
 
 test('a corrupted ready asset remains a failure rather than becoming a substitute model', async ({ page }) => {
@@ -89,7 +112,7 @@ test('flower controls remain accessible on a phone viewport', async ({ page }) =
 test('pending landmarks do not request or claim missing GLB files', async ({ page }) => {
   const manifest = structuredClone(original), modelRequests: string[] = [];
   manifest.assets.forEach((asset: any) => { asset.state = 'pending'; });
-  page.on('request', request => { if (request.url().endsWith('.glb')) modelRequests.push(request.url()); });
+  page.on('request', request => { if (request.url().includes('/assets/flower-sea/') && request.url().endsWith('.glb')) modelRequests.push(request.url()); });
   await page.route('**/assets/flower-sea/manifest.json', route => route.fulfill({ json: manifest }));
   await page.goto('/flower-sea.html');
   await page.waitForFunction(() => (window as any).__flowerSea?.ready);
