@@ -1,0 +1,25 @@
+{
+  "units": "metres",
+  "assets": [
+    {
+      "id": "woodland-trees",
+      "state": "ready",
+      "path": "./assets/woodland/woodland-trees.glb",
+      "sha256": "1cbe71ce06b6c17ede874ac49af1f26d8a42ee32bf98ba22fc20fa6dd45aec84",
+      "triangles": 74478,
+      "geometryPolicy": "alpha-cutout-foliage",
+      "blenderVersion": "4.3.2",
+      "source": "EZ-Tree skeleton refined in Blender"
+    },
+    {
+      "id": "woodland-landmarks",
+      "state": "ready",
+      "path": "./assets/woodland/woodland-landmarks.glb",
+      "sha256": "4323ab53879955da228e06739c6c7df27993e571ef8a20278f7df330c0986707",
+      "triangles": 33808,
+      "geometryPolicy": "closed-solid",
+      "blenderVersion": "4.3.2",
+      "source": "Original sculpted Blender mesh"
+    }
+  ]
+}

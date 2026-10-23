@@ -29,3 +29,5 @@ wild-sorrel.glb：Rico Cilliers 的酢浆草与花朵，CC0；来自 Khronos glT
 N8AO 2.0.1 用于深度缓冲接触阴影；Three.js 与 pmndrs/postprocessing 用于渲染。附带发行包中的许可证，详见 lighting/。
 
 连片花田 LOD（2026-10-24）：meadow-flower-lods.glb 由 scripts/prepare_meadow_lods.py 在 Blender 整理本项目原花卉模型，保留 UV 和原材质名称，运行时复用原图集，不重复打包纹理。中景 7.5–30m、远景 30m 外分级，近处继续使用原始精细曲面花卉。
+
+2026-10 woodland art rebuild: 当前花海的外围树林与框景古树已替换为 EZ-Tree 分枝骨架与 Blender 精修橡树；旧 garden-tree-near/far 资产保留作历史交付。泥土地表改用原创 Blender 材质颜色/法线烘焙。详见 ../woodland/SOURCE.md 与 sources.json。
