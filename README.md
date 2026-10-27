@@ -74,6 +74,8 @@ npm run verify:live
 
 发布脚本只复制当前生产资源、这两个下载包及实机截图，保留 Git 发布历史，用普通快进推送更新 `main` 与 `gh-pages`。没有 `--push` 时只生成本地发布提交，不上传。部署验证对每一个发布文件进行严格 HTTPS 下载与 SHA-256 对比，不关闭证书验证。
 
+若云环境出站规则拦截 githack，可运行 `npm run verify:live -- --origin` 核对 GitHub 上全部已发布源文件。此检查不代表 CDN 或公网浏览器访问已经通过；两类结果分别保存。
+
 ## 制作记录
 
 - [当前重构与美术取舍](docs/handmade-world.md)
