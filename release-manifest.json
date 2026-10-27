@@ -1,0 +1,200 @@
+{
+  "version": "handmade-three-scenes-v1",
+  "files": [
+    {
+      "file": "assets/handmade/LICENSE-Leaf-Atlas.txt",
+      "bytes": 1073,
+      "sha256": "20e4afadfb10c67952b3d73cd2982d21d165ab4ae82b0dd9e4d6f2166ee349b6"
+    },
+    {
+      "file": "assets/handmade/LICENSE-N8AO.txt",
+      "bytes": 7047,
+      "sha256": "6d489af6292662d9e36d34ce49423784984a5f6e41d7b58f49b01264df59fa03"
+    },
+    {
+      "file": "assets/handmade/LICENSE-Postprocessing.txt",
+      "bytes": 858,
+      "sha256": "b7650918449bd5fb011ce30ce0e5bcda27aa9639db1fb3aef8c67c32945237f2"
+    },
+    {
+      "file": "assets/handmade/LICENSE-Three.txt",
+      "bytes": 1081,
+      "sha256": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601"
+    },
+    {
+      "file": "assets/handmade/TEXTURE-SOURCES.md",
+      "bytes": 264,
+      "sha256": "1b7792b028fc5c7b88100bf8e4b58d5188c0e439325e93c6a0bf2065ad018ace"
+    },
+    {
+      "file": "assets/handmade/audio/BGM_131.mp3",
+      "bytes": 480887,
+      "sha256": "c1bd59defb6d5b507408f0126dab3ef8d281403992231c254e97167a17b9acd9"
+    },
+    {
+      "file": "assets/handmade/audio/original-source.txt",
+      "bytes": 822,
+      "sha256": "80cae3df13aaad2095618a2d6424b4a36cbadc02acf8a07093cf9d4a750acdba"
+    },
+    {
+      "file": "assets/handmade/castle.glb",
+      "bytes": 5272352,
+      "sha256": "68358e9d621ff8b11dda51d5bb3d6f4a91eaac6ca5bd03116fbc7356905ae298"
+    },
+    {
+      "file": "assets/handmade/cottage.glb",
+      "bytes": 812652,
+      "sha256": "9275b3f4c1fa432e2f573d3347ad6a85e3560f14c8a6a719a71b2678345fb917"
+    },
+    {
+      "file": "assets/handmade/credits.html",
+      "bytes": 2951,
+      "sha256": "f871b0abbc3955dd321acdf568c6028a7a10f8bd3a7228df6b05d9ae915bde53"
+    },
+    {
+      "file": "assets/handmade/flowers.glb",
+      "bytes": 109548,
+      "sha256": "16c227d21d3a2495dcb059f2dba26dcd8c236b983ff606607934332df8518b5e"
+    },
+    {
+      "file": "assets/handmade/hollow.glb",
+      "bytes": 439420,
+      "sha256": "6c88b272a5a0a39589bdccb0c58c28f5a738de730393cc7fb769a973bc68da85"
+    },
+    {
+      "file": "assets/handmade/lighting/park.hdr",
+      "bytes": 1588504,
+      "sha256": "af15cb5ca49de469e2ee74fcb6622cb32b36e3f9ee95504fc762d9c3d62c5163"
+    },
+    {
+      "file": "assets/handmade/manifest.json",
+      "bytes": 11709,
+      "sha256": "dd19ca383cf7913e0fc41baa4d96d0f93e521311efab9fac70cebd06011e0532"
+    },
+    {
+      "file": "assets/handmade/pavilion.glb",
+      "bytes": 172420,
+      "sha256": "fba671c6da20febaa3dd4259cc3d6fef5f6cb2c84ee9598e02c08af868b002c0"
+    },
+    {
+      "file": "assets/handmade/props.glb",
+      "bytes": 288960,
+      "sha256": "32ebd046f98c6a261941b57fa15deeab6a7fd693d936ea97fd339f599f0c169d"
+    },
+    {
+      "file": "assets/handmade/textures/ash-leaves.png",
+      "bytes": 181423,
+      "sha256": "5ec987db3829a839856c32c79b18a33a78f209e911cad55c65abfb77f30e2d29"
+    },
+    {
+      "file": "assets/handmade/textures/bark-color.jpg",
+      "bytes": 297877,
+      "sha256": "053794dc9d3d5c39fc00f2d0f0fc5f6f5c9b81b58c016af26c4aba0335d01722"
+    },
+    {
+      "file": "assets/handmade/textures/bark-normal.jpg",
+      "bytes": 67610,
+      "sha256": "91c8e6166e47876b213c59207cc3addecec5c1303509960cd81167e6c48984a1"
+    },
+    {
+      "file": "assets/handmade/textures/bark-roughness.jpg",
+      "bytes": 16648,
+      "sha256": "e24b8ca0304ab42f025561646576031aaf9e2919f57582d85033e29e78054b61"
+    },
+    {
+      "file": "assets/handmade/textures/oak-leaves.png",
+      "bytes": 238115,
+      "sha256": "24451223cf396d22910a4932b8bb996a7274e63d81e24128c96a430ab67822b1"
+    },
+    {
+      "file": "assets/handmade/textures/plaster-color.png",
+      "bytes": 184724,
+      "sha256": "14203c5854527658a6d511b7b513f2e466c036608ab7d8b53c326840142d6507"
+    },
+    {
+      "file": "assets/handmade/textures/plaster-normal.png",
+      "bytes": 616473,
+      "sha256": "f9148f0d5a8d46170c0499f616f63b558e7356244ece203981789b9d0de3b8c3"
+    },
+    {
+      "file": "assets/handmade/textures/roof-color.png",
+      "bytes": 263688,
+      "sha256": "696da3d9d1d122ac22290433292b9c0490d6a5a2bd102401a4ceeea95f217854"
+    },
+    {
+      "file": "assets/handmade/textures/roof-normal.png",
+      "bytes": 616474,
+      "sha256": "a82f06d24fdd8e309e793bc9f773137a04b6844b0caba11a7a83b8bfd86fabbf"
+    },
+    {
+      "file": "assets/handmade/textures/soil-color.png",
+      "bytes": 241701,
+      "sha256": "fa0a9cfdf5b853d900311d2ec7ce73bb422bed459c51b4c781984a67573794c4"
+    },
+    {
+      "file": "assets/handmade/textures/soil-normal.png",
+      "bytes": 616472,
+      "sha256": "c34f7d544e4696fc54af22fee0c1f6db304c287bedb99e877198ee0223fb4038"
+    },
+    {
+      "file": "assets/handmade/textures/stone-color.png",
+      "bytes": 247813,
+      "sha256": "0e7a8a9d07045eb0d24c046637a8bc682da6a6a067790b602dead1314224270a"
+    },
+    {
+      "file": "assets/handmade/textures/stone-normal.png",
+      "bytes": 616471,
+      "sha256": "2acc47ba46b23786252ba5b93975f157edcfe42cb22efa202bd124e8c8dea26f"
+    },
+    {
+      "file": "assets/handmade/textures/wood-color.png",
+      "bytes": 223165,
+      "sha256": "7e25c26082ff5c22e0cbc5f2a5bac74024790fdf893572ef4eb4c0c8f0e06955"
+    },
+    {
+      "file": "assets/handmade/textures/wood-normal.png",
+      "bytes": 616473,
+      "sha256": "f9148f0d5a8d46170c0499f616f63b558e7356244ece203981789b9d0de3b8c3"
+    },
+    {
+      "file": "assets/handmade/trees.glb",
+      "bytes": 2111024,
+      "sha256": "8d44c147d35a8766a5590a924ecfe70dbae8aa4b1b9aa4d0ea1db2ac299d6e4e"
+    },
+    {
+      "file": "black-forest.html",
+      "bytes": 10555,
+      "sha256": "912ca705d7abdc8ce66fedd3aa611a562bc174d01c6cf12c0c4b91755420794b"
+    },
+    {
+      "file": "castle.html",
+      "bytes": 10558,
+      "sha256": "9d36e1ef6b45274471afbacc52c264b9eb1fd42b1b9bf81b8eb82818efcc8b6d"
+    },
+    {
+      "file": "crest.svg",
+      "bytes": 274,
+      "sha256": "1bcf54c4520b0d7216ac96adcc8525099a6b7bcaddb125f44d9e3262a1356e7d"
+    },
+    {
+      "file": "flower-sea.html",
+      "bytes": 10558,
+      "sha256": "bc76d2f98e7502d430ff227f3ce301d36e839ec4bc105c37027f4015143c03c9"
+    },
+    {
+      "file": "index.html",
+      "bytes": 10561,
+      "sha256": "3bf3af929fa8a44fd6a9723a1eed49e4ce5641e5e52baefa9b98a7499f97e3b4"
+    },
+    {
+      "file": "runtime/main-3ZyRfVv6.js",
+      "bytes": 880277,
+      "sha256": "c2f16c4442cf2abfeeb81c09fbb9e1782946edfb3f3261f2fdf19686b484106c"
+    },
+    {
+      "file": "runtime/main-DDTPHB7q.css",
+      "bytes": 18874,
+      "sha256": "459933f02addd8929d9e8d98eb51cc0cd2501f0f3978ba5ec9e03b019c079f6b"
+    }
+  ]
+}

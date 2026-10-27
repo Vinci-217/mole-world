@@ -1,28 +1,28 @@
-摩尔庄园 · 经典世界 · 打开说明
+归来的风景 · 三片相连的庄园
 
-一、直接体验
-下载 MoleManor-Offline.html，使用电脑上的 Chrome 或 Edge 打开。
-全部模型、代码、贴图和声音生成逻辑都在这个文件里，不需要安装软件或连接模型 API。
-初次进入请等待场景加载。需要支持 WebGL 2 的浏览器，建议开启硬件加速。
-进入即为第一人称，WASD 行走、Shift 快走、拖动环顾，Esc 切换鸟瞰。
-顶部「时间·天气」可展开环境控制，点击扬声器开启音乐。
-按 M 或点击「世界地图」，选择地区或子地点设置步行路线。「沿路漫游」可自动前进，WASD 随时接管。也可快速前往；所有地点保留在同一个世界里。「俯瞰全境」可查看全世界。
-手机文件预览器通常不支持完整 WebGL，请使用网站版本或电脑浏览器。
-神秘花海专页位于网站版 flower-sea.html，可探索连片花田、溪流双桥和远方花屋；点击原版BGM可播放存档配置对应的BGM_131。原图与音乐来源说明在assets/flower-sea/下。
-黑森林专页位于 black-forest.html，包含代码制作的古树、树洞、石桥、遗迹和荧光蘑菇，支持月夜、林雾、细雨及林间合成音景。两个场景通过顶部入口切换，均未包含在旧世界离线单文件中。
+浏览器进入 index.html，摩尔城堡、神秘花海和黑森林属于同一个世界。
+点击「开始探索」进入步行并开启原版音乐。WASD / 方向键行走，拖动环顾，
+Shift 快走，空格轻跳，E 互动，Esc 环绕看风景，M 打开地图，J 旅人手记，P 拍照。
+手机使用屏幕方向键和「互动」按钮。顶部可快速抵达三个地区；也能沿小径与石桥步行跨区。
+花海浇花、森林点亮三盏灯后触碰树心、城堡推门并敲钟，组成一段会保存在本机的旅程。
+右上角可选晴天、薄雾、细雨，以及昼夜和画质；「留下风景」可下载实际三维照片。
 
-二、发布为网站
-MoleManor-Website.zip 内是完整的静态网站，没有服务端或密钥。
-解压后，将包含 index.html 的整个文件夹上传至静态网站托管服务。
-例如，在 Netlify Drop（https://app.netlify.com/drop）登录后拖入解压的文件夹。
-也可部署到 Cloudflare Pages，构建输出目录为该文件夹根目录。
-请保留 assets 文件夹。当前版本支持部署在子目录中。
+Handmade-Manor-Website.zip 是静态网站包。解压后运行：
+  python3 -m http.server 8000
+然后在浏览器打开 http://localhost:8000。请勿用 file:// 双击 HTML，
+模型加载及 SHA-256 校验需要 HTTP 的 localhost 或 HTTPS。
+也可以将整个文件夹上传任意 HTTPS 静态托管，支持托管在子目录下。
+网页正常运行不需要 Node、Blender、模型 API 或密钥。
 
-这是场景原型：12 个户外地区通过道路连接，另有 8 个户外子地点初版；注册的其余 23 个子地点及其他历史地图尚未完成，画质未达到3A标准。
-已有天气、昼夜、漫游、接触阴影、植被模型与合成音乐。
-主城堡按页游参考在 Blender 中重构，带实体屋瓦、钟面和王冠入口；前庭布局为3D空间转译，并非一比一官方地图。
+Handmade-Manor-Blender.zip 提供八个已经打包贴图的 .blend 工程、原始建模脚本、
+纹理与完整来源。Blender 4.3.2 可以直接编辑，不是用截图代替三维模型。
+在该源包根目录执行：
+  blender -b --python-exit-code 1 --python scripts/build_handmade_world.py
+  blender -b --python-exit-code 1 --python scripts/audit_handmade.py
+输出位于 public/assets/handmade/，工程位于 artifacts/handmade/。
+Three.js 地形、种植布局、水体和交互源代码位于 GitHub 仓库的 src/manor/。
 
-树木模型：BabylonJS Assets contributors，CC BY 4.0，已调整格式、纹理与尺寸。
-来源 https://github.com/BabylonJS/Assets/tree/c81f5d744fe8d41acfebd89eaeb7008c6f9659e3/meshes/Trees
-许可 https://creativecommons.org/licenses/by/4.0/
-完整来源、修改说明及许可证随压缩包附带。
+当前版本是重新制作的可玩场景，未声称达到 3A 成品画质或还原所有原版地图。
+详细素材许可见 assets/handmade/credits.html（网站）或 public/assets/handmade/credits.html（源包）。
+本项目为非官方同人，原版音乐权利归原游戏权利方。
+源代码与后续版本：https://github.com/Vinci-217/mole-world
