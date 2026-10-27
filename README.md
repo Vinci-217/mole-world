@@ -1,125 +1,83 @@
-# 摩尔庄园 · 经典世界
+# 摩尔庄园 · 归来的风景
 
-当前集中制作两个独立可探索场景：[神秘花海](https://raw.githack.com/Vinci-217/mole-world/gh-pages/flower-sea.html) 与 [黑森林](https://raw.githack.com/Vinci-217/mole-world/gh-pages/black-forest.html)，由页面顶部切换。
+浏览器中的单人三维漫游，当前重构版包含 **摩尔城堡、神秘花海、黑森林**。三处位于同一个驻留世界，以地形、小径与两座实体石桥相连。顶部可快速前往，也可以步行跨区。
 
-花海保留四项混元地标及 Blender 制作的花藤与花卉，增加四片可步行花田、花径和第二座木桥；近处精细花瓣与中远景模型分级显示。可切换晴日、黄昏、月夜、细雨；原版 **BGM_131** 点击开启。黑森林用 Three.js 制作扭曲古树、树洞、苔桥、遗迹和荧光蘑菇，复用授权树林与树皮纹理，配有月光、林雾、萤火、浮尘、细雨和原创合成林间音景。渲染使用 HDR 环境照明、N8AO 接触阴影、克制辉光与 FXAA。制作细节见 [花海流程](docs/flower-sea.md) 和 [黑森林说明](docs/black-forest.md)。
+这是受经典页游启发的非官方同人场景，允许空间改编。**当前不代表完整原版地图、3A 成品画质或已经验收的硬件帧率。** 历史的大世界与 AI 模型实验仍保存在 Git 历史和旧源码中；当前生产入口使用 `src/manor/`，生产包不会携带旧模型库。
 
-这是一张以原图核心地标为依据、向四周扩展探索空间的花园，尚未连接十二地区世界，也未实现虫虫谷和神秘花蕊。不是原版完整复刻或 3A 成品。制作、原图和音乐来源、模型实际面数及鉴权方式见 [花海流程](docs/flower-sea.md)。
+## 体验
 
-以经典页游地标为基准的浏览器单机 3D 世界重构。现在 **12 个户外地区在同一个连续世界中，由 16 条道路连接**：摩尔城堡、淘淘乐街、爱心教堂、开心农场、阳光牧场、浆果丛林、摩尔拉雅雪山、神秘湖、拉姆学院、前哨站、黑森林和游乐场。另新增 8 处可走入的户外子地点初版，包括彩虹瀑布、力量之泉、浆果秘道、滑冰场、雪山顶、运动场、骑士训练场和赛车场。范围与实际内容见 [连续世界说明](docs/connected-world.md)。
+- 城堡：红瓦尖塔、钟面、王冠浮雕、拱窗、双扇活动门与可进入的门厅，前庭有可开关喷泉。
+- 花海：花瓣亭、花屋、温室、连片四色花田、花田长椅与可浇水盛开的花种。
+- 黑森林：三种树形、古树树洞、林间遗迹、溪流、蕨类、蘑菇与三盏可点亮的旧灯。
+- 三段旅程：浇花 → 点灯、触碰树心 → 推门、敲响归途钟；进度和留影记录保存在当前浏览器。
+- 环绕观察 / 第一人称、跑步、轻跳、坐下、地图地点导航、昼夜、细雨 / 薄雾、照片 PNG 导出、手机方向键。
+- 点击「开始探索」后播放档案中神秘花海配置对应的原版 BGM_131，风、水、脚步和钟声通过 Web Audio 合成。
 
-打开即为第一人称。**M 打开世界地图 → 选择地区/子地点 → 沿路前往 → 沿路漫游**，也可 WASD 自由行走、Shift 快走；快速前往只改变玩家位置。地图中的「俯瞰全境」可以看到道路连接的整个世界。Esc 切换鸟瞰，再继续漫游会保留玩家位置。天气和昼夜控制在顶部「时间·天气」。
+WASD / 方向键行走，拖动环顾，Shift 快走，空格轻跳，Ctrl 蹲下，E 互动；Esc 看风景，M 地图，J 手记，P 留影。
 
-**这不是全部历史地图的完整还原，画面尚未达到 3A 标准。** 地标之外的精确布局、室内、子地图、角色精度和大量环境细节仍需制作。不要把四个城堡观景位置计作四张地图，也不要把户外初版计作制作完成。地图名称证据、未建子地图和版本边界见 [世界图谱](docs/world-atlas.md)，全部候选条目见 [313 个地图编号清单](docs/classic-map-inventory.md)，城堡轮廓依据见 [视觉基准](docs/visual-reference.md)。
+## 本地开发
 
-这一轮增加真实树木 GLB、透明叶片与法线贴图、实例化草丛与蕨类、风吹动画、GTAO 接触阴影和离屏多重采样；修正背面主光、过强补光、地形与植被错位，以及路面纹理密度不一致的问题。没有把二维概念图当作实时游戏截图。完成条件与后续画质工作见 [制作验收](docs/production-acceptance.md)。
-
-## 直接体验
-
-- [美术画册](https://raw.githack.com/Vinci-217/mole-world/gh-pages/art/index.html)：AI 场景效果图与透明背景单体参考，可按地区筛选、放大查看和下载原图。这些图片尚未转成 3D 模型，原版布局也未逐图核对，不能当作实机截图。
-- [在线预览](https://raw.githack.com/Vinci-217/mole-world/gh-pages/index.html)：第三方静态预览入口；发布时使用固定提交链接，并校验线上文件与构建文件的 SHA256。
-- [下载离线版](https://github.com/Vinci-217/mole-world/raw/refs/heads/gh-pages/downloads/MoleManor-Offline.zip)：解压，用电脑 Chrome/Edge 打开 `MoleManor-Offline.html`。城堡、树木模型、贴图和脚本全部内嵌，无需 Node、服务器或模型 API。
-- [网站发布包](https://github.com/Vinci-217/mole-world/raw/refs/heads/gh-pages/downloads/MoleManor-Website.zip)：完整静态网站，可上传 Netlify Drop、Cloudflare Pages 等服务。
-
-源码在 `main`，静态发布文件在 `gh-pages`。第三方预览缓存旧版时，使用对应发布提交 SHA 的预览链接即可明确指定版本。正式 GitHub Pages 需在仓库 Settings → Pages 中设置 Deploy from a branch → gh-pages → /(root)。
-
-## 运行与验证
-
-需要 Node.js 22.12+；当前环境使用 24.19.0。云任务已经隔离，直接使用现有检出，无需额外 Git worktree。
+Node 24、npm 11、Python 3；普通运行不需要 Blender 或任何模型 API 密钥。
 
 ```bash
-cd /workspace/mole-world
-npm ci --cache /workspace/.npm-cache --no-audit --no-fund
+npm ci --cache /workspace/.npm-cache
 npm run dev
 ```
 
-Vite 监听 5173，应用需要 WebGL 2 和现代浏览器。所有运行时模型均随网站提供，不依赖外部 CDN、账号、数据库或密钥。
+本地开发地址由 Vite 输出，默认端口 5173。生产构建：
+
+```bash
+npm run build
+npm run preview
+```
+
+静态站的输出为 `dist/`。也可以在构建后运行 `python3 -m http.server 4186 --directory dist`。必须使用 localhost 的 HTTP 或公开 HTTPS；请勿通过 `file://` 打开，WebGL 资源和 SHA-256 校验需要正确的浏览器安全上下文。
+
+四个页面入口使用同一套世界：`index.html` / `castle.html`、`flower-sea.html`、`black-forest.html`。支持子目录部署，没有服务端、外部模型 API 或运行时 CDN 依赖。
+
+## 模型制作与复用素材
+
+七组 GLB 几何全部由本项目在 Blender 4.3.2 中构建：城堡、花屋、花瓣亭、花卉、树木、古树树洞、道具。未使用混元或 Tripo 模型。Blender 工程包含材质与打包贴图，可继续编辑；使用脚本建模不等同于已经完成专业美术人工精修。
+
+复用未经图像修改的 Poly Haven CC0 树皮照片、EZ-Tree MIT 树叶图集、Poly Haven CC0 HDR。没有复用它们的树木骨架或三维模型。石材、灰泥、屋瓦、土壤、木材贴图为 Blender 材质节点烘焙。完整署名见 [制作与素材](public/assets/handmade/credits.html)。原版音乐权利归原游戏权利方。
+
+```bash
+npm run models:handmade
+npm run models:audit
+```
+
+第一条写入 `public/assets/handmade/` 和八个 `artifacts/handmade/*.blend`；第二条在 Blender 中重新导入实际 GLB，检查坐标、法线、三角数量、树洞拓扑及大门开关的真实射线通行。
+
+## 检查与实机截图
 
 ```bash
 npm run build
 npm test
+npm run capture
+```
+
+测试包含六项 Python 几何 / 导航 / 存档 / 发布检查、六项 Chromium 浏览器功能检查。浏览器配置会在需要时启动 `dist/` 静态服务；默认使用 `/usr/bin/chromium`。捕获脚本需要先启动同一静态服务，也可通过 `MANOR_URL` 指定地址。
+
+功能检查覆盖三个地区、完整旅程及刷新恢复、真实行走与坐下、原版音乐播放、昼夜与天气、照片下载、手机操作、损坏资产的显式报错。截图使用实际 WebGL 输出，不用概念图代替。
+
+云环境的 Chromium 使用 SwiftShader 软件渲染；测试通过不能证明真实设备的帧率、内存或 3A 视觉标准。截图脚本为了可复现地执行少量实机帧而控制 RAF，记录的帧间隔不能作为游戏性能数据。
+
+## 打包与发布
+
+```bash
 npm run release
+npm run publish
+npm run verify:live
 ```
 
-构建输出为 `dist/`，含 `index.html`、`flower-sea.html` 和 `black-forest.html`，分别构建以保留旧世界离线单文件的独立性。发布命令另生成 `artifacts/release/MoleManor-Offline.html`、离线 ZIP 和网站 ZIP。离线单文件包含旧世界；神秘花海与黑森林在网站包内。包中不含环境变量、密钥或生成任务回执。
+发布前需完成模型审计、浏览器测试和九张真实场景截图。`release` 输出两个独立 ZIP：静态网站和可编辑 Blender 源工程，位于 `artifacts/handmade/release/`。Blender 工程不依赖旧的生成任务。
 
-发布前可生成各地区的真实高画质截图，同时验证自包含版本完全离线运行：
+发布脚本只复制当前生产资源、这两个下载包及实机截图，保留 Git 发布历史，用普通快进推送更新 `main` 与 `gh-pages`。没有 `--push` 时只生成本地发布提交，不上传。部署验证对每一个发布文件进行严格 HTTPS 下载与 SHA-256 对比，不关闭证书验证。
 
-```bash
-node scripts/capture_world.mjs
-```
+## 制作记录
 
-当前托管式 Chromium 阻止 `file://` 导航，离线检查使用网络关闭的浏览器载入全部自包含 HTML，不声称已经测试被策略禁止的文件导航。截图保存到 `artifacts/world-previews/`。
+- [当前重构与美术取舍](docs/handmade-world.md)
+- [制作与验收边界](docs/production-acceptance.md)
+- [经典地图资料清单（历史参考）](docs/classic-map-inventory.md)
 
-在已获授权的发布任务中，可运行 `python3 scripts/publish_site.py --push`，它将已构建网站、离线下载与实机图集写到 `gh-pages`，同时将当前源码提交推到 `main`，不会切换当前检出。未加 `--push` 时仅在本地准备静态提交。
-
-美术图稿独立保存在 `art-direction/`，登记范围为 12 个主地区、31 个子地点，另有浆果丛林古树、灌木和岩石共 3 个图生 3D 输入参考。这个范围不等于全部历史地图。运行 `python3 scripts/art_direction.py render` 更新画册及各地区 ZIP；发布时放在网站的 `/art/` 路径，避免将全部大图塞进当前游戏离线包。详细状态以 [图稿目录](art-direction/catalog.json) 为准，`modelStatus` 独立于图片生成状态。
-
-测试包含 Python 资产管线测试及真实 Chromium 集成测试。管线测试中的付费网络请求均为模拟，用于验证 GLB 完整性、授权头隔离、任务恢复及避免重复提交；它们不代表真实 API 已验证。浏览器测试会加载实际城堡和植被模型，检查全部地区同时驻留、跨越旧区域边界、20 处目的地的连续导航、远处雨雪跟随、昼夜、音乐、鸟瞰、键盘漫游及移动端地图。默认 Chromium 路径 `/usr/bin/chromium`，可设置 `CHROMIUM_PATH` 更换。
-
-## 当前场景与图形管线
-
-- 实际 GLB 城堡：149,154 三角、9 个按材质合并的网格、6 张嵌入的 1024²色彩/法线贴图。
-- 红瓦尖塔、实体搭接瓦、金边钟面与指针、王冠与红宝石、细圆塔、窗框和后排城垛。
-- CC BY 4.0 的 BabylonJS Assets 树木 GLB，保留真实分枝、叶片透明裁切及树皮/叶片法线，按近远选用 879–4,420 三角模型并实例化；草丛、蕨类和野花随风摆动。
-- 原创网格重构的摩尔与拉姆，带简单行走、呼吸和漂浮动画。
-- 中轴道路、绿篱、花圃、水景、树林、溪水与石桥。
-- 12 个户外地区与 8 个户外子地点初版，共享地形、实际道路和世界地图；城堡前庭有四个观景位置；拖动/缩放视角；WASD、Shift、拖动环顾、Esc 退出的第一人称漫游；手机方向键。
-- 连续昼夜、时间暂停、晴朗/薄雾/雨/雪，夜间灯火、接触阴影、柔和阴影、受阈值控制的辉光、云层和星空。
-- 水滴、雨雪、落叶、萤火、烟雾及飞鸟。
-- 原创合成环境音乐、风雨流水与脚步声。浏览器要求点击后开启音频。
-- 本地保存时间、天气、音量和画质；照片导出和地点导览。
-
-建筑目前不含室内场景，雪不产生物理堆积，光照不是光线追踪。整体地图和隐藏背立面仍属重构解释，需要更多原版参考才能进一步核对。不要把技术测试通过等同于美术还原验收。
-
-## 树木资产来源与重建
-
-树木模型来自 [BabylonJS Assets contributors](https://github.com/BabylonJS/Assets/tree/c81f5d744fe8d41acfebd89eaeb7008c6f9659e3/meshes/Trees)，采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)。本项目选择原有 LOD，转换坐标、格式、纹理和尺寸并内嵌到 GLB；没有将其标为自制或 Tripo 生成。完整来源和许可位于 `public/assets/nature/SOURCE.txt` 和 `LICENSE-BabylonJS.txt`，页面指南与离线包也保留署名。
-
-普通运行直接使用仓库内 GLB，无需重新下载。重建时需要 Python 与 Pillow：
-
-```bash
-python3 scripts/prepare_vegetation.py
-```
-
-## Blender 来源与重建
-
-主城堡是依据可查看轮廓新建的 Blender 网格，不是提取的官方模型，也不是 Tripo 结果。生成脚本会自行生成石灰石、陶瓦和木纹表面，建模并按材质合并，输出独立 GLB。
-
-```bash
-blender --background --factory-startup --python scripts/build_mole_castle.py
-```
-
-输出 `public/assets/mole/mole-castle.glb` 和建模信息 JSON；可编辑源文件保存在 `artifacts/authoring/mole-castle.blend`。普通安装运行不需要执行 Blender。页游参考截图仅用于观察，不随应用发布。
-
-## Tripo 集成
-
-`assets-plan.json` 已改为经典摩尔城堡的造型约束，取消上一版通用欧洲堡与酒馆计划。模型版本仍为用户指定的 `v3.1-20260211`，目前计划仅有一个城堡资产。
-
-```bash
-npm run assets:plan
-npm run assets:generate -- --asset mole-castle
-```
-
-第一条仅打印计划，不联网或收费。生成命令需要安全运行时绑定 `TRIPO_API_KEY` 和 `openapi.tripo3d.ai` 的出站权限；只在明确授权生成时执行，普通安装和启动不会调用。当前运行环境没有该绑定，真实付费任务尚未提交。
-
-脚本基于官方 apiv3 文档，保留 TLS 校验。密钥只用于服务端 HTTPS，不进入网页、GLB、仓库或 CDN 请求。回执在被忽略的 `.asset-tasks/`；重复运行复用已有任务，付费 POST 不自动重试。下载校验后更新资产清单，页面刷新即可接入。来源为 Tripo 的模型必须在实际生成和检查后才能这样标记。
-
-## 文件
-
-- `src/world-atlas.ts`：12 个导览地区、证据和未建子地图。
-- `src/region-scenes.ts`：各户外初版的地形、建筑与动画。
-- `src/explorer.ts`：持久地区、全局碰撞与道路优先的导航。
-- `src/world-layout.ts` / `src/landscape.ts`：连续地形、道路、路标及沿路植被。
-- `src/world-sites.ts` / `src/world-extensions.ts`：户外子地点与连接小径。
-- `src/atlas-ui.ts`：交互式世界地图。
-- `src/vegetation.ts`：实例化树木、草丛、风与资源管理。
-- `src/rendering.ts`：接触阴影与透明物体的深度处理。
-- `src/world.ts`：前庭布局、模型加载、静态合批、天气粒子与碰撞。
-- `src/mole-life.ts`：摩尔和拉姆的网格、材质与动画。
-- `src/main.ts`：相机、时间、渲染和界面控制。
-- `src/audio.ts`：合成配乐和环境声景。
-- `scripts/build_mole_castle.py`：可重复的 Blender 城堡建模。
-- `scripts/package_release.py`：无安装离线网页和静态网站包。
-- `scripts/tripo_assets.py`：付费生成、恢复和安装流程。
-- `scripts/art_direction.py`：图稿登记、画册和按地区原图包。
+当前入口的代码为 `src/manor/`；`scripts/build_handmade_world.py` 为可重复建模源，`vite.manor.config.ts` 为四入口构建及资源白名单配置。旧版文件为历史实验，不属于当前生产包。

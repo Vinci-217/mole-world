@@ -4,11 +4,21 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["src", "vite.config.ts", "vite.flower.config.ts", "vite.forest.config.ts"]
+  "include": [
+    "src",
+    "vite.config.ts",
+    "vite.flower.config.ts",
+    "vite.forest.config.ts",
+    "vite.manor.config.ts"
+  ]
 }

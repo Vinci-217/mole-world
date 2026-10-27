@@ -1,19 +1,19 @@
 {
   "name": "mole-manor-world",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
-    "build": "tsc --noEmit && vite build && vite build --config vite.flower.config.ts && vite build --config vite.forest.config.ts",
-    "preview": "vite preview --host 0.0.0.0",
-    "release": "npm run build && python3 scripts/package_release.py",
-    "assets:plan": "python3 scripts/tripo_assets.py plan",
-    "assets:generate": "python3 scripts/tripo_assets.py generate",
-    "flower:plan": "python3 scripts/hunyuan_assets.py plan",
-    "flower:generate": "python3 scripts/hunyuan_assets.py generate",
-    "flower:prepare": "python3 scripts/flower_sea.py prepare",
-    "test": "python3 -m unittest discover -s tests -p 'test_*.py' && playwright test"
+    "dev": "vite --config vite.manor.config.ts --host 0.0.0.0",
+    "build": "tsc --noEmit && vite build --config vite.manor.config.ts && python3 scripts/stage_handmade_assets.py",
+    "preview": "vite preview --config vite.manor.config.ts --host 0.0.0.0",
+    "release": "npm run build && python3 scripts/package_handmade.py",
+    "test": "python3 -m unittest discover -s tests -p test_handmade_world.py && playwright test --config playwright.manor.config.ts",
+    "models:handmade": "blender -b --python-exit-code 1 --python scripts/build_handmade_world.py",
+    "models:audit": "blender -b --python-exit-code 1 --python scripts/audit_handmade.py",
+    "capture": "node scripts/capture_handmade.mjs",
+    "publish": "python3 scripts/publish_handmade.py --push",
+    "verify:live": "python3 scripts/verify_handmade_deployment.py"
   },
   "dependencies": {
     "lucide": "0.468.0",
